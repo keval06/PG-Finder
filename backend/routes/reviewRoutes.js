@@ -8,8 +8,8 @@ const {
   getReviewsByPg,
 } = require("../controllers/review.js");
 
-router.post("/", registerReview);
+router.post("/", protect, registerReview);
 router.get("/", getReviewsByPg);
-router.patch("/:id", updateReview);
+router.patch("/:id",protect, updateReview);
 
 module.exports = router;

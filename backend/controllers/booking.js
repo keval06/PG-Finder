@@ -3,7 +3,6 @@ const Booking = require("../models/booking.js");
 exports.registerBooking = async (req, res) => {
   try {
     const {
-      user,
       pg,
       checkInDate,
       checkOutDate,
@@ -13,7 +12,6 @@ exports.registerBooking = async (req, res) => {
     } = req.body;
 
     const existingBooking = await Booking.findOne({
-      user,
       pg,
       checkInDate: { $lte: checkOutDate },
       checkOutDate: { $gte: checkInDate },
@@ -31,13 +29,8 @@ exports.registerBooking = async (req, res) => {
       });
     }
     const booking = await Booking.create({
-      user,
-      pg,
-      checkInDate,
-      checkOutDate,
-      status,
-      amount,
-      paymentStatus,
+      ...req.body,
+      user: req.user._id,
     });
 
     res.status(201).json(booking);
@@ -60,11 +53,9 @@ exports.getBooking = async (req, res) => {
         { checkInDate: { $lte: new Date(checkOutDate) } },
         { checkOutDate: { $gte: new Date(checkInDate) } },
       ];
-    } 
-    else if (checkInDate) {
+    } else if (checkInDate) {
       baseFilter.checkInDate = { $gte: new Date(checkInDate) };
-    } 
-    else if (checkOutDate) {
+    } else if (checkOutDate) {
       baseFilter.checkInDate = { $lte: new Date(checkOutDate) };
     }
 

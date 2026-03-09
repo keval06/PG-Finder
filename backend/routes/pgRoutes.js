@@ -9,10 +9,10 @@ const {
   updatePg,
 } = require("../controllers/pg.js");
 
-router.post("/", registerPG);
+router.post("/", protect, registerPG);
 router.get("/", getAllPg);
 router.get("/:id", getPg);
-router.patch("/:id", updatePg);
+router.patch("/:id",protect, updatePg);
 // router.post("login", loginUser);
 
 module.exports = router;

@@ -33,6 +33,7 @@ app.use("/api/pg", require("./routes/pgRoutes.js"));
 app.use("/api/booking", require("./routes/bookingRoutes.js"));
 app.use("/api/review", require("./routes/reviewRoutes.js"));
 app.use("/api/image", require("./routes/imageRoutes.js"));
+app.use("/api/auth", require("./routes/authRoutes.js"));
 
 // Error handling middleware
 app.use((err, req, res, next) => {

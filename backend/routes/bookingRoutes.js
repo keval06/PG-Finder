@@ -8,9 +8,9 @@ const {
   getBooking,
 } = require("../controllers/booking.js");
 
-router.post("/", registerBooking);
-router.get("/", getBooking);
-router.patch("/:id", updateBooking);
+router.post("/",protect, registerBooking);
+router.get("/", protect ,getBooking);
+router.patch("/:id",protect, updateBooking);
 // router.post("login", loginUser);
 
 module.exports = router;
