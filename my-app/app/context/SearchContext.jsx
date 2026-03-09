@@ -13,6 +13,8 @@ export function SearchProvider({ children }) {
   );
 }
 
+// ?custom hook, whoever use useSearch() 
+// can access the query and setQuery, to access the cloud
 export function useSearch(){
     return useContext(SearchContext);
 }

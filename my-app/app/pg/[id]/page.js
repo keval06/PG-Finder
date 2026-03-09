@@ -1,19 +1,20 @@
 import PGGallery from "../../components/PGGallery";
-
-const amenityIcons = {
-  Parking: "🚗",
-  WiFi: "📶",
-  AC: "❄️",
-  Laundry: "🧺",
-  Lift: "🛗",
-  CCTV: "📷",
-  RO: "🚰",
-  TV: "📺",
-  Refrigerator: "🧊",
-  Gym: "🏋️",
-  Garden: "🌿",
-  Library: "📚",
-};
+import {
+  Wifi,
+  Car,
+  Snowflake,
+  Tv,
+  Camera,
+  Dumbbell,
+  Book,
+  Trees,
+  Refrigerator,
+  WashingMachine,
+  ArrowUpDown,
+  Bed,
+  User,
+  Utensils,
+} from "lucide-react";
 
 async function getPG(id) {
   const res = await fetch(`http://localhost:5000/api/pg/${id}`, {
@@ -48,13 +49,27 @@ async function getReviews(id) {
 
 export default async function PGDetails({ params }) {
   const { id } = await params;
+  const amenityIcons = {
+    Parking: Car,
+    WiFi: Wifi,
+    AC: Snowflake,
+    Laundry: WashingMachine,
+    Lift: ArrowUpDown,
+    CCTV: Camera,
+    RO: Refrigerator,
+    TV: Tv,
+    Refrigerator: Refrigerator,
+    Gym: Dumbbell,
+    Garden: Trees,
+    Library: Book,
+  };
 
   const [pg, images, reviews] = await Promise.all([
     getPG(id),
     getImages(id),
     getReviews(id),
   ]);
-  console.log(reviews)
+  console.log(reviews);
 
   const avgRating = reviews.length
     ? (reviews.reduce((sum, r) => sum + r.star, 0) / reviews.length).toFixed(1)
@@ -70,7 +85,7 @@ export default async function PGDetails({ params }) {
           {/* Name + Rating */}
           <div>
             <h1 className="text-3xl font-semibold capitalize">{pg.name}</h1>
-            <p className="text-gray-500 text-sm capitalize mt-1">
+            <p className="text-gray-500 text-base capitalize mt-1">
               {pg.address}, {pg.city}
             </p>
             {avgRating && (
@@ -81,28 +96,41 @@ export default async function PGDetails({ params }) {
           </div>
 
           {/* Room Info */}
+          <h2 className="text-xl font-semibold">Room Details</h2>
           <div className="flex gap-8 text-gray-700 capitalize">
-            <p>🛏 {pg.room} Rooms</p>
-            <p>👤 {pg.gender}</p>
-            <p>🍽 {pg.food}</p>
-          </div>
+            <div className="flex items-center gap-2">
+              <Bed size={18} />
+              <span>{pg.room} Rooms</span>
+            </div>
 
-          {/* Amenities */}
-          <div>
-            <h2 className="text-xl font-semibold mb-3">Amenities</h2>
-            <div className="grid grid-cols-3 gap-4 capitalize">
-              {pg.amenities.map((item, i) => (
-                <div
-                  key={i}
-                  className="flex items-center gap-2 text-gray-700 text-sm"
-                >
-                  <span className="text-xl">{amenityIcons[item]}</span>
-                  <span>{item}</span>
-                </div>
-              ))}
+            <div className="flex items-center gap-2">
+              <User size={18} />
+              <span>{pg.gender}</span>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <Utensils size={18} />
+              <span>{pg.food}</span>
             </div>
           </div>
 
+          {/* Amenities */}
+          <h2 className="text-xl font-semibold">Amenities</h2>
+
+          
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+            {pg.amenities.map((item, i) => {
+              const Icon = amenityIcons[item];
+
+              return (
+                <div key={i} className="flex items-center gap-3 text-gray-700">
+                  {Icon && <Icon size={20} />}
+
+                  <span className="text-sm">{item}</span>
+                </div>
+              );
+            })}
+          </div>
           {/* Policies */}
           <div className="bg-gray-50 rounded-xl p-5 border">
             <h2 className="text-xl font-semibold mb-3">Policies</h2>
@@ -132,14 +160,13 @@ export default async function PGDetails({ params }) {
             ) : (
               <div className="flex flex-col gap-4">
                 {reviews.map((r) => (
-                  <div 
-                  key={r._id} 
-                  className="border rounded-xl p-4">
+                  <div key={r._id} className="border rounded-xl p-4">
                     <div className="flex items-center justify-between">
                       <p className="font-medium capitalize">
                         {r.user?.name || "Anonymous"}
                       </p>
                       <span className="text-yellow-500 text-sm">
+                        {/* Type of loop -> ★★★☆☆  */}
                         {"★".repeat(r.star)}
                         {"☆".repeat(5 - r.star)}
                       </span>
@@ -153,9 +180,9 @@ export default async function PGDetails({ params }) {
         </div>
 
         {/* RIGHT SIDE BOOKING CARD */}
-        <div className="border rounded-xl p-6 shadow-md h-fit sticky top-24">
+        <div className=" rounded-xl p-6 h-fit sticky top-24">
           <p className="text-3xl font-bold">₹{pg.price}</p>
-          <p className="text-gray-500 text-sm">per month</p>
+          <p className="text-gray-500 text-sm">Per month</p>
           <button className="w-full mt-4 bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition">
             Book Now
           </button>

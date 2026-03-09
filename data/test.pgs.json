@@ -1,0 +1,728 @@
+[{
+  "_id": {
+    "$oid": "698dc7cb3ea2434fd4065770"
+  },
+  "owner": {
+    "$oid": "698d7eda184292622ff4d390"
+  },
+  "name": "Sunrise PG for Boys",
+  "price": 7500,
+  "address": "123 MG Road, Near Metro Station, Andheri East",
+  "city": "Mumbai",
+  "gender": "male",
+  "room": 10,
+  "bathroom": 6,
+  "toilet": 6,
+  "food": "with food",
+  "amenities": [
+    "WiFi",
+    "AC",
+    "Laundry",
+    "CCTV",
+    "RO"
+  ],
+  "__v": 0,
+  "coordinate": [
+    72.8777,
+    19.076
+  ]
+},
+{
+  "_id": {
+    "$oid": "698dd05f7ae6d64899898ff4"
+  },
+  "owner": {
+    "$oid": "698e1111184292622ff4d500"
+  },
+  "name": "Green View PG",
+  "price": 9000,
+  "address": "45 Park Street, Near City Mall, Pune",
+  "city": "Delhi",
+  "gender": "mix",
+  "room": 15,
+  "bathroom": 8,
+  "toilet": 8,
+  "food": "flexible",
+  "amenities": [
+    "WiFi",
+    "Lift",
+    "CCTV",
+    "Gym",
+    "Parking"
+  ],
+  "__v": 0,
+  "coordinate": [
+    73.8567,
+    18.5204
+  ]
+},
+{
+  "_id": {
+    "$oid": "698ec335984806cd301d8adb"
+  },
+  "owner": {
+    "$oid": "698ebf79984806cd301d8aaa"
+  },
+  "name": "Sunrise Residency",
+  "price": 6500,
+  "address": "12 MG Road, Shivajinagar, Pune",
+  "coordinate": [],
+  "city": "Jaipur",
+  "gender": "male",
+  "room": 8,
+  "bathroom": 4,
+  "toilet": 4,
+  "food": "with food",
+  "amenities": [
+    "WiFi",
+    "Parking",
+    "CCTV",
+    "Library"
+  ],
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "698ec345984806cd301d8ade"
+  },
+  "owner": {
+    "$oid": "698ebf88984806cd301d8aad"
+  },
+  "name": "Ocean View PG",
+  "price": 15000,
+  "address": "45 Carter Road, Bandra West, Mumbai",
+  "coordinate": [],
+  "city": "Mumbai",
+  "gender": "female",
+  "room": 20,
+  "bathroom": 10,
+  "toilet": 10,
+  "food": "flexible",
+  "amenities": [
+    "WiFi",
+    "AC",
+    "Lift",
+    "Gym",
+    "CCTV"
+  ],
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "698ec357984806cd301d8ae1"
+  },
+  "owner": {
+    "$oid": "698ebf91984806cd301d8ab0"
+  },
+  "name": "Capital Stay",
+  "price": 9000,
+  "address": "22 Karol Bagh Main Road, New Delhi",
+  "coordinate": [],
+  "city": "Delhi",
+  "gender": "mix",
+  "room": 15,
+  "bathroom": 6,
+  "toilet": 6,
+  "food": "without food",
+  "amenities": [
+    "WiFi",
+    "RO",
+    "Laundry",
+    "TV"
+  ],
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "698ec367984806cd301d8ae4"
+  },
+  "owner": {
+    "$oid": "698ebf98984806cd301d8ab3"
+  },
+  "name": "Silicon Nest",
+  "price": 7500,
+  "address": "88 Electronic City Phase 1, Bangalore",
+  "coordinate": [],
+  "city": "Bangalore",
+  "gender": "female",
+  "room": 12,
+  "bathroom": 5,
+  "toilet": 5,
+  "food": "with food",
+  "amenities": [
+    "WiFi",
+    "AC",
+    "Laundry",
+    "Garden"
+  ],
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "698ec377984806cd301d8ae7"
+  },
+  "owner": {
+    "$oid": "698ebf9f984806cd301d8ab6"
+  },
+  "name": "Royal Comfort PG",
+  "price": 11000,
+  "address": "14 Banjara Hills Road No 12, Hyderabad",
+  "coordinate": [],
+  "city": "Hyderabad",
+  "gender": "male",
+  "room": 18,
+  "bathroom": 8,
+  "toilet": 8,
+  "food": "flexible",
+  "amenities": [
+    "WiFi",
+    "AC",
+    "Gym",
+    "Lift",
+    "Refrigerator"
+  ],
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "69ae958eb4bedb4443da5d7c"
+  },
+  "owner": {
+    "$oid": "65f100000000000000000001"
+  },
+  "name": "Lotus Nest Residency",
+  "price": 7500,
+  "address": "Sector 21, Gandhinagar, Gujarat 382021",
+  "coordinate": [
+    72.6369,
+    23.2156
+  ],
+  "city": "Gandhinagar",
+  "gender": "female",
+  "room": 12,
+  "bathroom": 6,
+  "toilet": 6,
+  "food": "with food",
+  "amenities": [
+    "WiFi",
+    "CCTV",
+    "RO",
+    "Laundry",
+    "Parking"
+  ]
+},
+{
+  "_id": {
+    "$oid": "69ae958eb4bedb4443da5d7d"
+  },
+  "owner": {
+    "$oid": "65f100000000000000000001"
+  },
+  "name": "Shantivan Living",
+  "price": 6800,
+  "address": "Navrangpura Main Road, Ahmedabad, Gujarat 380009",
+  "coordinate": [
+    72.5606,
+    23.0395
+  ],
+  "city": "Ahmedabad",
+  "gender": "female",
+  "room": 10,
+  "bathroom": 5,
+  "toilet": 5,
+  "food": "flexible",
+  "amenities": [
+    "WiFi",
+    "AC",
+    "CCTV",
+    "Lift"
+  ]
+},
+{
+  "_id": {
+    "$oid": "69ae958eb4bedb4443da5d7e"
+  },
+  "owner": {
+    "$oid": "65f100000000000000000001"
+  },
+  "name": "Pearl Girls Habitat",
+  "price": 8200,
+  "address": "Koregaon Park Lane 4, Pune, Maharashtra 411001",
+  "coordinate": [
+    73.8951,
+    18.5362
+  ],
+  "city": "Pune",
+  "gender": "female",
+  "room": 14,
+  "bathroom": 7,
+  "toilet": 7,
+  "food": "with food",
+  "amenities": [
+    "WiFi",
+    "Laundry",
+    "RO",
+    "CCTV",
+    "Refrigerator"
+  ]
+},
+{
+  "_id": {
+    "$oid": "69ae958eb4bedb4443da5d7f"
+  },
+  "owner": {
+    "$oid": "65f100000000000000000001"
+  },
+  "name": "Aarohi Ladies Stay",
+  "price": 7000,
+  "address": "Banjara Hills Road 12, Hyderabad, Telangana 500034",
+  "coordinate": [
+    78.4483,
+    17.4239
+  ],
+  "city": "Hyderabad",
+  "gender": "female",
+  "room": 11,
+  "bathroom": 5,
+  "toilet": 5,
+  "food": "without food",
+  "amenities": [
+    "WiFi",
+    "Parking",
+    "CCTV",
+    "Lift"
+  ]
+},
+{
+  "_id": {
+    "$oid": "69ae958eb4bedb4443da5d80"
+  },
+  "owner": {
+    "$oid": "65f100000000000000000001"
+  },
+  "name": "Serene Orchid PG",
+  "price": 7600,
+  "address": "Indiranagar 100ft Road, Bengaluru, Karnataka 560038",
+  "coordinate": [
+    77.6408,
+    12.9719
+  ],
+  "city": "Bengaluru",
+  "gender": "female",
+  "room": 13,
+  "bathroom": 6,
+  "toilet": 6,
+  "food": "flexible",
+  "amenities": [
+    "WiFi",
+    "AC",
+    "Laundry",
+    "RO",
+    "CCTV"
+  ]
+},
+{
+  "_id": {
+    "$oid": "69ae958eb4bedb4443da5d81"
+  },
+  "owner": {
+    "$oid": "65f100000000000000000002"
+  },
+  "name": "Urban Nest Haven",
+  "price": 8500,
+  "address": "Karol Bagh Market Road, New Delhi 110005",
+  "coordinate": [
+    77.19,
+    28.6519
+  ],
+  "city": "Delhi",
+  "gender": "female",
+  "room": 15,
+  "bathroom": 7,
+  "toilet": 7,
+  "food": "with food",
+  "amenities": [
+    "WiFi",
+    "AC",
+    "Lift",
+    "CCTV",
+    "RO"
+  ]
+},
+{
+  "_id": {
+    "$oid": "69ae958eb4bedb4443da5d82"
+  },
+  "owner": {
+    "$oid": "65f100000000000000000002"
+  },
+  "name": "Sunrise Comfort PG",
+  "price": 6200,
+  "address": "Salt Lake Sector 5, Kolkata, West Bengal 700091",
+  "coordinate": [
+    88.4172,
+    22.5769
+  ],
+  "city": "Kolkata",
+  "gender": "female",
+  "room": 9,
+  "bathroom": 4,
+  "toilet": 4,
+  "food": "flexible",
+  "amenities": [
+    "WiFi",
+    "Laundry",
+    "Parking",
+    "RO"
+  ]
+},
+{
+  "_id": {
+    "$oid": "69ae958eb4bedb4443da5d83"
+  },
+  "owner": {
+    "$oid": "65f100000000000000000002"
+  },
+  "name": "Silver Maple Stay",
+  "price": 7900,
+  "address": "Anna Nagar West Main Road, Chennai, Tamil Nadu 600040",
+  "coordinate": [
+    80.21,
+    13.085
+  ],
+  "city": "Chennai",
+  "gender": "female",
+  "room": 12,
+  "bathroom": 6,
+  "toilet": 6,
+  "food": "with food",
+  "amenities": [
+    "WiFi",
+    "AC",
+    "CCTV",
+    "Lift"
+  ]
+},
+{
+  "_id": {
+    "$oid": "69ae958eb4bedb4443da5d84"
+  },
+  "owner": {
+    "$oid": "65f100000000000000000002"
+  },
+  "name": "Emerald City Girls PG",
+  "price": 7200,
+  "address": "Alkapuri RC Dutt Road, Vadodara, Gujarat 390007",
+  "coordinate": [
+    73.1812,
+    22.3072
+  ],
+  "city": "Vadodara",
+  "gender": "female",
+  "room": 10,
+  "bathroom": 5,
+  "toilet": 5,
+  "food": "without food",
+  "amenities": [
+    "WiFi",
+    "Parking",
+    "CCTV",
+    "RO"
+  ]
+},
+{
+  "_id": {
+    "$oid": "69ae958eb4bedb4443da5d85"
+  },
+  "owner": {
+    "$oid": "65f100000000000000000002"
+  },
+  "name": "Harmony Ladies Lodge",
+  "price": 7600,
+  "address": "Rajajinagar 3rd Block, Bengaluru, Karnataka 560010",
+  "coordinate": [
+    77.555,
+    12.9916
+  ],
+  "city": "Bengaluru",
+  "gender": "female",
+  "room": 11,
+  "bathroom": 5,
+  "toilet": 5,
+  "food": "flexible",
+  "amenities": [
+    "WiFi",
+    "Laundry",
+    "CCTV",
+    "Lift"
+  ]
+},
+{
+  "_id": {
+    "$oid": "69ae958eb4bedb4443da5d86"
+  },
+  "owner": {
+    "$oid": "65f100000000000000000003"
+  },
+  "name": "Metro Comfort PG",
+  "price": 6500,
+  "address": "Andheri East Marol Road, Mumbai, Maharashtra 400059",
+  "coordinate": [
+    72.8787,
+    19.1136
+  ],
+  "city": "Mumbai",
+  "gender": "male",
+  "room": 14,
+  "bathroom": 7,
+  "toilet": 7,
+  "food": "with food",
+  "amenities": [
+    "WiFi",
+    "AC",
+    "Lift",
+    "CCTV"
+  ]
+},
+{
+  "_id": {
+    "$oid": "69ae958eb4bedb4443da5d87"
+  },
+  "owner": {
+    "$oid": "65f100000000000000000003"
+  },
+  "name": "Blue Horizon Stay",
+  "price": 6100,
+  "address": "Hazratganj MG Road, Lucknow, Uttar Pradesh 226001",
+  "coordinate": [
+    80.9462,
+    26.8467
+  ],
+  "city": "Lucknow",
+  "gender": "male",
+  "room": 9,
+  "bathroom": 4,
+  "toilet": 4,
+  "food": "without food",
+  "amenities": [
+    "WiFi",
+    "Parking",
+    "RO",
+    "CCTV"
+  ]
+},
+{
+  "_id": {
+    "$oid": "69ae958eb4bedb4443da5d88"
+  },
+  "owner": {
+    "$oid": "65f100000000000000000003"
+  },
+  "name": "Golden Oak Residency",
+  "price": 7000,
+  "address": "Sector 17 Market, Chandigarh 160017",
+  "coordinate": [
+    76.7794,
+    30.7333
+  ],
+  "city": "Chandigarh",
+  "gender": "male",
+  "room": 12,
+  "bathroom": 6,
+  "toilet": 6,
+  "food": "flexible",
+  "amenities": [
+    "WiFi",
+    "Laundry",
+    "Lift",
+    "CCTV"
+  ]
+},
+{
+  "_id": {
+    "$oid": "69ae958eb4bedb4443da5d89"
+  },
+  "owner": {
+    "$oid": "65f100000000000000000003"
+  },
+  "name": "Lakeview Gentlemen PG",
+  "price": 5800,
+  "address": "TT Nagar Main Road, Bhopal, Madhya Pradesh 462003",
+  "coordinate": [
+    77.4126,
+    23.2599
+  ],
+  "city": "Bhopal",
+  "gender": "male",
+  "room": 8,
+  "bathroom": 4,
+  "toilet": 4,
+  "food": "without food",
+  "amenities": [
+    "WiFi",
+    "Parking",
+    "RO"
+  ]
+},
+{
+  "_id": {
+    "$oid": "69ae958eb4bedb4443da5d8a"
+  },
+  "owner": {
+    "$oid": "65f100000000000000000003"
+  },
+  "name": "Skyline Men's Habitat",
+  "price": 7300,
+  "address": "Hinjewadi Phase 1 IT Park Road, Pune 411057",
+  "coordinate": [
+    73.738,
+    18.5912
+  ],
+  "city": "Pune",
+  "gender": "male",
+  "room": 13,
+  "bathroom": 6,
+  "toilet": 6,
+  "food": "with food",
+  "amenities": [
+    "WiFi",
+    "AC",
+    "CCTV",
+    "Laundry"
+  ]
+},
+{
+  "_id": {
+    "$oid": "69ae958eb4bedb4443da5d8b"
+  },
+  "owner": {
+    "$oid": "65f100000000000000000004"
+  },
+  "name": "Palm Grove Residency",
+  "price": 6400,
+  "address": "Vaishali Nagar Main Road, Jaipur, Rajasthan 302021",
+  "coordinate": [
+    75.7449,
+    26.9124
+  ],
+  "city": "Jaipur",
+  "gender": "mix",
+  "room": 10,
+  "bathroom": 5,
+  "toilet": 5,
+  "food": "flexible",
+  "amenities": [
+    "WiFi",
+    "Parking",
+    "CCTV",
+    "RO"
+  ]
+},
+{
+  "_id": {
+    "$oid": "69ae958eb4bedb4443da5d8c"
+  },
+  "owner": {
+    "$oid": "65f100000000000000000004"
+  },
+  "name": "Coral Stay House",
+  "price": 6900,
+  "address": "Panaji Church Square Road, Goa 403001",
+  "coordinate": [
+    73.8278,
+    15.4909
+  ],
+  "city": "Goa",
+  "gender": "mix",
+  "room": 9,
+  "bathroom": 4,
+  "toilet": 4,
+  "food": "with food",
+  "amenities": [
+    "WiFi",
+    "AC",
+    "Laundry",
+    "Refrigerator"
+  ]
+},
+{
+  "_id": {
+    "$oid": "69ae958eb4bedb4443da5d8d"
+  },
+  "owner": {
+    "$oid": "65f100000000000000000004"
+  },
+  "name": "Hilltop Residency PG",
+  "price": 6000,
+  "address": "Rajpur Road Near Clock Tower, Dehradun 248001",
+  "coordinate": [
+    78.0322,
+    30.3165
+  ],
+  "city": "Dehradun",
+  "gender": "mix",
+  "room": 8,
+  "bathroom": 4,
+  "toilet": 4,
+  "food": "without food",
+  "amenities": [
+    "WiFi",
+    "Parking",
+    "RO"
+  ]
+},
+{
+  "_id": {
+    "$oid": "69ae958eb4bedb4443da5d8e"
+  },
+  "owner": {
+    "$oid": "65f100000000000000000004"
+  },
+  "name": "Riverfront Comfort Stay",
+  "price": 7200,
+  "address": "Ashram Road Sabarmati Riverfront, Ahmedabad 380009",
+  "coordinate": [
+    72.5714,
+    23.0225
+  ],
+  "city": "Ahmedabad",
+  "gender": "mix",
+  "room": 11,
+  "bathroom": 5,
+  "toilet": 5,
+  "food": "flexible",
+  "amenities": [
+    "WiFi",
+    "Lift",
+    "CCTV",
+    "Laundry"
+  ]
+},
+{
+  "_id": {
+    "$oid": "69ae958eb4bedb4443da5d8f"
+  },
+  "owner": {
+    "$oid": "65f100000000000000000004"
+  },
+  "name": "Central Park CoLiving",
+  "price": 8100,
+  "address": "Sector 62 IT Hub Noida, Uttar Pradesh 201309",
+  "coordinate": [
+    77.3649,
+    28.6139
+  ],
+  "city": "Noida",
+  "gender": "mix",
+  "room": 14,
+  "bathroom": 7,
+  "toilet": 7,
+  "food": "with food",
+  "amenities": [
+    "WiFi",
+    "AC",
+    "Gym",
+    "Lift",
+    "CCTV"
+  ]
+}]

@@ -1,3 +1,4 @@
+//!This means it runs in the user's browser, allowing them to interact with it.
 "use client";
 
 import { User, Search } from "lucide-react";
@@ -5,6 +6,7 @@ import Image from "next/image";
 import { useSearch } from "../context/SearchContext";
 
 export default function Navbar() {
+  //This connects the Navbar directly to the SearchContext cloud. It grabs the current word (query) and the remote control (setQuery).
   const { query, setQuery } = useSearch();
 
   return (
@@ -31,16 +33,18 @@ export default function Navbar() {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
         />
-        {query ? (
-          <span
-            onClick={() => setQuery("")}
+        {query 
+        ? 
+          (
+            <span
             className="cursor-pointer ml-2 text-gray-400 text-lg"
-          >
-            ✕
-          </span>
-        ) : (
-          <Search size={20} className="ml-2 text-gray-500" />
-        )}
+            onClick={() => setQuery("")}
+            >
+              ✕
+            </span>
+          ) 
+        : 
+          ( <Search size={20} className="ml-2 text-gray-500" />)}
       </div>
 
       {/* User */}
