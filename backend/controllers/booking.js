@@ -3,6 +3,10 @@ const Booking = require("../models/booking.js");
 exports.registerBooking = async (req, res) => {
   try {
     const {
+<<<<<<< HEAD
+=======
+      user,
+>>>>>>> 190069461300ab0af82c0feea93673fabd9ed355
       pg,
       checkInDate,
       checkOutDate,
@@ -12,6 +16,10 @@ exports.registerBooking = async (req, res) => {
     } = req.body;
 
     const existingBooking = await Booking.findOne({
+<<<<<<< HEAD
+=======
+      user,
+>>>>>>> 190069461300ab0af82c0feea93673fabd9ed355
       pg,
       checkInDate: { $lte: checkOutDate },
       checkOutDate: { $gte: checkInDate },
@@ -29,8 +37,18 @@ exports.registerBooking = async (req, res) => {
       });
     }
     const booking = await Booking.create({
+<<<<<<< HEAD
       ...req.body,
       user: req.user._id,
+=======
+      user,
+      pg,
+      checkInDate,
+      checkOutDate,
+      status,
+      amount,
+      paymentStatus,
+>>>>>>> 190069461300ab0af82c0feea93673fabd9ed355
     });
 
     res.status(201).json(booking);
@@ -53,9 +71,17 @@ exports.getBooking = async (req, res) => {
         { checkInDate: { $lte: new Date(checkOutDate) } },
         { checkOutDate: { $gte: new Date(checkInDate) } },
       ];
+<<<<<<< HEAD
     } else if (checkInDate) {
       baseFilter.checkInDate = { $gte: new Date(checkInDate) };
     } else if (checkOutDate) {
+=======
+    } 
+    else if (checkInDate) {
+      baseFilter.checkInDate = { $gte: new Date(checkInDate) };
+    } 
+    else if (checkOutDate) {
+>>>>>>> 190069461300ab0af82c0feea93673fabd9ed355
       baseFilter.checkInDate = { $lte: new Date(checkOutDate) };
     }
 

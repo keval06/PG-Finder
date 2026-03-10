@@ -7,8 +7,11 @@ export default function RootLayout({ children }) {
     <html lang="en">
       <body>
         <SearchProvider>
-          <Navbar/>
-          {children}
+          <Navbar />
+          {children}{" "}
+          {/*The {children} prop here represents your 
+page.js
+ (The Home Page). */}
         </SearchProvider>
       </body>
     </html>

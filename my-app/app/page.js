@@ -1,3 +1,5 @@
+// !React Server Component
+// This is the "brain" of the Home Page. Instead of sending raw HTML to the user immediately, this page talks to our backend database to get real PG listings before showing anything.
 import HomeClient from "./HomeClient";
 
 async function getFirstImage(pgId) {
@@ -61,7 +63,7 @@ export default async function Home() {
 
   return (
     <div className="bg-gray-100 min-h-screen py-8 px-4">
-      <div className="max-w-5xl mx-auto">
+      <div className="max-w-6xl mx-auto">
         <HomeClient data={data} />
       </div>
     </div>

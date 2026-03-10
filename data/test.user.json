@@ -1,0 +1,195 @@
+[{
+  "_id": {
+    "$oid": "698d7eda184292622ff4d390"
+  },
+  "name": "Tanmay Bhat",
+  "mobile": 1111222212,
+  "password": "$2b$10$UxizcJFLNK8xSQ4qiXRBT.UKQp1R6QAMhHExQYAhIUtSPgQUTn.ZC",
+  "createdAt": {
+    "$date": "2026-02-12T07:18:50.149Z"
+  },
+  "updatedAt": {
+    "$date": "2026-02-15T06:00:29.300Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "698dd03d7ae6d64899898ff2"
+  },
+  "name": "Amit Verma",
+  "mobile": 9876543211,
+  "password": "$2b$10$A4b4FcJNbxi5q0cx5jvg3OsnOnfOKMoLRzRdIXhFO1Y7NIH/A7cJS",
+  "createdAt": {
+    "$date": "2026-02-12T13:06:05.354Z"
+  },
+  "updatedAt": {
+    "$date": "2026-02-12T13:06:05.354Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "698ebf79984806cd301d8aaa"
+  },
+  "name": "Rahul",
+  "mobile": 9000000001,
+  "password": "$2b$10$JEctvZp2DiDurkZL/JzFMe/BMootMPWP95hP0Ou9cNXJZcaQP2ZCe",
+  "createdAt": {
+    "$date": "2026-02-13T06:06:49.336Z"
+  },
+  "updatedAt": {
+    "$date": "2026-02-13T06:06:49.336Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "698ebf88984806cd301d8aad"
+  },
+  "name": "Amit",
+  "mobile": 9000000002,
+  "password": "$2b$10$teNZFPpwDFWgIqHg25rI2O8G6QSF2apwW9oIcf159fUbiRe4wPzZy",
+  "createdAt": {
+    "$date": "2026-02-13T06:07:04.833Z"
+  },
+  "updatedAt": {
+    "$date": "2026-02-13T06:07:04.833Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "698ebf91984806cd301d8ab0"
+  },
+  "name": "Sneha",
+  "mobile": 9000000003,
+  "password": "$2b$10$6jTZOVXg7kCCf.l4TdemMeL6Zirw41n3Fc5MmcWJzlyyzRDHokevq",
+  "createdAt": {
+    "$date": "2026-02-13T06:07:13.125Z"
+  },
+  "updatedAt": {
+    "$date": "2026-02-13T06:07:13.125Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "698ebf98984806cd301d8ab3"
+  },
+  "name": "Priya",
+  "mobile": 9000000004,
+  "password": "$2b$10$yKN2QGQ5gRLdAcHvBtnVwOInHE8i8iuBu6c/v75DbG82pMTnoHEJa",
+  "createdAt": {
+    "$date": "2026-02-13T06:07:20.340Z"
+  },
+  "updatedAt": {
+    "$date": "2026-02-13T06:07:20.340Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "698ebf9f984806cd301d8ab6"
+  },
+  "name": "Karan",
+  "mobile": 9000000005,
+  "password": "$2b$10$JKWiDyBvMQe3zQ2.r46v9.nBJGJXnTlchFpPQoMWHKhBTCMHv0BJm",
+  "createdAt": {
+    "$date": "2026-02-13T06:07:27.318Z"
+  },
+  "updatedAt": {
+    "$date": "2026-02-13T06:07:27.318Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "698ebfaa984806cd301d8ab9"
+  },
+  "name": "Neha",
+  "mobile": 9000000006,
+  "password": "$2b$10$NwQENXk0LA2cdMDue4rCh.Vt0Q8RRJKgqHpsNoIRu55RLxu42O7R.",
+  "createdAt": {
+    "$date": "2026-02-13T06:07:38.674Z"
+  },
+  "updatedAt": {
+    "$date": "2026-02-13T06:07:38.674Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "698ebfb3984806cd301d8abc"
+  },
+  "name": "Arjun",
+  "mobile": 9000000007,
+  "password": "$2b$10$oBtyKzdHvjaYrXnB0TieeemijCr2Qj9vPBo1w.9AB.MmNTFEBPAQS",
+  "createdAt": {
+    "$date": "2026-02-13T06:07:47.661Z"
+  },
+  "updatedAt": {
+    "$date": "2026-02-13T06:07:47.661Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "698ec0c4984806cd301d8ac0"
+  },
+  "name": "Ritika",
+  "mobile": 9000000008,
+  "password": "$2b$10$GUC.VqRuKjcM94.rU3ShruEbfogmc62Cihgj3b6jeqNd/9qsRD3Ni",
+  "createdAt": {
+    "$date": "2026-02-13T06:12:20.485Z"
+  },
+  "updatedAt": {
+    "$date": "2026-02-13T06:12:20.485Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "698ec0cc984806cd301d8ac3"
+  },
+  "name": "Vikas",
+  "mobile": 9000000009,
+  "password": "$2b$10$hpb1dMhxm8M3Y86gCcPR4eis.UUtApGEbIF9g0j/EEjwliFZEnVeS",
+  "createdAt": {
+    "$date": "2026-02-13T06:12:28.035Z"
+  },
+  "updatedAt": {
+    "$date": "2026-02-13T06:12:28.035Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "698ec0d3984806cd301d8ac6"
+  },
+  "name": "Meera",
+  "mobile": 9000000010,
+  "password": "$2b$10$Wdt1svhITFIncPOeFvFVyO4jWrS/usINrtNbPEwvqayfki1ETisdC",
+  "createdAt": {
+    "$date": "2026-02-13T06:12:35.413Z"
+  },
+  "updatedAt": {
+    "$date": "2026-02-13T06:12:35.413Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "699300ea230a6e0949301424"
+  },
+  "name": "testUser3",
+  "mobile": 1234567890,
+  "password": "$2b$10$3KZiJa6Fm2T/vu0GIHLhUOia.Oc6a1OighceyHwA8dMN75hiaFy5S",
+  "createdAt": {
+    "$date": "2026-02-16T11:35:06.842Z"
+  },
+  "updatedAt": {
+    "$date": "2026-02-16T11:35:06.842Z"
+  },
+  "__v": 0
+}]

@@ -36,11 +36,9 @@ exports.registerReview = async (req, res) => {
       });
     }
 
-    res.status(201).json(review);
-  } catch (error) {
-    res.status(500).json({
-      message: error.message,
-    });
+    res.json(review);
+  } catch (err) {
+    res.status(500).json(err.message);
   }
 };
 
@@ -62,7 +60,11 @@ exports.registerReview = async (req, res) => {
 
 exports.getReviewsByPg = async (req, res) => {
   try {
-    const { star, user, pg } = req.query;
+    const { 
+      star, 
+      user, 
+      pg 
+    } = req.query;
 
     let baseFilter = {};
 
@@ -84,8 +86,8 @@ exports.getReviewsByPg = async (req, res) => {
         path: "pg",
         select: "name price city address gender",
       });
-    const reviews = await query; //dont return whole object,
-    // but populate(similar to filter) - return only named fields
+      const reviews = await query; //dont return whole object, 
+      // but populate(similar to filter) - return only named fields
     const filtered = reviews.filter((r) => r.user != null && r.pg != null);
 
     res.json(filtered);
@@ -98,11 +100,6 @@ exports.getReviewsByPg = async (req, res) => {
 
 exports.updateReview = async (req, res) => {
   try {
-    if (review.user.toString() !== req.user._id.toString()) {
-      return res.status(403).json({
-        message: "Not allowed",
-      });
-    }
     const review = await Review.findByIdAndUpdate(req.params.id, req.body, {
       new: true,
       runValidators: true,

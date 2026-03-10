@@ -29,8 +29,23 @@ exports.registerPG = async (req, res) => {
     }
 
     const pg = await PG.create({
+<<<<<<< HEAD
       ...req.body,
       owner : req.user._id
+=======
+      owner,
+      name,
+      price,
+      address,
+      coordinate,
+      city,
+      gender,
+      room,
+      bathroom,
+      toilet,
+      food,
+      amenities,
+>>>>>>> 190069461300ab0af82c0feea93673fabd9ed355
     });
 
     res.json(pg);
@@ -143,12 +158,21 @@ exports.updatePg = async (req, res) => {
       });
     }
 
+<<<<<<< HEAD
     // authorisation check
     if (pg.owner.toString() !== req.user._id) {
       return res.status(403).json({
         message: "You are not allowed to update this pg",
       });
     }
+=======
+    //authorisation check
+    // if (pg.owner.toString() !== req.user._id) {
+    //   return res.status(403).json({
+    //     message: "You are not allowed to update this pg",
+    //   });
+    // }
+>>>>>>> 190069461300ab0af82c0feea93673fabd9ed355
 
     const updatedPG = await PG.findByIdAndUpdate(req.params.id, req.body, {
       new: true,

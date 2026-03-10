@@ -1,0 +1,390 @@
+[{
+  "_id": {
+    "$oid": "69ae96abb4bedb4443da5d91"
+  },
+  "user": {
+    "$oid": "65f100000000000000000001"
+  },
+  "pg": {
+    "$oid": "69ae958eb4bedb4443da5d7c"
+  },
+  "star": 5,
+  "comment": "Very clean PG with good food and friendly owner."
+},
+{
+  "_id": {
+    "$oid": "69ae96abb4bedb4443da5d92"
+  },
+  "user": {
+    "$oid": "65f100000000000000000002"
+  },
+  "pg": {
+    "$oid": "69ae958eb4bedb4443da5d7c"
+  },
+  "star": 4,
+  "comment": "Nice location and rooms are spacious."
+},
+{
+  "_id": {
+    "$oid": "69ae96abb4bedb4443da5d93"
+  },
+  "user": {
+    "$oid": "65f100000000000000000003"
+  },
+  "pg": {
+    "$oid": "69ae958eb4bedb4443da5d7c"
+  },
+  "star": 4,
+  "comment": "Good stay overall, WiFi works well."
+},
+{
+  "_id": {
+    "$oid": "69ae96abb4bedb4443da5d94"
+  },
+  "user": {
+    "$oid": "65f100000000000000000002"
+  },
+  "pg": {
+    "$oid": "69ae958eb4bedb4443da5d7d"
+  },
+  "star": 3,
+  "comment": "Affordable PG but bathrooms need improvement."
+},
+{
+  "_id": {
+    "$oid": "69ae96abb4bedb4443da5d95"
+  },
+  "user": {
+    "$oid": "65f100000000000000000003"
+  },
+  "pg": {
+    "$oid": "69ae958eb4bedb4443da5d7d"
+  },
+  "star": 4,
+  "comment": "Comfortable rooms and good security."
+},
+{
+  "_id": {
+    "$oid": "69ae96abb4bedb4443da5d96"
+  },
+  "user": {
+    "$oid": "65f100000000000000000004"
+  },
+  "pg": {
+    "$oid": "69ae958eb4bedb4443da5d7d"
+  },
+  "star": 5,
+  "comment": "Owner is very helpful and supportive."
+},
+{
+  "_id": {
+    "$oid": "69ae96abb4bedb4443da5d97"
+  },
+  "user": {
+    "$oid": "65f100000000000000000001"
+  },
+  "pg": {
+    "$oid": "69ae958eb4bedb4443da5d7e"
+  },
+  "star": 5,
+  "comment": "Best girls PG in the area with great amenities."
+},
+{
+  "_id": {
+    "$oid": "69ae96abb4bedb4443da5d98"
+  },
+  "user": {
+    "$oid": "65f100000000000000000003"
+  },
+  "pg": {
+    "$oid": "69ae958eb4bedb4443da5d7e"
+  },
+  "star": 4,
+  "comment": "Food quality is very good and rooms are neat."
+},
+{
+  "_id": {
+    "$oid": "69ae96abb4bedb4443da5d99"
+  },
+  "user": {
+    "$oid": "65f100000000000000000004"
+  },
+  "pg": {
+    "$oid": "69ae958eb4bedb4443da5d7e"
+  },
+  "star": 4,
+  "comment": "Peaceful environment and good facilities."
+},
+{
+  "_id": {
+    "$oid": "69ae96abb4bedb4443da5d9a"
+  },
+  "user": {
+    "$oid": "65f100000000000000000002"
+  },
+  "pg": {
+    "$oid": "69ae958eb4bedb4443da5d7f"
+  },
+  "star": 3,
+  "comment": "Rooms are decent but maintenance could improve."
+},
+{
+  "_id": {
+    "$oid": "69ae96abb4bedb4443da5d9b"
+  },
+  "user": {
+    "$oid": "65f100000000000000000003"
+  },
+  "pg": {
+    "$oid": "69ae958eb4bedb4443da5d7f"
+  },
+  "star": 4,
+  "comment": "Nice location and safe for students."
+},
+{
+  "_id": {
+    "$oid": "69ae96abb4bedb4443da5d9c"
+  },
+  "user": {
+    "$oid": "65f100000000000000000004"
+  },
+  "pg": {
+    "$oid": "69ae958eb4bedb4443da5d7f"
+  },
+  "star": 5,
+  "comment": "Really liked the cleanliness and management."
+},
+{
+  "_id": {
+    "$oid": "69ae96abb4bedb4443da5d9d"
+  },
+  "user": {
+    "$oid": "65f100000000000000000001"
+  },
+  "pg": {
+    "$oid": "69ae958eb4bedb4443da5d80"
+  },
+  "star": 4,
+  "comment": "Comfortable rooms and good internet."
+},
+{
+  "_id": {
+    "$oid": "69ae96abb4bedb4443da5d9e"
+  },
+  "user": {
+    "$oid": "65f100000000000000000002"
+  },
+  "pg": {
+    "$oid": "69ae958eb4bedb4443da5d80"
+  },
+  "star": 4,
+  "comment": "Very calm place and helpful staff."
+},
+{
+  "_id": {
+    "$oid": "69ae96abb4bedb4443da5d9f"
+  },
+  "user": {
+    "$oid": "65f100000000000000000003"
+  },
+  "pg": {
+    "$oid": "69ae958eb4bedb4443da5d80"
+  },
+  "star": 5,
+  "comment": "Loved the facilities and the environment."
+},
+{
+  "_id": {
+    "$oid": "69ae96abb4bedb4443da5da0"
+  },
+  "user": {
+    "$oid": "65f100000000000000000004"
+  },
+  "pg": {
+    "$oid": "69ae958eb4bedb4443da5d81"
+  },
+  "star": 4,
+  "comment": "Good PG near metro with all facilities."
+},
+{
+  "_id": {
+    "$oid": "69ae96abb4bedb4443da5da1"
+  },
+  "user": {
+    "$oid": "65f100000000000000000003"
+  },
+  "pg": {
+    "$oid": "69ae958eb4bedb4443da5d81"
+  },
+  "star": 5,
+  "comment": "Food and cleanliness both are excellent."
+},
+{
+  "_id": {
+    "$oid": "69ae96abb4bedb4443da5da2"
+  },
+  "user": {
+    "$oid": "65f100000000000000000002"
+  },
+  "pg": {
+    "$oid": "69ae958eb4bedb4443da5d81"
+  },
+  "star": 4,
+  "comment": "Great place for working professionals."
+},
+{
+  "_id": {
+    "$oid": "69ae96abb4bedb4443da5da3"
+  },
+  "user": {
+    "$oid": "65f100000000000000000001"
+  },
+  "pg": {
+    "$oid": "69ae958eb4bedb4443da5d82"
+  },
+  "star": 3,
+  "comment": "Affordable but rooms are slightly small."
+},
+{
+  "_id": {
+    "$oid": "69ae96abb4bedb4443da5da4"
+  },
+  "user": {
+    "$oid": "65f100000000000000000004"
+  },
+  "pg": {
+    "$oid": "69ae958eb4bedb4443da5d82"
+  },
+  "star": 4,
+  "comment": "Nice management and good safety."
+},
+{
+  "_id": {
+    "$oid": "69ae96abb4bedb4443da5da5"
+  },
+  "user": {
+    "$oid": "65f100000000000000000002"
+  },
+  "pg": {
+    "$oid": "69ae958eb4bedb4443da5d82"
+  },
+  "star": 5,
+  "comment": "Very good experience staying here."
+},
+{
+  "_id": {
+    "$oid": "69ae96abb4bedb4443da5da6"
+  },
+  "user": {
+    "$oid": "65f100000000000000000003"
+  },
+  "pg": {
+    "$oid": "69ae958eb4bedb4443da5d83"
+  },
+  "star": 4,
+  "comment": "Rooms are spacious and clean."
+},
+{
+  "_id": {
+    "$oid": "69ae96abb4bedb4443da5da7"
+  },
+  "user": {
+    "$oid": "65f100000000000000000001"
+  },
+  "pg": {
+    "$oid": "69ae958eb4bedb4443da5d83"
+  },
+  "star": 5,
+  "comment": "One of the best PGs in the city."
+},
+{
+  "_id": {
+    "$oid": "69ae96abb4bedb4443da5da8"
+  },
+  "user": {
+    "$oid": "65f100000000000000000004"
+  },
+  "pg": {
+    "$oid": "69ae958eb4bedb4443da5d83"
+  },
+  "star": 4,
+  "comment": "Facilities are good and well maintained."
+},
+{
+  "_id": {
+    "$oid": "69ae96abb4bedb4443da5da9"
+  },
+  "user": {
+    "$oid": "65f100000000000000000002"
+  },
+  "pg": {
+    "$oid": "69ae958eb4bedb4443da5d84"
+  },
+  "star": 4,
+  "comment": "Good PG with decent amenities."
+},
+{
+  "_id": {
+    "$oid": "69ae96abb4bedb4443da5daa"
+  },
+  "user": {
+    "$oid": "65f100000000000000000003"
+  },
+  "pg": {
+    "$oid": "69ae958eb4bedb4443da5d84"
+  },
+  "star": 3,
+  "comment": "Average stay but location is convenient."
+},
+{
+  "_id": {
+    "$oid": "69ae96abb4bedb4443da5dab"
+  },
+  "user": {
+    "$oid": "65f100000000000000000004"
+  },
+  "pg": {
+    "$oid": "69ae958eb4bedb4443da5d84"
+  },
+  "star": 5,
+  "comment": "Loved the environment and facilities."
+},
+{
+  "_id": {
+    "$oid": "69ae96abb4bedb4443da5dac"
+  },
+  "user": {
+    "$oid": "65f100000000000000000001"
+  },
+  "pg": {
+    "$oid": "69ae958eb4bedb4443da5d85"
+  },
+  "star": 4,
+  "comment": "Comfortable stay with friendly owner."
+},
+{
+  "_id": {
+    "$oid": "69ae96abb4bedb4443da5dad"
+  },
+  "user": {
+    "$oid": "65f100000000000000000002"
+  },
+  "pg": {
+    "$oid": "69ae958eb4bedb4443da5d85"
+  },
+  "star": 4,
+  "comment": "Good WiFi and security."
+},
+{
+  "_id": {
+    "$oid": "69ae96abb4bedb4443da5dae"
+  },
+  "user": {
+    "$oid": "65f100000000000000000003"
+  },
+  "pg": {
+    "$oid": "69ae958eb4bedb4443da5d85"
+  },
+  "star": 5,
+  "comment": "Very nice PG and peaceful place."
+}]

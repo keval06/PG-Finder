@@ -128,6 +128,7 @@ GET /api/reviews/:pgId
   "password": "password123" }
 ]
 
+<<<<<<< HEAD
 
 {
     "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE3NzMwNTgyOTYsImV4cCI6MTc3MzY2MzA5Nn0.oX0OPdK5h3RW7PvgR0_jpQAqEEAxPOORICkSqJNpPFk"
@@ -141,3 +142,6 @@ parth
 }
 
 eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5YWVjMjk0MTVlNTc1YmVmNzMzZjQ5NyIsImlhdCI6MTc3MzA2MTc1NiwiZXhwIjoxNzczNjY2NTU2fQ.-fHB34Ei5AFGVcqtXn4jxj-inSzunKfa9wOVKFyhCH0
+=======
+eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2OThlYmY3OTk4NDgwNmNkMzAxZDhhYWEiLCJpYXQiOjE3NzEwNDQzNzQsImV4cCI6MTc3MTY0OTE3NH0.JNZhhpKrYiEXf2LZPa-cKoK3_YrYrHVoVRAkVkmHDjE
+>>>>>>> 190069461300ab0af82c0feea93673fabd9ed355
