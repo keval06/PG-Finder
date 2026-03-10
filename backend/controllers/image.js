@@ -21,14 +21,8 @@ exports.registerImage = async (req, res) => {
     }
 
     const image = await Image.create({
-<<<<<<< HEAD
       ...req.body,
     uploadedBy: req.user._id
-=======
-      pg,
-      url,
-      category,
->>>>>>> 190069461300ab0af82c0feea93673fabd9ed355
     });
 
     res.json(image);

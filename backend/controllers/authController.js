@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 const User = require("../models/user.js");
 const bcrypt = require("bcryptjs");
 const generateToken = require("../utils/generateToken.js");
@@ -30,6 +29,3 @@ exports.loginUser = async (req, res) => {
     });
   }
 };
-=======
-const User = require("../models/user.js")
->>>>>>> 190069461300ab0af82c0feea93673fabd9ed355

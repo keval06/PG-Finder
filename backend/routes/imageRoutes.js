@@ -8,9 +8,9 @@ const {
   getImagesByPg,
 } = require("../controllers/image.js");
 
-router.post("/", registerImage);
+router.post("/",protect, registerImage);
 router.get("/", getImagesByPg);
-router.delete("/:id", deleteImage);
+router.delete("/:id",protect, deleteImage);
 // router.post("login", loginUser);
 
 module.exports = router;
