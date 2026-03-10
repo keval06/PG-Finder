@@ -9,7 +9,7 @@ const {
   updateUser,
 } = require("../controllers/user.js");
 
-router.post("/", registerUser);
+router.post("/signup", registerUser);
 router.get("/", getUser);
 router.patch("/:id",  updateUser);
 // router.post("login", loginUser);

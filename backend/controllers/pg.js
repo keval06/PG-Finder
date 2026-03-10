@@ -2,24 +2,9 @@ const PG = require("../models/pg.js");
 
 exports.registerPG = async (req, res) => {
   try {
-    const {
-      owner,
-      name,
-      price,
-      address,
-      coordinate,
-      city,
-      gender,
-      room,
-      bathroom,
-      toilet,
-      food,
-      amenities,
-    } = req.body;
-
     const existingPG = await PG.findOne({
-      owner,
-      name,
+      owner: req.user._id,
+      name: req.body.name,
     });
 
     if (existingPG) {
@@ -30,7 +15,7 @@ exports.registerPG = async (req, res) => {
 
     const pg = await PG.create({
       ...req.body,
-      owner : req.user._id
+      owner: req.user._id,
     });
 
     res.json(pg);
@@ -41,80 +26,33 @@ exports.registerPG = async (req, res) => {
 
 exports.getAllPg = async (req, res) => {
   try {
-    const {
-      name,
-      minprice,
-      maxprice,
-      address,
-      city,
-      gender,
-      room,
-      bathroom,
-      toilet,
-      food,
-      amenities,
-    } = req.query;
+    const filter = {};
 
-    let filter = {};
-    if (name) {
-      filter.name = { $regex: name, $options: "i" };
+    if (req.query.city) {
+      filter.city = { $regex: req.query.city, $options: "i" };
     }
 
-    if (minprice || maxprice) {
+    if (req.query.gender) {
+      filter.gender = req.query.gender;
+    }
+
+    if (req.query.minprice || req.query.maxprice) {
       filter.price = {};
 
-      if (minprice) {
-        filter.price.$gte = Number(minprice);
+      if (req.query.minprice) {
+        filter.price.$gte = Number(req.query.minprice);
       }
 
-      if (maxprice) {
-        filter.price.$lte = Number(maxprice);
+      if (req.query.maxprice) {
+        filter.price.$lte = Number(req.query.maxprice);
       }
-    }
-
-    if (address) {
-      filter.address = { $regex: address, $options: "i" };
-    }
-
-    if (gender) {
-      filter.gender = gender.toLowerCase();
-    }
-
-    if (room) {
-      filter.room = Number(room);
-    }
-
-    if (bathroom) {
-      filter.bathroom = Number(bathroom);
-    }
-
-    if (city) {
-      filter.city = { $regex: city, $options: "i" }; //case-insensitive value
-    }
-
-    if (toilet) {
-      filter.toilet = Number(toilet);
-    }
-
-    if (food) {
-      filter.food = { $regex: food, $options: "i" };
-    }
-
-    if (amenities) {
-      filter.amenities = { $regex: amenities, $options: "i" };
     }
 
     const pgs = await PG.find(filter);
-    //PG.find() return array object, so better to check its length
-    if (!pgs.length) {
-      return res.status(200).json([]);
-    }
 
     res.json(pgs);
-  } catch (err) {
-    res.status(500).json({
-      message: err.message,
-    });
+  } catch (error) {
+    res.status(500).json(error.message);
   }
 };
 
@@ -124,12 +62,13 @@ exports.getPg = async (req, res) => {
 
     if (!pg) {
       return res.status(404).json({
-        message: "PG Not found",
+        message: "PG not found",
       });
     }
+
     res.json(pg);
   } catch (error) {
-    res.status(400).json(error.message);
+    res.status(500).json(error.message);
   }
 };
 
@@ -139,14 +78,13 @@ exports.updatePg = async (req, res) => {
 
     if (!pg) {
       return res.status(404).json({
-        message: "PG Not found",
+        message: "PG not found",
       });
     }
 
-    // authorisation check
-    if (pg.owner.toString() !== req.user._id) {
+    if (pg.owner.toString() !== req.user._id.toString()) {
       return res.status(403).json({
-        message: "You are not allowed to update this pg",
+        message: "Not allowed",
       });
     }
 
@@ -157,6 +95,6 @@ exports.updatePg = async (req, res) => {
 
     res.json(updatedPG);
   } catch (error) {
-    res.status(400).json(error.message);
+    res.status(500).json(error.message);
   }
 };

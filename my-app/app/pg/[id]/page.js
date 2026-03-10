@@ -1,190 +1,167 @@
 import PGGallery from "../../components/PGGallery";
 import {
-  Wifi,
-  Car,
-  Snowflake,
-  Tv,
-  Camera,
-  Dumbbell,
-  Book,
-  Trees,
-  Refrigerator,
-  WashingMachine,
-  ArrowUpDown,
-  Bed,
-  User,
-  Utensils,
+  Wifi, Car, Snowflake, Tv, Camera, Dumbbell, Book, Trees,
+  Refrigerator, WashingMachine, ArrowUpDown, Bed, User, Utensils,
+  Clock, Ban, PartyPopper, PawPrint, Users, CreditCard, MapPin,
 } from "lucide-react";
+import ReviewsSection from "../../components/ReviewsSection";
 
 async function getPG(id) {
-  const res = await fetch(`http://localhost:5000/api/pg/${id}`, {
-    cache: "no-store",
-  });
+  const res = await fetch(`http://localhost:5000/api/pg/${id}`, { cache: "no-store" });
   return await res.json();
 }
 
 async function getImages(id) {
   try {
-    const res = await fetch(`http://localhost:5000/api/image?pgId=${id}`, {
-      cache: "no-store",
-    });
+    const res = await fetch(`http://localhost:5000/api/image?pgId=${id}`, { cache: "no-store" });
     if (res.ok) return await res.json();
     return [];
-  } catch {
-    return [];
-  }
+  } catch { return []; }
 }
 
 async function getReviews(id) {
   try {
-    const res = await fetch(`http://localhost:5000/api/review?pg=${id}`, {
-      cache: "no-store",
-    });
+    const res = await fetch(`http://localhost:5000/api/review?pg=${id}`, { cache: "no-store" });
     if (res.ok) return await res.json();
     return [];
-  } catch {
-    return [];
-  }
+  } catch { return []; }
 }
+
+const amenityIcons = {
+  Parking: Car, WiFi: Wifi, AC: Snowflake, Laundry: WashingMachine,
+  Lift: ArrowUpDown, CCTV: Camera, RO: Refrigerator, TV: Tv,
+  Refrigerator: Refrigerator, Gym: Dumbbell, Garden: Trees, Library: Book,
+};
 
 export default async function PGDetails({ params }) {
   const { id } = await params;
-  const amenityIcons = {
-    Parking: Car,
-    WiFi: Wifi,
-    AC: Snowflake,
-    Laundry: WashingMachine,
-    Lift: ArrowUpDown,
-    CCTV: Camera,
-    RO: Refrigerator,
-    TV: Tv,
-    Refrigerator: Refrigerator,
-    Gym: Dumbbell,
-    Garden: Trees,
-    Library: Book,
-  };
 
   const [pg, images, reviews] = await Promise.all([
-    getPG(id),
-    getImages(id),
-    getReviews(id),
+    getPG(id), getImages(id), getReviews(id),
   ]);
-  console.log(reviews);
 
   const avgRating = reviews.length
     ? (reviews.reduce((sum, r) => sum + r.star, 0) / reviews.length).toFixed(1)
     : null;
 
   return (
-    <div className="max-w-6xl mx-auto p-6">
-      <PGGallery images={images} />
+    <div className="bg-gray-50 min-h-screen">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6">
 
-      <div className="grid grid-cols-3 gap-10 mt-6">
-        {/* LEFT SIDE */}
-        <div className="col-span-2 flex flex-col gap-8">
-          {/* Name + Rating */}
-          <div>
-            <h1 className="text-3xl font-semibold capitalize">{pg.name}</h1>
-            <p className="text-gray-500 text-base capitalize mt-1">
-              {pg.address}, {pg.city}
-            </p>
-            {avgRating && (
-              <p className="text-yellow-500 mt-1 font-medium">
-                ★ {avgRating}/5 ({reviews.length} reviews)
-              </p>
-            )}
-          </div>
+        {/* GALLERY */}
+        <PGGallery images={images} />
 
-          {/* Room Info */}
-          <h2 className="text-xl font-semibold">Room Details</h2>
-          <div className="flex gap-8 text-gray-700 capitalize">
-            <div className="flex items-center gap-2">
-              <Bed size={18} />
-              <span>{pg.room} Rooms</span>
-            </div>
+        {/* MAIN GRID — 1 col mobile, 3 col desktop */}
+        <div className="mt-6 flex flex-col lg:grid lg:grid-cols-3 lg:gap-10">
 
-            <div className="flex items-center gap-2">
-              <User size={18} />
-              <span>{pg.gender}</span>
-            </div>
+          {/* ── LEFT / MAIN CONTENT ── */}
+          <div className="lg:col-span-2 flex flex-col gap-8">
 
-            <div className="flex items-center gap-2">
-              <Utensils size={18} />
-              <span>{pg.food}</span>
-            </div>
-          </div>
-
-          {/* Amenities */}
-          <h2 className="text-xl font-semibold">Amenities</h2>
-
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            {pg.amenities.map((item, i) => {
-              const Icon = amenityIcons[item];
-
-              return (
-                <div key={i} className="flex items-center gap-3 text-gray-700">
-                  {Icon && <Icon size={20} />}
-
-                  <span className="text-sm">{item}</span>
-                </div>
-              );
-            })}
-          </div>
-          {/* Policies */}
-          <div className="bg-gray-50 rounded-xl p-5 border">
-            <h2 className="text-xl font-semibold mb-3">Policies</h2>
-            <ul className="text-sm text-gray-600 flex flex-col gap-2">
-              <li>🕙 Check-in: 10:00 AM — Check-out: 9:00 AM</li>
-              <li>🚭 No smoking inside the premises</li>
-              <li>🎉 No parties or loud music after 10 PM</li>
-              <li>🐾 Pets not allowed</li>
-              <li>👥 Guests allowed till 8 PM only</li>
-              <li>💳 1 month security deposit required at check-in</li>
-            </ul>
-          </div>
-
-          {/* Reviews */}
-          <div>
-            <h2 className="text-xl font-semibold mb-3">
-              Reviews{" "}
+            {/* Name + location + rating */}
+            <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
+              <h1 className="text-2xl sm:text-3xl font-semibold capitalize">{pg.name}</h1>
+              <div className="flex items-start gap-1.5 mt-1.5 text-gray-500 text-sm">
+                <MapPin size={15} className="mt-0.5 flex-shrink-0" />
+                <span className="capitalize">{pg.address}, {pg.city}</span>
+              </div>
               {avgRating && (
-                <span className="text-yellow-500 text-base">
+                <p className="text-yellow-500 mt-2 font-medium text-sm">
                   ★ {avgRating}/5
-                </span>
+                  <span className="text-gray-400 font-normal ml-1">({reviews.length} reviews)</span>
+                </p>
               )}
-            </h2>
+            </div>
 
-            {reviews.length === 0 ? (
-              <p className="text-gray-400 text-sm">No reviews yet.</p>
-            ) : (
-              <div className="flex flex-col gap-4">
-                {reviews.map((r) => (
-                  <div key={r._id} className="border rounded-xl p-4">
-                    <div className="flex items-center justify-between">
-                      <p className="font-medium capitalize">
-                        {r.user?.name || "Anonymous"}
-                      </p>
-                      <span className="text-yellow-500 text-sm">
-                        {/* Type of loop -> ★★★☆☆  */}
-                        {"★".repeat(r.star)}
-                        {"☆".repeat(5 - r.star)}
-                      </span>
-                    </div>
-                    <p className="text-gray-600 text-sm mt-1">{r.comment}</p>
+            {/* Room details */}
+            <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
+              <h2 className="text-lg font-semibold mb-4">Room Details</h2>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                {[
+                  { icon: Bed, label: "Rooms", value: pg.room },
+                  { icon: User, label: "Gender", value: pg.gender },
+                  { icon: Utensils, label: "Food", value: pg.food },
+                ].map(({ icon: Icon, label, value }) => (
+                  <div key={label} className="flex flex-col items-center justify-center bg-gray-50 rounded-xl p-4 gap-2 border border-gray-100">
+                    <Icon size={20} className="text-blue-500" />
+                    <span className="text-xs text-gray-400">{label}</span>
+                    <span className="text-sm font-medium capitalize text-gray-700">{value}</span>
                   </div>
                 ))}
               </div>
-            )}
-          </div>
-        </div>
+            </div>
 
-        {/* RIGHT SIDE BOOKING CARD */}
-        <div className=" rounded-xl p-6 h-fit sticky top-24">
-          <p className="text-3xl font-bold">₹{pg.price}</p>
-          <p className="text-gray-500 text-sm">Per month</p>
-          <button className="w-full mt-4 bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition">
-            Book Now
-          </button>
+            {/* Amenities */}
+            <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
+              <h2 className="text-lg font-semibold mb-4">Amenities</h2>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                {pg.amenities.map((item) => {
+                  const Icon = amenityIcons[item];
+                  return (
+                    <div key={item} className="flex items-center gap-2 bg-gray-50 border border-gray-100 rounded-full px-3 py-2 text-sm text-gray-600">
+                      {Icon && <Icon size={15} className="text-blue-500 flex-shrink-0" />}
+                      {item}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Policies */}
+            <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
+              <h2 className="text-lg font-semibold mb-4">Policies</h2>
+              <ul className="flex flex-col gap-3">
+                {[
+                  { icon: Clock, text: "Check-in: 10:00 AM — Check-out: 9:00 AM" },
+                  { icon: Ban, text: "No smoking inside the premises" },
+                  { icon: PartyPopper, text: "No parties or loud music after 10 PM" },
+                  { icon: PawPrint, text: "Pets not allowed" },
+                  { icon: Users, text: "Guests allowed till 8 PM only" },
+                  { icon: CreditCard, text: "1 month security deposit required at check-in" },
+                ].map(({ icon: Icon, text }) => (
+                  <li key={text} className="flex items-start gap-3 text-sm text-gray-600">
+                    <Icon size={16} className="text-gray-400 mt-0.5 flex-shrink-0" />
+                    {text}
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Reviews */}
+          <ReviewsSection reviews={reviews} avgRating={avgRating}/>
+
+          </div>
+
+          {/* ── RIGHT / BOOKING CARD ──
+              mobile: shows at top (order-first), desktop: sticky right column */}
+          <div className="order-first lg:order-none mb-6 lg:mb-0">
+            <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 lg:sticky lg:top-24">
+              <p className="text-3xl font-bold text-gray-900">
+                ₹{pg.price?.toLocaleString()}
+              </p>
+              <p className="text-gray-400 text-sm mt-0.5">per month</p>
+
+              <div className="mt-4 flex flex-col gap-2 text-sm text-gray-600">
+                <div className="flex justify-between py-2 border-b border-gray-100">
+                  <span>Gender</span>
+                  <span className="font-medium capitalize">{pg.gender}</span>
+                </div>
+                <div className="flex justify-between py-2 border-b border-gray-100">
+                  <span>Food</span>
+                  <span className="font-medium capitalize">{pg.food}</span>
+                </div>
+                <div className="flex justify-between py-2">
+                  <span>Rooms</span>
+                  <span className="font-medium">{pg.room}</span>
+                </div>
+              </div>
+
+              <button className="w-full mt-5 bg-blue-600 text-white py-3 rounded-xl font-semibold hover:bg-blue-700 transition-colors text-sm">
+                Book Now
+              </button>
+              <p className="text-center text-xs text-gray-400 mt-2">No charges yet</p>
+            </div>
+          </div>
+
         </div>
       </div>
     </div>

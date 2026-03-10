@@ -1,5 +1,5 @@
-// !React Server Component
-// This is the "brain" of the Home Page. Instead of sending raw HTML to the user immediately, this page talks to our backend database to get real PG listings before showing anything.
+// React Server Component
+// Fetches all PG data on the server before sending anything to the browser.
 import HomeClient from "./HomeClient";
 
 async function getFirstImage(pgId) {
@@ -57,13 +57,12 @@ export default async function Home() {
         getAvgRating(pg._id),
       ]);
       return { ...pg, image, ratingData };
-    }),
+    })
   );
-  console.log("FETCHED PGS", data);
 
   return (
-    <div className="bg-gray-100 min-h-screen py-8 px-4">
-      <div className="max-w-6xl mx-auto">
+    <div className="bg-gray-50 min-h-screen">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
         <HomeClient data={data} />
       </div>
     </div>

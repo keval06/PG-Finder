@@ -35,3 +35,15 @@ The easiest way to deploy your Next.js app is to use the [Vercel Platform](https
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
 
+
+
+
+Why a separate client component?
+page.js is a Server Component — it can't use useState. But sorting requires state (which sort is active). Instead of making the entire page a client component, we extract just the reviews section into its own "use client" component. This is the correct Next.js pattern — keep the server component for data fetching, push "use client" as deep/narrow as possible.
+What's in it:
+
+Count — Reviews (13) in the header
+Avg rating — ★ 4.2/5 next to count
+Date — new Date(r.createdAt).toLocaleDateString("en-IN", ...) formats as 12 Jan 2025. Works because Mongoose timestamps: true adds createdAt automatically
+Sort bar — pill-style toggle: Newest / Oldest / Highest / Lowest. Hides itself if only 1 review (no point sorting 1 item)
+Active sort gets bg-white shadow-sm text-blue-600 — looks like a lifted tab inside the gray container
