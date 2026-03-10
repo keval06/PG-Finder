@@ -117,7 +117,6 @@ export default async function PGDetails({ params }) {
           {/* Amenities */}
           <h2 className="text-xl font-semibold">Amenities</h2>
 
-          
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             {pg.amenities.map((item, i) => {
               const Icon = amenityIcons[item];
