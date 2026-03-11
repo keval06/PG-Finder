@@ -1,128 +1,130 @@
 import Link from "next/link";
+
+function BookBtn({ id }) {
+  const router = useRouter();
+  return (
+    <button
+      onClick={e => { e.preventDefault(); e.stopPropagation(); router.push(`/pg/${id}#booking`); }}
+      className="block w-full text-center bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-4 py-2.5 rounded-xl transition-colors"
+    >
+      Book Now
+    </button>
+  );
+}
+
 import Image from "next/image";
 import {
-  Wifi,
-  Car,
-  Snowflake,
-  Tv,
-  Camera,
-  Dumbbell,
-  Book,
-  Trees,
-  Refrigerator,
-  WashingMachine,
-  ArrowUpDown,
-  User,
-  Utensils,
+  Wifi, Car, Snowflake, Tv, Camera, Dumbbell,
+  Book, Trees, Refrigerator, WashingMachine,
+  ArrowUpDown, Utensils, User, Star, MapPin,
 } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 const amenityIcons = {
-  Parking: Car,
-  WiFi: Wifi,
-  AC: Snowflake,
-  Laundry: WashingMachine,
-  Lift: ArrowUpDown,
-  CCTV: Camera,
-  RO: Refrigerator,
-  TV: Tv,
-  Refrigerator: Refrigerator,
-  Gym: Dumbbell,
-  Garden: Trees,
-  Library: Book,
+  WiFi: Wifi, Parking: Car, AC: Snowflake, Laundry: WashingMachine,
+  Lift: ArrowUpDown, CCTV: Camera, RO: Refrigerator, TV: Tv,
+  Refrigerator: Refrigerator, Gym: Dumbbell, Garden: Trees, Library: Book,
 };
 
+// const genderBadge = {
+//   male:   "bg-blue-50 text-blue-700 border-blue-100",
+//   female: "bg-pink-50 text-pink-700 border-pink-100",
+//   mix:    "bg-violet-50 text-violet-700 border-violet-100",
+// };
+const genderLabel = { male: "Male",      female: "Female",    mix: "Co-ed"    };
+const foodLabel   = { "with food": "Food incl.", "without food": "No food", flexible: "Flexible" };
+
 export default function PGCard({ pg }) {
+  const avg   = pg.ratingData?.avg ? parseFloat(pg.ratingData.avg).toFixed(1) : null;
+  const count = pg.ratingData?.count || 0;
+  const shown = (pg.amenities || []).slice(0, 5);
+  const extra = (pg.amenities?.length || 0) - 5;
+
   return (
-    <Link href={`/pg/${pg._id}`} className="w-full block">
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow duration-200 flex flex-col sm:flex-row">
-        {/* IMAGE — full width + fixed height on mobile, sidebar on sm+ */}
-        <div className="relative w-full h-48 sm:h-auto sm:w-48 md:w-52 flex-shrink-0">
+    <Link href={`/pg/${pg._id}`} className="block group">
+      <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden flex flex-col sm:flex-row transition-all duration-200 hover:border-blue-300 hover:shadow-md hover:shadow-blue-50/50">
+
+        {/* ── IMAGE ── */}
+        <div className="relative w-full sm:w-52 h-48 sm:h-auto flex-shrink-0">
           <Image
-            src={
-              pg.image ||
-              "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2"
-            }
-            alt={pg.name}
-            fill
-            className="object-cover"
+            src={pg.image || "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=400&q=75"}
+            alt={pg.name} fill className="object-cover"
+            sizes="(max-width: 640px) 100vw, 208px"
           />
+          {/* gender badge */}
+          {/* <div className={`absolute top-3 left-3 text-[10px] font-semibold px-2 py-0.5 rounded-full border backdrop-blur-sm ${genderBadge[pg.gender] || "bg-white/80 text-slate-600 border-slate-200"}`}>
+            {genderLabel[pg.gender] || pg.gender}
+          </div> */}
         </div>
 
-        {/* BODY — stacks vertically on mobile, row on sm+ */}
-        <div className="flex-1 flex flex-col sm:flex-row min-w-0">
-          {/* MAIN CONTENT */}
-          <div className="flex-1 px-4 py-3 sm:px-5 sm:py-4 flex flex-col justify-between min-w-0 gap-3">
-            {/* Name + rating + location */}
-            <div className="flex flex-col gap-1">
-              <h2 className="text-base sm:text-lg font-semibold text-gray-900 truncate">
-                {pg.name}
-              </h2>
-              <div className="flex items-center gap-2">
-                <span className="text-yellow-500 text-sm font-medium">
-                  {pg.ratingData ? `★ ${pg.ratingData.avg}/5` : "★ No reviews"}
+        {/* ── CONTENT ── */}
+        <div className="flex-1 p-4 sm:p-5 flex flex-col justify-between min-w-0">
+          <div>
+
+            {/* title */}
+            <h2 className="text-xl font-semibold text-slate-900 truncate group-hover:text-blue-600 transition-colors mb-1">
+              {pg.name}
+            </h2>
+
+            {/* RATING — always shown, fix 1 */}
+            <div className="flex items-center gap-1.5 mb-2">
+              {avg ? (
+                <span className="text-yellow-500">★ {avg}/5
+                  <span className="text-slate-400 font-normal ml-1">({count} {count === 1 ? "review" : "reviews"})</span>
                 </span>
-                {pg.ratingData?.count > 0 && (
-                  <span className="text-gray-400 text-xs">
-                    ({pg.ratingData.count} reviews)
-                  </span>
-                )}
-              </div>
-              <p className="text-gray-600 text-sm">{pg.city}</p>
-              <p className="text-gray-400 text-xs truncate">{pg.address}</p>
+              ) : (
+                <span className="text-slate-400 text-xs">★ No reviews yet</span>
+              )}
             </div>
 
-            {/* Gender + food */}
-            <div className="flex items-center gap-4">
-              <span className="flex items-center gap-1.5 text-sm text-gray-600 capitalize">
-                <User size={14} className="text-gray-400" />
-                {pg.gender}
+            {/* location */}
+            <div className="flex items-center gap-1 text-xs text-slate-400 mb-3">
+              <MapPin size={11} className="flex-shrink-0" />
+              <span className="truncate">{pg.address ? `${pg.address}, ` : ""}{pg.city}</span>
+            </div>
+
+            {/* gender + food chips */}
+            <div className="flex items-center gap-2 flex-wrap mb-3">
+              <span className="flex items-center gap-1 text-xs text-slate-600 bg-slate-50 border border-slate-200 px-2.5 py-1 rounded-full">
+                <User size={10} /> {genderLabel[pg.gender] || pg.gender}
               </span>
-              <span className="text-gray-300">•</span>
-              <span className="flex items-center gap-1.5 text-sm text-gray-600 capitalize">
-                <Utensils size={14} className="text-gray-400" />
-                {pg.food}
+              <span className="flex items-center gap-1 text-xs text-slate-600 bg-slate-50 border border-slate-200 px-2.5 py-1 rounded-full">
+                <Utensils size={10} /> {foodLabel[pg.food] || pg.food}
               </span>
             </div>
 
-            {/* Amenities */}
-            {pg.amenities?.length > 0 && (
-              <div className="flex flex-wrap gap-3">
-                {pg.amenities.map((a) => {
-                  const Icon = amenityIcons[a];
-                  return (
-                    <span
-                      key={a}
-                      className="flex items-center gap-1 text-xs text-gray-500 bg-gray-50 border border-gray-100 rounded-full px-2.5 py-1"
-                    >
-                      {Icon && <Icon size={12} />}
-                      {a}
-                    </span>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-
-          {/* PRICE + BUTTON
-              mobile  → horizontal row at bottom (price left, button right)
-              sm+     → vertical column on the right with divider */}
-          <div
-            className="flex flex-row sm:flex-col justify-between sm:justify-center items-center
-            px-4 py-3 sm:px-5 sm:py-4
-            border-t border-gray-100 sm:border-t-0 sm:border-l
-            sm:w-36 sm:flex-shrink-0 gap-3"
-          >
-            <div className="text-left sm:text-center">
-              <p className="text-xl sm:text-2xl font-bold text-gray-900">
-                ₹{pg.price?.toLocaleString()}
-              </p>
-              <p className="text-xs text-gray-400">/month</p>
+            {/* AMENITY CHIPS — fix 4: chip style, no blue icon color */}
+            <div className="flex items-center gap-2 flex-wrap">
+              {shown.map(a => {
+                const Icon = amenityIcons[a];
+                return (
+                  <div key={a} className="flex items-center gap-1.5 text-xs text-slate-600 bg-slate-50 border border-slate-200 px-2.5 py-1 rounded-full">
+                    {Icon && <Icon size={11} className="text-slate-400" />}
+                    {a}
+                  </div>
+                );
+              })}
+              {extra > 0 && (
+                <span className="text-xs text-slate-400 bg-slate-50 border border-slate-200 px-2.5 py-1 rounded-full">
+                  +{extra} more
+                </span>
+              )}
             </div>
-            <button className="bg-blue-600 text-white px-4 py-2 rounded-xl hover:bg-blue-700 transition-colors text-sm font-medium sm:w-full whitespace-nowrap">
-              Book Now
-            </button>
+
           </div>
         </div>
+
+        {/* ── PRICE + BOOK ── */}
+        <div className="flex sm:flex-col items-center sm:items-stretch justify-between sm:justify-center gap-3 px-4 sm:px-5 pb-4 sm:py-5 sm:border-l border-slate-100 sm:w-36 flex-shrink-0">
+          <div className="sm:text-center">
+            <p className="text-xl font-bold text-slate-900 leading-none">
+              ₹{pg.price?.toLocaleString("en-IN")}
+            </p>
+            <p className="text-[10px] text-slate-400 mt-0.5">/month</p>
+          </div>
+           <BookBtn id={pg._id} />
+        </div>
+
       </div>
     </Link>
   );

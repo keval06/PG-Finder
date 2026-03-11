@@ -1,177 +1,308 @@
 "use client";
 
-import { User, Search } from "lucide-react";
-import Image from "next/image";
-import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+import { useRouter, usePathname } from "next/navigation";
+import { Search, User, X, Menu, Home } from "lucide-react";
 import { useSearch } from "../context/SearchContext";
 import { useAuth } from "../context/AuthContext";
-import { useState, useEffect } from "react";
 
 export default function Navbar() {
   const router = useRouter();
+  const pathname = usePathname();
   const { query, setQuery } = useSearch();
-  const { user, logout } = useAuth(); // ← single source of truth
+  const { user, logout } = useAuth();
 
   const [open, setOpen] = useState(false);
+  const [mobileMenu, setMobileMenu] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
 
-  // close dropdown on outside click
+  const isLanding = pathname === "/";
+
   useEffect(() => {
-    const handler = () => setOpen(false);
-    if (open) document.addEventListener("click", handler);
-    return () => document.removeEventListener("click", handler);
+    const fn = () => setScrolled(window.scrollY > 10);
+    window.addEventListener("scroll", fn, { passive: true });
+    return () => window.removeEventListener("scroll", fn);
+  }, []);
+
+  useEffect(() => {
+    const h = () => setOpen(false);
+    if (open) document.addEventListener("click", h);
+    return () => document.removeEventListener("click", h);
   }, [open]);
 
   const handleLogout = () => {
-    logout(); // context clears localStorage + sets user to null
+    logout();
     setOpen(false);
-    router.push("/auth/login");
+    router.push("/");
   };
+
+  if (isLanding) return null;
 
   return (
     <>
-      <nav className="sticky top-0 z-50 w-full bg-white shadow-md px-6 py-3 flex justify-between items-center">
-        {/* LOGO */}
-        <div
-          className="flex items-center gap-2 cursor-pointer"
-          onClick={() => router.push("/")}
-        >
-          <div className="relative w-10 h-10">
-            <Image
-              src="/logo.png"
-              alt="logo"
-              fill
-              className="object-cover rounded-full"
-            />
-          </div>
-          <span className="font-bold text-lg">PG Finder</span>
-        </div>
-
-        {/* SEARCH — hidden on mobile */}
-        <div className="hidden md:flex items-center border rounded-lg px-3 py-1">
-          <input
-            type="text"
-            placeholder="Search city or name..."
-            className="outline-none w-64"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-          />
-          {query ? (
-            <span
-              className="cursor-pointer ml-2 text-gray-400"
-              onClick={() => setQuery("")}
-            >
-              ✕
-            </span>
-          ) : (
-            <Search size={20} className="ml-2 text-gray-500" />
-          )}
-        </div>
-
-        {/* USER SECTION */}
-        <div className="relative flex items-center gap-3">
-          {user && (
-            <span className="hidden sm:block text-sm font-medium">
-              Hey, {user.name}
-            </span>
-          )}
-
-          <div
-            onClick={(e) => {
-              e.stopPropagation();
-              if (user) setOpen(!open);
-              else router.push("/auth/login");
-            }}
-            className="bg-gray-200 p-2 rounded-full cursor-pointer hover:bg-gray-300"
+      <nav
+        className={`sticky top-0 z-50 w-full transition-all duration-200 ${
+          scrolled
+            ? "bg-white/95 backdrop-blur-md shadow-sm border-b border-slate-200"
+            : "bg-white border-b border-slate-200"
+        }`}
+      >
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 h-14 flex items-center gap-4">
+          {/* LOGO */}
+          <button
+            onClick={() => router.push("/")}
+            className="flex items-center gap-2 flex-shrink-0"
           >
-            <User size={26} />
+            <div className="w-7 h-7 rounded-lg bg-blue-600 flex items-center justify-center">
+              <span className="text-white text-[10px] font-bold tracking-tight">
+                PG
+              </span>
+            </div>
+            <span className="font-semibold text-slate-900 text-sm tracking-tight">
+              Finder
+            </span>
+          </button>
+
+          {/* SEARCH desktop */}
+          <div className="hidden md:flex flex-1 max-w-sm mx-4">
+            <div className="flex items-center w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 gap-2 focus-within:bg-white focus-within:border-blue-400 focus-within:ring-2 focus-within:ring-blue-50 transition-all">
+              <Search size={14} className="text-slate-400 flex-shrink-0" />
+              <input
+                type="text"
+                placeholder="Search city or PG name…"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                className="flex-1 text-sm outline-none bg-transparent text-slate-900 placeholder:text-slate-400"
+              />
+              {query && (
+                <button onClick={() => setQuery("")}>
+                  <X
+                    size={13}
+                    className="text-slate-400 hover:text-slate-600"
+                  />
+                </button>
+              )}
+            </div>
           </div>
 
-          {open && user && (
-            <div
-              className="absolute right-0 top-14 bg-white shadow-lg rounded-xl p-2 w-44 border border-gray-100 z-50"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="sm:hidden px-3 py-2 mb-1 border-b border-gray-100">
-                <p className="text-xs text-gray-400">Signed in as</p>
-                <p className="text-sm font-semibold text-gray-800 truncate">
-                  {user.name}
-                </p>
+          {/* RIGHT */}
+          <div className="ml-auto flex items-center gap-2">
+            {user ? (
+              <>
+                <span className="hidden sm:block text-sm text-slate-500">
+                  Hey,{" "}
+                  <span className="text-slate-900 font-medium">
+                    {user.name?.split(" ")[0]}
+                  </span>
+                </span>
+                <div className="relative">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setOpen(!open);
+                    }}
+                    className="w-8 h-8 rounded-full bg-blue-50 border border-blue-200 flex items-center justify-center text-blue-600 hover:bg-blue-100 transition-colors"
+                  >
+                    <User size={15} />
+                  </button>
+                  {open && (
+                    <div
+                      className="absolute right-0 top-10 bg-white border border-slate-200 rounded-2xl shadow-xl p-1.5 w-48 z-50"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <div className="px-3 py-2 border-b border-slate-100 mb-1">
+                        <p className="text-[10px] text-slate-400 uppercase tracking-wider">
+                          Signed in as
+                        </p>
+                        <p className="text-sm font-semibold text-slate-900 truncate">
+                          {user.name}
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => {
+                          router.push("/profile/edit");
+                          setOpen(false);
+                        }}
+                        className="w-full text-left px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 rounded-xl transition-colors"
+                      >
+                        Edit Profile
+                      </button>
+                      <button
+                        onClick={() => {
+                          router.push("/bookings");
+                          setOpen(false);
+                        }}
+                        className="w-full text-left px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 rounded-xl transition-colors"
+                      >
+                        My Bookings
+                      </button>
+
+                       <button
+                        onClick={() => {
+                          router.push("/my-listings");
+                          setOpen(false);
+                        }}
+                        className="w-full text-left px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 rounded-xl transition-colors"
+                      >
+                        My Listings
+                      </button>
+
+                      <div className="border-t border-slate-100 my-1" />
+                      <button
+                        onClick={handleLogout}
+                        className="w-full text-left px-3 py-2 text-sm text-red-500 hover:bg-red-50 rounded-xl transition-colors"
+                      >
+                        Logout
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </>
+            ) : (
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => router.push("/auth/login")}
+                  className="text-sm text-slate-500 hover:text-slate-900 font-medium px-3 py-1.5 transition-colors"
+                >
+                  Sign in
+                </button>
+                <button
+                  onClick={() => router.push("/auth/signup")}
+                  className="text-sm bg-blue-600 text-white px-4 py-1.5 rounded-xl hover:bg-blue-700 transition-colors font-medium"
+                >
+                  Sign up
+                </button>
               </div>
+            )}
+            {/* <button
+              className="md:hidden ml-1 p-1.5 rounded-lg hover:bg-slate-100 transition-colors"
+              onClick={() => setMobileMenu(true)}
+            >
+              <Menu size={18} className="text-slate-700" />
+            </button> */}
+          </div>
+        </div>
 
-              <button
-                onClick={() => {
-                  router.push("/profile/edit");
-                  setOpen(false);
-                }}
-                className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-                </svg>
-                Edit Profile
+        {/* MOBILE SEARCH */}
+        <div className="md:hidden border-t border-slate-200 px-4 py-2">
+          <div className="flex items-center bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 gap-2 focus-within:bg-white focus-within:border-blue-400 transition-all">
+            <Search size={14} className="text-slate-400 flex-shrink-0" />
+            <input
+              type="text"
+              placeholder="Search city or PG name…"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              className="flex-1 text-sm outline-none bg-transparent placeholder:text-slate-400"
+            />
+            {query && (
+              <button onClick={() => setQuery("")}>
+                <X size={13} className="text-slate-400" />
               </button>
-
-              <div className="border-t border-gray-100 my-1" />
-
-              <button
-                onClick={handleLogout}
-                className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-                  <polyline points="16 17 21 12 16 7" />
-                  <line x1="21" y1="12" x2="9" y2="12" />
-                </svg>
-                Logout
-              </button>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </nav>
 
-      {/* MOBILE SEARCH */}
-      <div className="md:hidden sticky top-[57px] z-40 bg-white border-b border-gray-100 px-4 py-2 shadow-sm">
-        <div className="flex items-center border rounded-lg px-3 py-1.5">
-          <input
-            type="text"
-            placeholder="Search city or name..."
-            className="outline-none flex-1 text-sm"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
+      {/* MOBILE SIDE MENU */}
+      {/* {mobileMenu && (
+        <div className="fixed inset-0 z-[200] flex">
+          <div
+            className="absolute inset-0 bg-black/40"
+            onClick={() => setMobileMenu(false)}
           />
-          {query ? (
-            <span
-              className="cursor-pointer ml-2 text-gray-400 text-sm"
-              onClick={() => setQuery("")}
+          <div className="relative ml-auto w-72 bg-white h-full flex flex-col p-6 gap-3 shadow-2xl">
+            <button
+              onClick={() => setMobileMenu(false)}
+              className="self-end p-1 rounded-lg hover:bg-slate-100 mb-2"
             >
-              ✕
-            </span>
-          ) : (
-            <Search size={16} className="ml-2 text-gray-500" />
-          )}
+              <X size={20} className="text-slate-500" />
+            </button>
+            
+            {user && (
+              <div className="bg-blue-50 border border-blue-100 rounded-2xl p-4 mb-2">
+                <p className="text-xs text-blue-400 uppercase tracking-wider mb-0.5">
+                  Signed in as
+                </p>
+                <p className="font-semibold text-slate-900">{user.name}</p>
+              </div>
+            )}
+            {user ? (
+              <>
+                <button
+                  onClick={() => {
+                    router.push("/home");
+                    setMobileMenu(false);
+                  }}
+                  className="text-left px-4 py-3 rounded-xl text-sm font-medium text-slate-700 hover:bg-slate-50"
+                >
+                  Browse PGs
+                </button>
+                <button
+                  onClick={() => {
+                    router.push("/profile/edit");
+                    setMobileMenu(false);
+                  }}
+                  className="text-left px-4 py-3 rounded-xl text-sm text-slate-700 hover:bg-slate-50"
+                >
+                  Edit Profile
+                </button>
+
+                <button
+                  onClick={() => {
+                    router.push("/bookings");
+                    setMobileMenu(false);
+                  }}
+                  className="text-left px-4 py-3 rounded-xl text-sm text-slate-700 hover:bg-slate-50"
+                >
+                  My Bookings
+                </button>
+
+                <button
+                  onClick={() => {
+                    router.push("/my-listings");
+                    setMobileMenu(false);
+                  }}
+                  className="text-left px-4 py-3 rounded-xl text-sm text-slate-700 hover:bg-slate-50"
+                >
+                  My Listings
+                </button>
+
+                
+                <button
+                  onClick={() => {
+                    handleLogout();
+                    setMobileMenu(false);
+                  }}
+                  className="text-left px-4 py-3 rounded-xl text-sm text-red-500 hover:bg-red-50"
+                >
+                  Logout
+                </button>
+              </>
+            ) : (
+              <>
+                <button
+                  onClick={() => {
+                    router.push("/auth/login");
+                    setMobileMenu(false);
+                  }}
+                  className="text-left px-4 py-3 rounded-xl text-sm font-medium text-slate-700 hover:bg-slate-50"
+                >
+                  Sign In
+                </button>
+                <button
+                  onClick={() => {
+                    router.push("/auth/signup");
+                    setMobileMenu(false);
+                  }}
+                  className="px-4 py-3 rounded-xl text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 transition-colors"
+                >
+                  Create Account
+                </button>
+              </>
+            )}
+          </div>
         </div>
-      </div>
+      )} */}
     </>
   );
 }

@@ -1,17 +1,23 @@
 "use client";
+
 import { createContext, useContext, useState, useEffect } from "react";
 
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null);
+  const [user,  setUser]  = useState(null);
+  const [ready, setReady] = useState(false); // ← KEY: false until localStorage read
 
   useEffect(() => {
     try {
       const stored = localStorage.getItem("user");
-      if (stored && stored !== "undefined") setUser(JSON.parse(stored));
+      if (stored && stored !== "undefined") {
+        setUser(JSON.parse(stored));
+      }
     } catch {
       setUser(null);
+    } finally {
+      setReady(true); // always mark ready after attempt — success or fail
     }
   }, []);
 
@@ -34,7 +40,7 @@ export function AuthProvider({ children }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, updateUser }}>
+    <AuthContext.Provider value={{ user, ready, login, logout, updateUser }}>
       {children}
     </AuthContext.Provider>
   );

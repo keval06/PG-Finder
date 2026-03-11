@@ -12,7 +12,9 @@ const {
 router.post("/", protect, registerPG);
 router.get("/", getAllPg);
 router.get("/:id", getPg);
-router.patch("/:id",protect, updatePg);
+router.patch("/:id", protect, updatePg);
+// router.get("/owner", protect, getMyPgs); // ← owner's own PGs (incl. inactive)
+
 // router.post("login", loginUser);
 
 module.exports = router;

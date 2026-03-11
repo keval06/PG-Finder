@@ -98,3 +98,13 @@ exports.updatePg = async (req, res) => {
     res.status(500).json(error.message);
   }
 };
+
+// GET /api/pg/owner — owner sees their own PGs (including inactive)
+// exports.getMyPgs = async (req, res) => {
+//   try {
+//     const pgs = await PG.find({ owner: req.user._id });
+//     res.json(pgs);
+//   } catch (error) {
+//     res.status(500).json(error.message);
+//   }
+// };

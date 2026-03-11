@@ -1,19 +1,18 @@
 import Navbar from "./components/Navbar";
-import { AuthProvider } from "./context/AuthContext";
 import { SearchProvider } from "./context/SearchContext";
+import { AuthProvider } from "./context/AuthContext";
 import "./globals.css";
+
+export const metadata = { title: "PGFinder — Find Your Perfect PG" };
 
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body>
+      <body className="min-h-screen bg-[#f8fafc]">
         <AuthProvider>
           <SearchProvider>
             <Navbar />
-            {children}{" "}
-            {/*The {children} prop here represents your 
-page.js
- (The Home Page). */}
+            {children}
           </SearchProvider>
         </AuthProvider>
       </body>

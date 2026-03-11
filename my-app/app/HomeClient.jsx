@@ -6,231 +6,88 @@ import PGCard from "./components/PGCard";
 import { ArrowUp, ArrowDown, SlidersHorizontal, X } from "lucide-react";
 
 const PRICE_RANGES = [
-  { label: "Under ₹5,000", min: 0, max: 5000 },
-  { label: "₹5,000 - ₹10,000", min: 5000, max: 10000 },
-  { label: "₹10,000 - ₹15,000", min: 10000, max: 15000 },
-  { label: "Above ₹15,000", min: 15000, max: Infinity },
+  { label: "Under ₹5,000",       min: 0,     max: 5000     },
+  { label: "₹5,000 – ₹10,000",  min: 5000,  max: 10000    },
+  { label: "₹10,000 – ₹15,000", min: 10000, max: 15000    },
+  { label: "Above ₹15,000",      min: 15000, max: Infinity },
 ];
 
-const AMENITIES = [
-  "AC", "WiFi", "Parking", "Laundry", "Gym",
-  "CCTV", "RO", "TV", "Lift", "Refrigerator", "Garden", "Library",
-];
+const AMENITIES = ["AC","WiFi","Parking","Laundry","Gym","CCTV","RO","TV","Lift","Refrigerator","Garden","Library"];
 
-export default function HomeClient({ data }) {
-  const { query } = useSearch();
+function FilterPanel({ selectedPrice, setSelectedPrice, genderFilter, toggleGender, foodFilter, toggleFood, minRating, setMinRating, selectedAmenities, toggleAmenity, hasFilters, clearFilters }) {
+  const sectionLabel = "text-[11px] font-semibold text-slate-500 uppercase tracking-widest mb-3 block";
+  const row = "flex items-center gap-2.5 cursor-pointer text-sm text-slate-600 hover:text-slate-900 transition-colors py-0.5";
 
-  const [selectedPrice, setSelectedPrice] = useState(null);
-  const [selectedAmenities, setSelectedAmenities] = useState([]);
-  const [minRating, setMinRating] = useState(0);
-  const [genderFilter, setGenderFilter] = useState([]);
-  const [foodFilter, setFoodFilter] = useState([]);
-  const [sortField, setSortField] = useState(null);
-  const [sortOrder, setSortOrder] = useState("asc");
-
-  // mobile drawer state
-  const [drawerOpen, setDrawerOpen] = useState(false);
-
-  const toggleAmenity = (a) =>
-    setSelectedAmenities((prev) =>
-      prev.includes(a) ? prev.filter((x) => x !== a) : [...prev, a]
-    );
-  const toggleGender = (g) =>
-    setGenderFilter((prev) =>
-      prev.includes(g) ? prev.filter((x) => x !== g) : [...prev, g]
-    );
-  const toggleFood = (f) =>
-    setFoodFilter((prev) =>
-      prev.includes(f) ? prev.filter((x) => x !== f) : [...prev, f]
-    );
-  const toggleSort = (field) => {
-    if (sortField === field) {
-      setSortOrder(sortOrder === "asc" ? "desc" : "asc");
-    } else {
-      setSortField(field);
-      setSortOrder("asc");
-    }
-  };
-
-  const clearFilters = () => {
-    setSelectedPrice(null);
-    setSelectedAmenities([]);
-    setMinRating(0);
-    setGenderFilter([]);
-    setFoodFilter([]);
-  };
-
-  const hasFilters =
-    selectedPrice ||
-    selectedAmenities.length > 0 ||
-    minRating > 0 ||
-    genderFilter.length > 0 ||
-    foodFilter.length > 0;
-
-  const filtered = data.filter((pg) => {
-    if (query.trim()) {
-      const q = query.toLowerCase();
-      if (
-        !(pg.name || "").toLowerCase().includes(q) &&
-        !(pg.city || "").toLowerCase().includes(q)
-      ) return false;
-    }
-    if (selectedPrice) {
-      if (pg.price < selectedPrice.min || pg.price > selectedPrice.max) return false;
-    }
-    if (selectedAmenities.length > 0) {
-      if (!selectedAmenities.every((a) => pg.amenities?.includes(a))) return false;
-    }
-    if (minRating > 0) {
-      const avg = pg.ratingData?.avg ? parseFloat(pg.ratingData.avg) : 0;
-      if (avg < minRating) return false;
-    }
-    if (genderFilter.length > 0) {
-      if (!genderFilter.includes(pg.gender)) return false;
-    }
-    if (foodFilter.length > 0) {
-      if (!foodFilter.includes(pg.food)) return false;
-    }
-    return true;
-  });
-
-  const sorted = [...filtered].sort((a, b) => {
-    let valA, valB;
-    if (sortField === "price") { valA = a.price; valB = b.price; }
-    if (sortField === "rating") {
-      valA = parseFloat(a.ratingData?.avg || 0);
-      valB = parseFloat(b.ratingData?.avg || 0);
-    }
-    if (sortField === "reviews") {
-      valA = a.ratingData?.count || 0;
-      valB = b.ratingData?.count || 0;
-    }
-    if (valA === undefined) return 0;
-    return sortOrder === "asc" ? valA - valB : valB - valA;
-  });
-
-  const SortBtn = ({ field, label }) => (
-    <button
-      onClick={() => toggleSort(field)}
-      className={`flex items-center gap-1 text-sm px-3 py-1.5 rounded-lg transition ${
-        sortField === field
-          ? "bg-blue-50 text-blue-600 font-medium"
-          : "text-gray-500 hover:bg-gray-100"
-      }`}
-    >
-      {label}
-      {sortField === field
-        ? sortOrder === "asc" ? <ArrowUp size={13} /> : <ArrowDown size={13} />
-        : <span className="w-3" />}
-    </button>
-  );
-
-  // Reusable filter panel — used in both sidebar and mobile drawer
-  const FilterPanel = () => (
-    <div className="flex flex-col gap-5">
+  return (
+    <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
-        <h2 className="font-semibold text-gray-800">Filters</h2>
+        <p className="font-semibold text-slate-900">Filters</p>
         {hasFilters && (
-          <button onClick={clearFilters} className="text-xs text-blue-500 hover:underline">
-            Clear all
-          </button>
+          <button onClick={clearFilters} className="text-xs text-blue-600 hover:text-blue-800 font-medium">Clear all</button>
         )}
       </div>
 
-      <hr className="border-gray-100" />
-
-      {/* Price */}
       <div>
-        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">Price Range</p>
-        <div className="flex flex-col gap-2.5">
-          {PRICE_RANGES.map((range) => (
-            <label key={range.label} className="flex items-center gap-2.5 text-sm text-gray-600 cursor-pointer">
-              <input
-                type="radio"
-                checked={selectedPrice?.label === range.label}
-                onChange={() => setSelectedPrice(selectedPrice?.label === range.label ? null : range)}
-                className="accent-blue-600"
-              />
-              {range.label}
+        <span className={sectionLabel}>Price Range</span>
+        <div className="flex flex-col gap-1.5">
+          {PRICE_RANGES.map(r => (
+            <label key={r.label} className={row}>
+              <input type="radio" className="w-3.5 h-3.5 flex-shrink-0 accent-blue-600"
+                checked={selectedPrice?.label === r.label}
+                onChange={() => setSelectedPrice(selectedPrice?.label === r.label ? null : r)} />
+              {r.label}
             </label>
           ))}
         </div>
       </div>
 
-      <hr className="border-gray-100" />
-
-      {/* Gender */}
       <div>
-        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">Gender</p>
-        <div className="flex flex-col gap-2.5">
-          {["male", "female", "mix"].map((g) => (
-            <label key={g} className="flex items-center gap-2.5 text-sm text-gray-600 capitalize cursor-pointer">
-              <input
-                type="checkbox"
-                checked={genderFilter.includes(g)}
-                onChange={() => toggleGender(g)}
-                className="accent-blue-600"
-              />
-              {g}
+        <span className={sectionLabel}>Gender</span>
+        <div className="flex flex-col gap-1.5">
+          {[["male","Male"],["female","Female"],["mix","Co-ed"]].map(([v, d]) => (
+            <label key={v} className={row}>
+              <input type="checkbox" className="w-3.5 h-3.5 flex-shrink-0 accent-blue-600"
+                checked={genderFilter.includes(v)} onChange={() => toggleGender(v)} />
+              {d}
             </label>
           ))}
         </div>
       </div>
 
-      <hr className="border-gray-100" />
-
-      {/* Food */}
       <div>
-        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">Food</p>
-        <div className="flex flex-col gap-2.5">
-          {["with food", "without food", "flexible"].map((f) => (
-            <label key={f} className="flex items-center gap-2.5 text-sm text-gray-600 capitalize cursor-pointer">
-              <input
-                type="checkbox"
-                checked={foodFilter.includes(f)}
-                onChange={() => toggleFood(f)}
-                className="accent-blue-600"
-              />
-              {f}
+        <span className={sectionLabel}>Food</span>
+        <div className="flex flex-col gap-1.5">
+          {[["with food","With Food"],["without food","Without Food"],["flexible","Flexible"]].map(([v, d]) => (
+            <label key={v} className={row}>
+              <input type="checkbox" className="w-3.5 h-3.5 flex-shrink-0 accent-blue-600"
+                checked={foodFilter.includes(v)} onChange={() => toggleFood(v)} />
+              {d}
             </label>
           ))}
         </div>
       </div>
 
-      <hr className="border-gray-100" />
-
-      {/* Rating */}
       <div>
-        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">Min Rating</p>
-        <div className="flex flex-col gap-2.5">
-          {[4, 3, 2].map((r) => (
-            <label key={r} className="flex items-center gap-2.5 text-sm text-gray-600 cursor-pointer">
-              <input
-                type="radio"
-                checked={minRating === r}
-                onChange={() => setMinRating(minRating === r ? 0 : r)}
-                className="accent-blue-600"
-              />
-              {"★".repeat(r)}&nbsp;&amp; up
+        <span className={sectionLabel}>Min Rating</span>
+        <div className="flex flex-col gap-1.5">
+          {[4, 3, 2].map(r => (
+            <label key={r} className={row}>
+              <input type="radio" className="w-3.5 h-3.5 flex-shrink-0 accent-blue-600"
+                checked={minRating === r} onChange={() => setMinRating(minRating === r ? 0 : r)} />
+              <span className="text-yellow-500">{"★".repeat(r)}</span>
+              <span className="text-slate-400">& up</span>
             </label>
           ))}
         </div>
       </div>
 
-      <hr className="border-gray-100" />
-
-      {/* Amenities */}
       <div>
-        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">Amenities</p>
-        <div className="flex flex-col gap-2.5">
-          {AMENITIES.map((a) => (
-            <label key={a} className="flex items-center gap-2.5 text-sm text-gray-600 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={selectedAmenities.includes(a)}
-                onChange={() => toggleAmenity(a)}
-                className="accent-blue-600"
-              />
+        <span className={sectionLabel}>Amenities</span>
+        <div className="flex flex-col gap-1.5">
+          {AMENITIES.map(a => (
+            <label key={a} className={row}>
+              <input type="checkbox" className="w-3.5 h-3.5 flex-shrink-0 accent-blue-600"
+                checked={selectedAmenities.includes(a)} onChange={() => toggleAmenity(a)} />
               {a}
             </label>
           ))}
@@ -238,105 +95,132 @@ export default function HomeClient({ data }) {
       </div>
     </div>
   );
+}
+
+function SortBtn({ label, field, sortField, sortOrder, onToggle }) {
+  const active = sortField === field;
+  return (
+    <button onClick={() => onToggle(field)}
+      className={`flex items-center gap-1 text-sm px-3 py-1.5 rounded-xl border transition-all font-medium ${
+        active
+          ? "bg-blue-50 border-blue-200 text-blue-700"
+          : "bg-white border-slate-200 text-slate-600 hover:border-blue-200 hover:text-slate-900"
+      }`}>
+      {label}
+      {active && (sortOrder === "asc" ? <ArrowUp size={12} /> : <ArrowDown size={12} />)}
+    </button>
+  );
+}
+
+export default function HomeClient({ data }) {
+  const { query } = useSearch();
+  const [selectedPrice,      setSelectedPrice]      = useState(null);
+  const [selectedAmenities,  setSelectedAmenities]  = useState([]);
+  const [minRating,          setMinRating]          = useState(0);
+  const [genderFilter,       setGenderFilter]       = useState([]);
+  const [foodFilter,         setFoodFilter]         = useState([]);
+  const [sortField,          setSortField]          = useState(null);
+  const [sortOrder,          setSortOrder]          = useState("asc");
+  const [drawerOpen,         setDrawerOpen]         = useState(false);
+
+  const toggleAmenity = a => setSelectedAmenities(p => p.includes(a) ? p.filter(x => x !== a) : [...p, a]);
+  const toggleGender  = g => setGenderFilter(p  => p.includes(g) ? p.filter(x => x !== g) : [...p, g]);
+  const toggleFood    = f => setFoodFilter(p    => p.includes(f) ? p.filter(x => x !== f) : [...p, f]);
+  const toggleSort    = field => {
+    if (sortField === field) setSortOrder(o => o === "asc" ? "desc" : "asc");
+    else { setSortField(field); setSortOrder("asc"); }
+  };
+
+  //search filter ep
+  const filtered = data.filter(pg => {
+    if (query.trim()) {
+      const q = query.toLowerCase();
+      if (!(pg.name||"").toLowerCase().includes(q) && !(pg.city||"").toLowerCase().includes(q)) return false;
+    }
+    if (selectedPrice && (pg.price < selectedPrice.min || pg.price > selectedPrice.max)) return false;
+    if (selectedAmenities.length && !selectedAmenities.every(a => pg.amenities?.includes(a))) return false;
+    if (minRating > 0 && (parseFloat(pg.ratingData?.avg)||0) < minRating) return false;
+    if (genderFilter.length && !genderFilter.includes(pg.gender)) return false;
+    if (foodFilter.length && !foodFilter.includes(pg.food)) return false;
+    return true;
+  });
+
+  const sorted = [...filtered].sort((a, b) => {
+    if (!sortField) return 0;
+    const map = { price: [a.price, b.price], rating: [parseFloat(a.ratingData?.avg||0), parseFloat(b.ratingData?.avg||0)], reviews: [a.ratingData?.count||0, b.ratingData?.count||0] };
+    const [va, vb] = map[sortField];
+    return sortOrder === "asc" ? va - vb : vb - va;
+  });
+
+  const clearFilters = () => { setSelectedPrice(null); setSelectedAmenities([]); setMinRating(0); setGenderFilter([]); setFoodFilter([]); };
+  const hasFilters = !!(selectedPrice || selectedAmenities.length || minRating || genderFilter.length || foodFilter.length);
+  const filterCount = [selectedPrice?1:0, genderFilter.length, foodFilter.length, minRating>0?1:0, selectedAmenities.length].reduce((a,b)=>a+b,0);
+
+  const fp = { selectedPrice, setSelectedPrice, genderFilter, toggleGender, foodFilter, toggleFood, minRating, setMinRating, selectedAmenities, toggleAmenity, hasFilters, clearFilters };
 
   return (
-    <div className="w-full">
-
-      {/* ── MOBILE: Filter button + sort bar ── */}
-      <div className="flex items-center justify-between mb-4 lg:hidden">
-        <button
-          onClick={() => setDrawerOpen(true)}
-          className="flex items-center gap-2 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-xl px-4 py-2 shadow-sm"
-        >
-          <SlidersHorizontal size={15} />
-          Filters
-          {hasFilters && (
-            <span className="bg-blue-600 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
-              {[selectedPrice, ...selectedAmenities, minRating > 0 ? 1 : null, ...genderFilter, ...foodFilter].filter(Boolean).length}
-            </span>
-          )}
-        </button>
-
-        <div className="flex items-center gap-1">
-          <SortBtn field="price" label="Price" />
-          <SortBtn field="rating" label="Rating" />
-          <SortBtn field="reviews" label="Reviews" />
-        </div>
-      </div>
-
-      {/* ── MOBILE DRAWER OVERLAY ── */}
+    <>
+      {/* mobile drawer */}
       {drawerOpen && (
-        <div className="fixed inset-0 z-50 lg:hidden">
-          {/* backdrop */}
-          <div
-            className="absolute inset-0 bg-black bg-opacity-40"
-            onClick={() => setDrawerOpen(false)}
-          />
-          {/* drawer */}
-          <div className="absolute left-0 top-0 h-full w-72 bg-white shadow-xl overflow-y-auto p-5">
-            <div className="flex items-center justify-between mb-4">
-              <span className="font-semibold text-gray-800">Filters</span>
-              <button onClick={() => setDrawerOpen(false)} className="text-gray-400 hover:text-gray-600">
-                <X size={20} />
+        <div className="fixed inset-0 z-[200] flex lg:hidden">
+          <div className="absolute inset-0 bg-black/40" onClick={() => setDrawerOpen(false)} />
+          <div className="relative w-80 bg-white h-full overflow-y-auto p-5 shadow-2xl">
+            <div className="flex items-center justify-between mb-5">
+              <p className="font-semibold text-slate-900">Filters</p>
+              <button onClick={() => setDrawerOpen(false)} className="p-1.5 rounded-lg hover:bg-slate-100">
+                <X size={16} className="text-slate-500" />
               </button>
             </div>
-            <FilterPanel />
-            <button
-              onClick={() => setDrawerOpen(false)}
-              className="mt-6 w-full bg-blue-600 text-white py-2.5 rounded-xl font-medium text-sm"
-            >
-              Show {sorted.length} PGs
-            </button>
+            <FilterPanel {...fp} />
           </div>
         </div>
       )}
 
-      {/* ── DESKTOP LAYOUT ── */}
       <div className="flex gap-6">
-
-        {/* Sidebar — hidden on mobile, visible lg+ */}
+        {/* sidebar */}
         <aside className="hidden lg:block w-60 flex-shrink-0">
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 sticky top-20 overflow-y-auto max-h-[calc(100vh-6rem)]">
-            <FilterPanel />
+          <div className="bg-white border border-slate-200 rounded-2xl p-5 sticky top-20 max-h-[calc(100vh-6rem)] overflow-y-auto scrollbar-hide">
+            <FilterPanel {...fp} />
           </div>
         </aside>
 
-        {/* Main content */}
-        <div className="flex-1 flex flex-col gap-4 min-w-0">
-
-          {/* Sort bar — desktop only */}
-          <div className="hidden lg:flex items-center justify-between">
-            <p className="text-sm text-gray-400">
-              {sorted.length} PG{sorted.length !== 1 ? "s" : ""} found
-            </p>
-            <div className="flex items-center gap-1">
-              <span className="text-xs text-gray-400 mr-1">Sort:</span>
-              <SortBtn field="price" label="Price" />
-              <SortBtn field="rating" label="Rating" />
-              <SortBtn field="reviews" label="Reviews" />
+        <div className="flex-1 min-w-0">
+          {/* top bar */}
+          <div className="flex items-center justify-between mb-5 gap-3 flex-wrap">
+            <div className="flex items-center gap-3">
+              <button onClick={() => setDrawerOpen(true)}
+                className="lg:hidden flex items-center gap-2 bg-white border border-slate-200 rounded-xl px-3 py-2 text-sm font-medium text-slate-700 hover:border-blue-300 transition-colors">
+                <SlidersHorizontal size={14} className="text-slate-500" />
+                Filters
+                {filterCount > 0 && (
+                  <span className="bg-blue-600 text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-bold">{filterCount}</span>
+                )}
+              </button>
+              <p className="text-sm text-slate-500">
+                <span className="font-semibold text-slate-900">{sorted.length}</span> PGs found
+              </p>
+            </div>
+            <div className="flex gap-2 flex-wrap">
+              <SortBtn label="Price"   field="price"   {...{sortField, sortOrder, onToggle: toggleSort}} />
+              <SortBtn label="Rating"  field="rating"  {...{sortField, sortOrder, onToggle: toggleSort}} />
+              <SortBtn label="Reviews" field="reviews" {...{sortField, sortOrder, onToggle: toggleSort}} />
             </div>
           </div>
 
-          {/* Mobile result count */}
-          <p className="text-sm text-gray-400 lg:hidden">
-            {sorted.length} PG{sorted.length !== 1 ? "s" : ""} found
-          </p>
-
-          {/* Cards */}
           {sorted.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-24 text-center">
+            <div className="text-center py-24">
               <p className="text-4xl mb-3">🏠</p>
-              <p className="text-gray-500 font-medium">No PGs match your filters</p>
-              <p className="text-gray-400 text-sm mt-1">Try adjusting or clearing your filters</p>
+              <p className="font-semibold text-slate-900 mb-1">No PGs found</p>
+              <p className="text-sm text-slate-500">Try adjusting your filters or search term</p>
+              {hasFilters && <button onClick={clearFilters} className="mt-4 text-sm text-blue-600 hover:underline font-medium">Clear all filters</button>}
             </div>
           ) : (
             <div className="flex flex-col gap-4">
-              {sorted.map((pg) => <PGCard key={pg._id} pg={pg} />)}
+              {sorted.map(pg => <PGCard key={pg._id} pg={pg} />)}
             </div>
           )}
-
         </div>
       </div>
-    </div>
+    </>
   );
 }

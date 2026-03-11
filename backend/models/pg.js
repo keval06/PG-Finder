@@ -86,5 +86,7 @@ const pgSchema = new mongoose.Schema({
     default: ["Parking", "Lift", "CCTV"],
     required: true,
   },
+
+  // isActive: { type: Boolean, default: true }
 });
 module.exports = mongoose.model("PG", pgSchema);

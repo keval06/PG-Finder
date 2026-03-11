@@ -94,7 +94,7 @@ export default async function PGDetails({ params }) {
             <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
               <h2 className="text-lg font-semibold mb-4">Amenities</h2>
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-                {pg.amenities.map((item) => {
+                {(pg.amenities || []).map((item) => {
                   const Icon = amenityIcons[item];
                   return (
                     <div key={item} className="flex items-center gap-2 bg-gray-50 border border-gray-100 rounded-full px-3 py-2 text-sm text-gray-600">
