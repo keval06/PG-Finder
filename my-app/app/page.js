@@ -1,5 +1,6 @@
 // // React Server Component
 // // Fetches all PG data on the server before sending anything to the browser.
+import LandingPage from "./components/LandingPage";
 // import HomeClient from "./HomeClient";
 
 // async function getFirstImage(pgId) {
@@ -69,7 +70,6 @@
 //   );
 // }
 // app/page.js — root shows landing page
-import LandingPage from "./components/LandingPage";
 
 export default function RootPage() {
   return <LandingPage />;

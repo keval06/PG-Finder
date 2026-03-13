@@ -1,6 +1,11 @@
 "use client";
 
-import { createContext, useContext, useState, useEffect } from "react";
+import { 
+  createContext, 
+  useContext,
+  useState, 
+  useEffect 
+} from "react";
 
 const AuthContext = createContext(null);
 
@@ -11,12 +16,17 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     try {
       const stored = localStorage.getItem("user");
+
       if (stored && stored !== "undefined") {
         setUser(JSON.parse(stored));
+        //JSON.parse("undefined") → throws an error 💥
+// This guard prevents that crash
       }
-    } catch {
+    } 
+    catch {
       setUser(null);
-    } finally {
+    } 
+    finally {
       setReady(true); // always mark ready after attempt — success or fail
     }
   }, []);
@@ -46,4 +56,7 @@ export function AuthProvider({ children }) {
   );
 }
 
-export const useAuth = () => useContext(AuthContext);
+// export const useAuth = () => useContext(AuthContext);
+export function useAuth() {
+  return useContext(AuthContext)
+}

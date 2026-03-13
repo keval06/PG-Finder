@@ -44,7 +44,7 @@ exports.updateUser = async (req, res) => {
   try {
     const userId = req.params.id;
     const { mobile, password } = req.body;
-
+  // ─── GUARD 1: If mobile is being updated, check no other user has it ───
     if (mobile) {
       const existingUser = await User.findOne({ mobile });
       if (existingUser && existingUser._id.toString() !== userId) {
@@ -52,14 +52,21 @@ exports.updateUser = async (req, res) => {
       }
     }
 
+    // ─── GUARD 2: If password is being updated, hash it before saving ───
     if (password) {
       req.body.password = await bcrypt.hash(password, 10);
+       // We overwrite req.body.password with the HASHED version
+      // So the next step saves the hash, not plain text
     }
 
-    const updatedUser = await User.findByIdAndUpdate(userId, req.body, {
-      new: true,
+    const updatedUser = await User.findByIdAndUpdate(
+      userId, 
+      req.body,
+      {
+        new: true,
       runValidators: true,
-    }).select("-password");
+      }
+  ).select("-password");
 
     if (!updatedUser) {
       return res.status(404).json({ message: "User not found" });

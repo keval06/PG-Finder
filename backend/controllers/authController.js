@@ -18,6 +18,9 @@ exports.loginUser = async (req, res) => {
       return res.status(400).json({ message: "Invalid credentials" });
     }
 
+        // STEP 4: Create a JWT token with the user's ID inside
+
+
     const token = generateToken(user._id);
 
     res.json({
@@ -26,7 +29,13 @@ exports.loginUser = async (req, res) => {
       mobile: user.mobile,
       token,
     });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+  } 
+  catch (error) {
+    res.status(500).json(
+      { 
+     
+      message:error.message 
+      }
+  );
   }
 };

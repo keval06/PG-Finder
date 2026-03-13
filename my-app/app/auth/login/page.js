@@ -21,19 +21,29 @@ export default function LoginPage() {
     try {
       const res = await fetch("http://localhost:5000/api/auth/login", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ mobile, password }),
+        headers: { 
+          "Content-Type": "application/json" 
+        },
+        body: JSON.stringify(
+          { mobile, password }
+        ),
       });
+ 
       const data = await res.json();
 
       if (res.ok) {
         const { token, ...user } = data;
+
+        //  *login fun called to store -> userData, token in localStorage
         login(user, token);
-        router.push("/");
+
+        router.push("/"); //* Home page
+
       } else {
         alert(data.message);
       }
-    } finally {
+    } 
+      finally {
       setLoading(false);
     }
   };

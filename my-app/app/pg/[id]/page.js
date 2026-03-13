@@ -115,11 +115,10 @@ export default async function PGDetails({ params }) {
                   { icon: Ban, text: "No smoking inside the premises" },
                   { icon: PartyPopper, text: "No parties or loud music after 10 PM" },
                   { icon: PawPrint, text: "Pets not allowed" },
-                  { icon: Users, text: "Guests allowed till 8 PM only" },
                   { icon: CreditCard, text: "1 month security deposit required at check-in" },
                 ].map(({ icon: Icon, text }) => (
                   <li key={text} className="flex items-start gap-3 text-sm text-gray-600">
-                    <Icon size={16} className="text-gray-400 mt-0.5 flex-shrink-0" />
+                    <Icon size={16} className="text-gray-600 mt-0.5 flex-shrink-0" />
                     {text}
                   </li>
                 ))}

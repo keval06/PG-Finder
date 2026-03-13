@@ -47,7 +47,7 @@ exports.getAllPg = async (req, res) => {
         filter.price.$lte = Number(req.query.maxprice);
       }
     }
-
+ filter.isActive = { $ne: false }; // exclude inactive PGs
     const pgs = await PG.find(filter);
 
     res.json(pgs);
@@ -99,12 +99,12 @@ exports.updatePg = async (req, res) => {
   }
 };
 
-// GET /api/pg/owner — owner sees their own PGs (including inactive)
-// exports.getMyPgs = async (req, res) => {
-//   try {
-//     const pgs = await PG.find({ owner: req.user._id });
-//     res.json(pgs);
-//   } catch (error) {
-//     res.status(500).json(error.message);
-//   }
-// };
+// / GET /api/pg/owner — owner sees their own PGs (including inactive)
+exports.getMyPgs = async (req, res) => {
+  try {
+    const pgs = await PG.find({ owner: req.user._id });
+    res.json(pgs);
+  } catch (error) {
+    res.status(500).json(error.message);
+  }
+};

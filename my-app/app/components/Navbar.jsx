@@ -9,21 +9,27 @@ import { useAuth } from "../context/AuthContext";
 export default function Navbar() {
   const router = useRouter();
   const pathname = usePathname();
+  //? Context API
   const { query, setQuery } = useSearch();
   const { user, logout } = useAuth();
-
-  const [open, setOpen] = useState(false);
-  const [mobileMenu, setMobileMenu] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
+  
+  //? UI mattering
+  const [open, setOpen] = useState(false);//dropdown menu open?
+  //const [mobileMenu, setMobileMenu] = useState(false);
+  const [scrolled, setScrolled] = useState(false);// *? Bool -> has user scrolled > 10px? > controls the navbar shadow:
 
   const isLanding = pathname === "/";
 
+  // *? -> useEffect 1 — Scroll Listener
   useEffect(() => {
     const fn = () => setScrolled(window.scrollY > 10);
+
     window.addEventListener("scroll", fn, { passive: true });
+    
     return () => window.removeEventListener("scroll", fn);
   }, []);
 
+// *? -> useEffect 2 — Click Outside to Close Dropdown
   useEffect(() => {
     const h = () => setOpen(false);
     if (open) document.addEventListener("click", h);
@@ -66,18 +72,18 @@ export default function Navbar() {
           {/* SEARCH desktop */}
           <div className="hidden md:flex flex-1 max-w-sm mx-4">
             <div className="flex items-center w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 gap-2 focus-within:bg-white focus-within:border-blue-400 focus-within:ring-2 focus-within:ring-blue-50 transition-all">
-              <Search size={14} className="text-slate-400 flex-shrink-0" />
+              <Search size={15} className="text-slate-400 flex-shrink-0" />
               <input
                 type="text"
                 placeholder="Search city or PG name…"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
+                value={query} // Tie the input to the cloud storage text
+                onChange={(e) => setQuery(e.target.value)} //When they type, instantly update the cloud!
                 className="flex-1 text-sm outline-none bg-transparent text-slate-900 placeholder:text-slate-400"
               />
               {query && (
                 <button onClick={() => setQuery("")}>
                   <X
-                    size={13}
+                    size={17}
                     className="text-slate-400 hover:text-slate-600"
                   />
                 </button>
@@ -105,6 +111,7 @@ export default function Navbar() {
                   >
                     <User size={15} />
                   </button>
+                  
                   {open && (
                     <div
                       className="absolute right-0 top-10 bg-white border border-slate-200 rounded-2xl shadow-xl p-1.5 w-48 z-50"
@@ -120,6 +127,25 @@ export default function Navbar() {
                       </div>
                       <button
                         onClick={() => {
+                          router.push("/");
+                          setOpen(false);
+                        }}
+                        className="w-full text-left px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 rounded-xl transition-colors"
+                      >
+                        Home
+                      </button>
+                      {pathname !== '/home' &&<button
+                        onClick={() => {
+                          router.push("/home");
+                          setOpen(false);
+                        }}
+                        className="w-full text-left px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 rounded-xl transition-colors"
+                      >
+                        Browse PGs
+                      </button>}
+                      
+                      <button
+                        onClick={() => {
                           router.push("/profile/edit");
                           setOpen(false);
                         }}
@@ -127,6 +153,7 @@ export default function Navbar() {
                       >
                         Edit Profile
                       </button>
+                      
                       <button
                         onClick={() => {
                           router.push("/bookings");
@@ -137,7 +164,7 @@ export default function Navbar() {
                         My Bookings
                       </button>
 
-                       <button
+                      <button
                         onClick={() => {
                           router.push("/my-listings");
                           setOpen(false);

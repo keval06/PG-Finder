@@ -96,7 +96,7 @@ export default function PGCard({ pg }) {
             {/* AMENITY CHIPS — fix 4: chip style, no blue icon color */}
             <div className="flex items-center gap-2 flex-wrap">
               {shown.map(a => {
-                const Icon = amenityIcons[a];
+                const Icon = amenityIcons[a];// Look up the icon for this amenity name
                 return (
                   <div key={a} className="flex items-center gap-1.5 text-xs text-slate-600 bg-slate-50 border border-slate-200 px-2.5 py-1 rounded-full">
                     {Icon && <Icon size={11} className="text-slate-400" />}

@@ -7,10 +7,12 @@ const {
   getAllPg,
   getPg,
   updatePg,
+  getMyPgs
 } = require("../controllers/pg.js");
 
 router.post("/", protect, registerPG);
 router.get("/", getAllPg);
+router.get("/owner",    protect, getMyPgs);   // ← owner's own PGs (incl. inactive)
 router.get("/:id", getPg);
 router.patch("/:id", protect, updatePg);
 // router.get("/owner", protect, getMyPgs); // ← owner's own PGs (incl. inactive)
