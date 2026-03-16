@@ -2,18 +2,16 @@ const Booking = require("../models/booking.js");
 
 exports.registerBooking = async (req, res) => {
   try {
-    const {
-      user,
-      pg,
-      checkInDate,
-      checkOutDate,
-      status,
-      amount,
-      paymentStatus,
-    } = req.body;
+    const { pg, checkInDate, checkOutDate, amount } = req.body;
+
+    if (new Date(checkOutDate) <= new Date(checkInDate)) {
+      return res.status(400).json({
+        message: "Invalid booking dates",
+      });
+    }
 
     const existingBooking = await Booking.findOne({
-      user,
+      user: req.user._id,
       pg,
       checkInDate: { $lte: checkOutDate },
       checkOutDate: { $gte: checkInDate },
@@ -25,80 +23,29 @@ exports.registerBooking = async (req, res) => {
       });
     }
 
-    if (new Date(checkOutDate) <= new Date(checkInDate)) {
-      return res.status(400).json({
-        message: "Check-out must be after check-in",
-      });
-    }
     const booking = await Booking.create({
-      user,
+      user: req.user._id,
       pg,
       checkInDate,
       checkOutDate,
-      status,
       amount,
-      paymentStatus,
     });
 
     res.status(201).json(booking);
-  } catch (err) {
-    res.status(500).json(err);
+  } catch (error) {
+    res.status(500).json(error);
   }
 };
 
 exports.getBooking = async (req, res) => {
   try {
-    const { user, pg, checkInDate, checkOutDate, status, paymentStatus } =
-      req.query;
+    const bookings = await Booking.find()
+      .populate("user", "name mobile")
+      .populate("pg", "name price city");
 
-    let baseFilter = {};
-
-    // Date filtering
-    if (checkInDate && checkOutDate) {
-      // Overlapping bookings
-      baseFilter.$and = [
-        { checkInDate: { $lte: new Date(checkOutDate) } },
-        { checkOutDate: { $gte: new Date(checkInDate) } },
-      ];
-    } 
-    else if (checkInDate) {
-      baseFilter.checkInDate = { $gte: new Date(checkInDate) };
-    } 
-    else if (checkOutDate) {
-      baseFilter.checkInDate = { $lte: new Date(checkOutDate) };
-    }
-
-    if (status) {
-      baseFilter.status = { $regex: status, $options: "i" };
-    }
-
-    if (paymentStatus) {
-      baseFilter.paymentStatus = {
-        $regex: paymentStatus,
-        $options: "i",
-      };
-    }
-
-    let query = Booking.find(baseFilter)
-      .populate({
-        path: "user",
-        match: user ? { name: { $regex: user, $options: "i" } } : {},
-        select: "name mobile",
-      })
-      .populate({
-        path: "pg",
-        match: pg ? { name: { $regex: pg, $options: "i" } } : {},
-        select: "name price city",
-      });
-
-    const bookings = await query;
-
-    // Remove unmatched populated results
-    const filtered = bookings.filter((b) => b.user !== null && b.pg !== null);
-
-    res.json(filtered);
+    res.json(bookings);
   } catch (error) {
-    res.status(400).json(error.message);
+    res.status(500).json(error.message);
   }
 };
 
@@ -116,7 +63,7 @@ exports.updateBooking = async (req, res) => {
     }
 
     res.json(booking);
-  } catch (err) {
-    res.status(500).json(err);
+  } catch (error) {
+    res.status(500).json(error);
   }
 };

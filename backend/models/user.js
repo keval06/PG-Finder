@@ -5,15 +5,15 @@ const userSchema = new mongoose.Schema(
     name: {
       type: String,
       required: true,
-      minLength: 2,
-      maxLength: 32,
+      minLength: [3, "Name must be at least 3 characters"],
+      maxLength: [32, "Name cannot exceed 32 characters"],
     },
 
     mobile: {
-      type: Number,
+      type: String,
       required: true,
       unique: true,
-      match : /^[0-9]{10}$/
+      match: /^[0-9]{10}$/,
       // maxLength: 10,
       // minLength: 10,
     },
@@ -21,7 +21,6 @@ const userSchema = new mongoose.Schema(
     password: {
       type: String,
       required: true,
-      minLength: 8,
     },
   },
   { timestamps: true }

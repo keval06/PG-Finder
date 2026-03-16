@@ -1,110 +1,77 @@
 const Review = require("../models/review.js");
 
 exports.registerReview = async (req, res) => {
-  const { user, pg, star, comment } = req.body;
-
-  const existingReview = await Review.findOne({
-    user: req.body.user,
-    pg: req.body.pg,
-  });
-
-  if (existingReview) {
-    return res.status(400).json({
-      message: "You already reviewed this PG",
-    });
-  }
-
   try {
+    const { pg, star, comment } = req.body;
+
+    if (!pg || !star || !comment) {
+      return res.status(400).json({
+        message: "pg, star and comment required",
+      });
+    }
+
+    const existingReview = await Review.findOne({
+      user: req.user._id,
+      pg,
+    });
+
+    if (existingReview) {
+      return res.status(400).json({
+        message: "Already reviewed",
+      });
+    }
+
     const review = await Review.create({
-      user,
+      user: req.user._id,
       pg,
       star,
       comment,
     });
 
-    if (!review) {
-      res.status(404).json({
-        message: "ERROR: Review Create",
-      });
-    }
-
-    res.json(review);
-  } catch (err) {
-    res.status(500).json(err.message);
+    res.status(201).json(review);
+  } catch (error) {
+    res.status(500).json(error.message);
   }
 };
 
-// NOT NEEDED -> leak
-// exports.getReviews = async (req, res) => {
-//   try {
-//     const review = await Review.find();
-
-//     if (!review) {
-//       res.status(404).json({
-//         message: "review not found",
-//       });
-//     }
-//     res.json(review);
-//   } catch (err) {
-//     res.status(500).json(err);
-//   }
-// };
-
 exports.getReviewsByPg = async (req, res) => {
   try {
-    const { 
-      star, 
-      user, 
-      pg 
-    } = req.query;
+    const { pg } = req.query;
 
-    let baseFilter = {};
+    const reviews = await Review.find({ pg })
+      .populate("user", "name")
+      .populate("pg", "name city");
 
-    if (star) {
-      baseFilter.star = Number(star);
-    }
-
-    if (pg) {
-      baseFilter.pg = pg;
-    }
-
-    let query = Review.find(baseFilter)
-      .populate({
-        path: "user",
-        match: user ? { name: { $regex: user, $options: "i" } } : {},
-        select: "name",
-      })
-      .populate({
-        path: "pg",
-        select: "name price city address gender",
-      });
-      const reviews = await query; //dont return whole object, 
-      // but populate(similar to filter) - return only named fields
-    const filtered = reviews.filter((r) => r.user != null && r.pg != null);
-
-    res.json(filtered);
+    res.json(reviews);
   } catch (error) {
-    res.status(500).json({
-      message: error.message,
-    });
+    res.status(500).json(error.message);
   }
 };
 
 exports.updateReview = async (req, res) => {
   try {
-    const review = await Review.findByIdAndUpdate(req.params.id, req.body, {
-      new: true,
-      runValidators: true,
-    });
+    const review = await Review.findById(req.params.id);
 
     if (!review) {
-      res.status(404).json({
-        message: "Review Not found",
+      return res.status(404).json({
+        message: "Review not found",
       });
     }
 
-    res.json(review);
+    if (review.user.toString() !== req.user._id.toString()) {
+      return res.status(403).json({
+        message: "Not allowed",
+      });
+    }
+
+    const updatedReview = await Review.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      { new: true, runValidators: true }
+    );
+
+    res.json(updatedReview);
   } catch (error) {
-    res.status(500).json(error);
+    res.status(500).json(error.message);
   }
 };
