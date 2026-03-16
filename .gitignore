@@ -1,1 +1,18 @@
-data
+# Dependencies
+node_modules/
+frontend/node_modules/
+backend/node_modules/
+
+# Next.js
+frontend/.next/
+frontend/out/
+
+# Environment
+.env
+.env.local
+frontend/.env.local
+backend/.env
+
+# Logs
+*.log
+npm-debug.log*
