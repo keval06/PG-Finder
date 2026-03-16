@@ -19,8 +19,10 @@ export function AuthProvider({ children }) {
 
       if (stored && stored !== "undefined") {
         setUser(JSON.parse(stored));
-        //JSON.parse("undefined") → throws an error 💥
-// This guard prevents that crash
+        
+        //*JSON.parse("undefined") → throws an error 💥
+// *This guard prevents that crash
+
       }
     } 
     catch {
@@ -48,7 +50,7 @@ export function AuthProvider({ children }) {
     localStorage.setItem("user", JSON.stringify(merged));
     setUser(merged);
   };
-
+  
   return (
     <AuthContext.Provider value={{ user, ready, login, logout, updateUser }}>
       {children}
