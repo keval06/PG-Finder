@@ -5,12 +5,15 @@ const { protect } = require("../middleware/protect");
 const {
   registerBooking,
   updateBooking,
-  getBooking,
+  getMyBookings,
+  getReceivedBookings,
 } = require("../controllers/booking.js");
 
-router.post("/",protect, registerBooking);
-router.get("/", protect ,getBooking);
-router.patch("/:id",protect, updateBooking);
+
+router.post("/", protect, registerBooking);
+router.get("/my", protect, getMyBookings); //user  
+router.get("/received", protect, getReceivedBookings); //owner  
+router.patch("/:id", protect, updateBooking);
 // router.post("login", loginUser);
 
 module.exports = router;

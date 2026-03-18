@@ -99,7 +99,7 @@ export default function MyListingsClient() {
     setLoading(true);
     try {
       const token = localStorage.getItem("token");
-      const ownerRes = await fetch("http://localhost:5000/api/pg/owner", {
+      const ownerRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/pg/owner`, {
         headers: { Authorization: `Bearer ${token}` },
         cache: "no-store",
       });
@@ -107,7 +107,7 @@ export default function MyListingsClient() {
       if (ownerRes.ok) {
         mine = await ownerRes.json();
       } else {
-        const all = await fetch("http://localhost:5000/api/pg", {
+        const all = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/pg`, {
           cache: "no-store",
         }).then((r) => r.json());
         mine = Array.isArray(all)
@@ -121,7 +121,7 @@ export default function MyListingsClient() {
         mine.map(async (pg) => {
           try {
             const r = await fetch(
-              `http://localhost:5000/api/review?pg=${pg._id}`,
+              `${process.env.NEXT_PUBLIC_API_URL}/api/review?pg=${pg._id}`,
               { cache: "no-store" }
             );
             const reviews = await r.json();
@@ -147,7 +147,7 @@ export default function MyListingsClient() {
   const handleCreate = async (formData) => {
     setCreating(true);
     try {
-      const res = await fetch("http://localhost:5000/api/pg", {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/pg`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

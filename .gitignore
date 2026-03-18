@@ -21,7 +21,7 @@ npm-debug.log*
 
 # dependencies
 
-/.pnp
+/.pnp   
 .pnp.*
 .yarn/*
 !.yarn/patches

@@ -1,16 +1,16 @@
 import Link from "next/link";
 
-function BookBtn({ id }) {
-  const router = useRouter();
-  return (
-    <button
-      onClick={e => { e.preventDefault(); e.stopPropagation(); router.push(`/pg/${id}#booking`); }}
-      className="block w-full text-center bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-4 py-2.5 rounded-xl transition-colors"
-    >
-      Book Now
-    </button>
-  );
-}
+// function BookBtn({ id }) {
+//   const router = useRouter();
+//   return (
+//     <button
+//       onClick={e => { e.preventDefault(); e.stopPropagation(); router.push(`/pg/${id}#booking`); }}
+//       className="block w-full text-center bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-4 py-2.5 rounded-xl transition-colors"
+//     >
+//       Book Now
+//     </button>
+//   );
+// }
 
 import Image from "next/image";
 import {
@@ -19,6 +19,7 @@ import {
   ArrowUpDown, Utensils, User, Star, MapPin,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import BookNowButton from "./BookNowButton";
 
 const amenityIcons = {
   WiFi: Wifi, Parking: Car, AC: Snowflake, Laundry: WashingMachine,
@@ -122,7 +123,8 @@ export default function PGCard({ pg }) {
             </p>
             <p className="text-[10px] text-slate-400 mt-0.5">/month</p>
           </div>
-           <BookBtn id={pg._id} />
+           {/* <BookBtn id={pg._id} /> */}
+           <BookNowButton pgId={pg._id} />
         </div>
 
       </div>

@@ -20,7 +20,7 @@ export default function ListingCard({ pg, onUpdated }) {
   const handleEdit = async (formData) => {
     setSaving(true);
     try {
-      const res = await fetch(`http://localhost:5000/api/pg/${pg._id}`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/pg/${pg._id}`, {
         method: "PATCH",
         headers: { "Content-Type":"application/json", Authorization:`Bearer ${token()}` },
         body: JSON.stringify(formData),
@@ -37,7 +37,7 @@ export default function ListingCard({ pg, onUpdated }) {
   const toggleActive = async () => {
     setToggling(true);
     try {
-      const res = await fetch(`http://localhost:5000/api/pg/${pg._id}`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/pg/${pg._id}`, {
         method: "PATCH",
         headers: { "Content-Type":"application/json", Authorization:`Bearer ${token()}` },
         body: JSON.stringify({ isActive: !pg.isActive }),

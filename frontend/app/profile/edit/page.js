@@ -110,7 +110,7 @@ export default function EditProfilePage() {
     const token = localStorage.getItem("token");
     setLoading(true);
     try {
-      const res = await fetch(`http://localhost:5000/api/user/${user._id}`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/user/${user._id}`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",

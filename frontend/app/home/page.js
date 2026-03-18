@@ -3,7 +3,7 @@ import HomeClient from "../HomeClient";
 
 async function getPGs() {
   try {
-    const res = await fetch("http://localhost:5000/api/pg", {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/pg`, {
       cache: "no-store",
     });
     return await res.json();
@@ -16,7 +16,7 @@ async function getFirstImage(pgId) {
   try {  
     // 1. Fetch raw PG list from Node.js Backend
   
-    const res = await fetch(`http://localhost:5000/api/image?pgId=${pgId}`, {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/image?pgId=${pgId}`, {
       cache: "no-store",
     });
     if (res.ok) {
@@ -31,7 +31,7 @@ async function getFirstImage(pgId) {
 
 async function getAvgRating(pgId) {
   try {
-    const res = await fetch(`http://localhost:5000/api/review?pg=${pgId}`, {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/review?pg=${pgId}`, {
       cache: "no-store",
     });
     if (res.ok) {

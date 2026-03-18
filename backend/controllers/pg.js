@@ -1,4 +1,5 @@
 const PG = require("../models/pg.js");
+const RoomType = require("../models/roomType.js");
 
 exports.registerPG = async (req, res) => {
   try {
@@ -59,14 +60,21 @@ exports.getAllPg = async (req, res) => {
 exports.getPg = async (req, res) => {
   try {
     const pg = await PG.findById(req.params.id);
-
     if (!pg) {
-      return res.status(404).json({
-        message: "PG not found",
-      });
+      return res.status(404).json({ message: "PG not found" });
     }
 
-    res.json(pg);
+    const roomTypes = await RoomType.find({ pg: req.params.id, isActive: true });
+
+    const allocatedRooms = roomTypes.reduce(
+      (sum, rt) => sum + rt.availableRooms, 0
+    );
+
+    res.json({
+      ...pg.toObject(),
+      allocatedRooms,                    // sum of all roomType.availableRooms
+      unallocatedRooms: pg.room - allocatedRooms,  // remaining unassigned rooms
+    });
   } catch (error) {
     res.status(500).json(error.message);
   }

@@ -541,8 +541,9 @@ export default function LandingPage() {
       </section>
 
       {/* ══ STATS ═════════════════════════════════════════════════ */}
-      <section ref={statRef} className="bg-blue-600 py-16 sm:py-20">
-        <div className="max-w-5xl mx-auto px-5 sm:px-8">
+      <section ref={statRef} className="bg-gradient-to-r from-blue-600 via-blue-700 to-blue-600 py-16 sm:py-20 relative overflow-hidden">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,rgba(255,255,255,0.06),transparent_55%)] pointer-events-none" />
+        <div className="relative max-w-5xl mx-auto px-5 sm:px-8">
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-8 text-center">
             {STATS.map((s, i) => (
               <div
@@ -555,7 +556,7 @@ export default function LandingPage() {
                     : "opacity-0 translate-y-5"
                 }`}
               >
-                <p className="text-4xl sm:text-5xl font-bold text-white mb-1 tracking-tight">
+                <p className="text-4xl sm:text-5xl font-bold text-white mb-1.5 tracking-tight">
                   <Counter
                     end={parseInt(s.value)}
                     prefix={s.prefix || ""}
@@ -563,7 +564,7 @@ export default function LandingPage() {
                     inView={statInView}
                   />
                 </p>
-                <p className="text-xs text-blue-200 uppercase tracking-widest font-medium">
+                <p className="text-[10px] text-blue-200 uppercase tracking-[0.2em] font-semibold">
                   {s.label}
                 </p>
               </div>
@@ -597,15 +598,15 @@ export default function LandingPage() {
               return (
                 <div
                   key={f.title}
-                  className={`bg-white border border-slate-200 rounded-2xl p-7 hover:border-blue-300 hover:shadow-md hover:shadow-blue-50 transition-all group ${fly(
+                  className={`bg-white border border-slate-200 rounded-2xl p-7 hover:border-blue-300 hover:shadow-lg hover:shadow-blue-50/80 hover:-translate-y-0.5 transition-all group ${fly(
                     featInView,
                     i * 80
                   )}`}
                 >
-                  <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center mb-4 group-hover:bg-blue-100 transition-colors">
-                    <Icon size={20} className="text-blue-600" />
+                  <div className="w-11 h-11 bg-blue-50 border border-blue-100 rounded-xl flex items-center justify-center mb-4 group-hover:bg-blue-600 group-hover:border-blue-600 transition-colors">
+                    <Icon size={20} className="text-blue-600 group-hover:text-white transition-colors" />
                   </div>
-                  <h3 className="text-base font-semibold text-slate-900 mb-2">
+                  <h3 className="text-[15px] font-bold text-slate-900 mb-1.5">
                     {f.title}
                   </h3>
                   <p className="text-sm text-slate-500 leading-relaxed">
@@ -680,35 +681,44 @@ export default function LandingPage() {
             {[
               {
                 n: "01",
+                icon: Search,
                 title: "Search",
                 desc: "Enter your city or locality and use smart filters to narrow down.",
               },
               {
                 n: "02",
+                icon: CheckCircle,
                 title: "Explore",
                 desc: "Browse verified PG listings with real photos and honest reviews.",
               },
               {
                 n: "03",
+                icon: Zap,
                 title: "Book",
                 desc: "Book instantly with zero brokerage. Move in hassle-free.",
               },
-            ].map((s) => (
-              <div
-                key={s.n}
-                className="bg-white border border-slate-200 rounded-2xl p-8 text-left hover:border-blue-200 hover:shadow-sm transition-all"
-              >
-                <span className="text-4xl font-bold text-blue-100 block mb-4">
-                  {s.n}
-                </span>
-                <h3 className="text-lg font-semibold text-slate-900 mb-2">
-                  {s.title}
-                </h3>
-                <p className="text-sm text-slate-500 leading-relaxed">
-                  {s.desc}
-                </p>
-              </div>
-            ))}
+            ].map((s) => {
+              const StepIcon = s.icon;
+              return (
+                <div
+                  key={s.n}
+                  className="bg-white border border-slate-200 rounded-2xl p-8 text-left hover:border-blue-200 hover:shadow-md hover:shadow-blue-50/60 hover:-translate-y-0.5 transition-all group"
+                >
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-10 h-10 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center group-hover:bg-blue-600 group-hover:border-blue-600 transition-colors">
+                      <StepIcon size={18} className="text-blue-600 group-hover:text-white transition-colors" />
+                    </div>
+                    <span className="text-3xl font-bold text-blue-100">{s.n}</span>
+                  </div>
+                  <h3 className="text-lg font-bold text-slate-900 mb-1.5">
+                    {s.title}
+                  </h3>
+                  <p className="text-sm text-slate-500 leading-relaxed">
+                    {s.desc}
+                  </p>
+                </div>
+              );
+            })}
           </div>
         </div>
       </section>
@@ -730,7 +740,7 @@ export default function LandingPage() {
             {TESTIMONIALS.map((t, i) => (
               <div
                 key={t.name}
-                className={`bg-white border border-slate-200 rounded-2xl p-6 transition-all duration-700 [transition-delay:${
+                className={`bg-white border border-slate-200 rounded-2xl p-6 hover:border-blue-200 hover:shadow-md hover:shadow-blue-50/60 transition-all duration-700 [transition-delay:${
                   i * 100
                 }ms] ${
                   testInView
@@ -738,27 +748,30 @@ export default function LandingPage() {
                     : "opacity-0 translate-y-5"
                 }`}
               >
-                <div className="flex gap-0.5 mb-4">
-                  {[...Array(t.stars)].map((_, j) => (
-                    <Star
-                      key={j}
-                      size={13}
-                      className="fill-blue-500 text-blue-500"
-                    />
-                  ))}
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex gap-0.5">
+                    {[...Array(t.stars)].map((_, j) => (
+                      <Star
+                        key={j}
+                        size={13}
+                        className="fill-yellow-400 text-yellow-400"
+                      />
+                    ))}
+                  </div>
+                  <span className="text-3xl text-blue-100 font-serif leading-none">&ldquo;</span>
                 </div>
-                <p className="text-sm text-slate-500 leading-relaxed mb-5">
-                  "{t.text}"
+                <p className="text-sm text-slate-600 leading-relaxed mb-6">
+                  {t.text}
                 </p>
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-full bg-blue-600 flex items-center justify-center text-white text-xs font-bold">
+                <div className="flex items-center gap-3 pt-4 border-t border-slate-100">
+                  <div className="w-9 h-9 rounded-full bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center text-white text-xs font-bold shadow-sm shadow-blue-600/30">
                     {t.avatar}
                   </div>
                   <div>
                     <p className="text-sm font-semibold text-slate-900">
                       {t.name}
                     </p>
-                    <p className="text-xs text-slate-400">{t.role}</p>
+                    <p className="text-[11px] text-slate-400">{t.role}</p>
                   </div>
                 </div>
               </div>
@@ -825,27 +838,39 @@ export default function LandingPage() {
       </section>
 
       {/* ══ FOOTER ════════════════════════════════════════════════ */}
-      <footer className="bg-slate-900 py-10 px-5 sm:px-8">
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-blue-600 flex items-center justify-center" >
-              <span className="text-white text-[10px] font-bold ">PG</span>
+      <footer className="bg-slate-900 pt-14 pb-8 px-5 sm:px-8">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex flex-col sm:flex-row items-start justify-between gap-8 mb-10">
+            <div>
+              <div className="flex items-center gap-2 mb-3">
+                <div className="w-7 h-7 rounded-lg bg-blue-600 flex items-center justify-center">
+                  <span className="text-white text-[10px] font-bold">PG</span>
+                </div>
+                <span className="text-white font-semibold text-sm">Finder</span>
+              </div>
+              <p className="text-slate-500 text-xs max-w-xs leading-relaxed">
+                India&apos;s trusted PG platform. Zero brokerage, verified listings, and a home you&apos;ll love.
+              </p>
             </div>
-            <span className="text-white font-semibold text-sm">Finder</span>
+            <div className="flex gap-12 sm:gap-16">
+              <div className="flex flex-col gap-2">
+                <p className="text-[10px] text-slate-400 uppercase tracking-widest font-semibold mb-1">Platform</p>
+                {["Browse PGs", "How it Works", "Features"].map((l) => (
+                  <a key={l} href="#" className="text-slate-500 hover:text-blue-400 text-xs transition-colors">{l}</a>
+                ))}
+              </div>
+              <div className="flex flex-col gap-2">
+                <p className="text-[10px] text-slate-400 uppercase tracking-widest font-semibold mb-1">Legal</p>
+                {["Privacy", "Terms", "Contact"].map((l) => (
+                  <a key={l} href="#" className="text-slate-500 hover:text-blue-400 text-xs transition-colors">{l}</a>
+                ))}
+              </div>
+            </div>
           </div>
-          <p className="text-slate-500 text-xs">
-            © 2026 PGFinder. All rights reserved.
-          </p>
-          <div className="flex gap-6">
-            {["Privacy", "Terms", "Contact"].map((l) => (
-              <a
-                key={l}
-                href="#"
-                className="text-slate-500 hover:text-blue-400 text-xs uppercase tracking-wider transition-colors"
-              >
-                {l}
-              </a>
-            ))}
+          <div className="border-t border-slate-800 pt-6 text-center">
+            <p className="text-slate-600 text-[11px]">
+              © 2026 PGFinder. All rights reserved.
+            </p>
           </div>
         </div>
       </footer>

@@ -5,15 +5,17 @@ import {
   Clock, Ban, PartyPopper, PawPrint, Users, CreditCard, MapPin,
 } from "lucide-react";
 import ReviewsSection from "../../components/ReviewsSection";
+import BookNowButton from "../../components/BookNowButton";
+
 
 async function getPG(id) {
-  const res = await fetch(`http://localhost:5000/api/pg/${id}`, { cache: "no-store" });
+  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/pg/${id}`, { cache: "no-store" });
   return await res.json();
 }
 
 async function getImages(id) {
   try {
-    const res = await fetch(`http://localhost:5000/api/image?pgId=${id}`, { cache: "no-store" });
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/image?pgId=${id}`, { cache: "no-store" });
     if (res.ok) return await res.json();
     return [];
   } catch { return []; }
@@ -21,7 +23,7 @@ async function getImages(id) {
 
 async function getReviews(id) {
   try {
-    const res = await fetch(`http://localhost:5000/api/review?pg=${id}`, { cache: "no-store" });
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/review?pg=${id}`, { cache: "no-store" });
     if (res.ok) return await res.json();
     return [];
   } catch { return []; }
@@ -154,9 +156,7 @@ export default async function PGDetails({ params }) {
                 </div>
               </div>
 
-              <button className="w-full mt-5 bg-blue-600 text-white py-3 rounded-xl font-semibold hover:bg-blue-700 transition-colors text-sm">
-                Book Now
-              </button>
+              <BookNowButton pgId={id} />
               <p className="text-center text-xs text-gray-400 mt-2">No charges yet</p>
             </div>
           </div>
