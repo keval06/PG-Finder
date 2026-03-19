@@ -4,134 +4,25 @@ import { useState } from "react";
 import { useSearch } from "./context/SearchContext";
 import PGCard from "./components/PGCard";
 import FilterPanel from "./components/FilterPanel";
-import { ArrowUp, ArrowDown, SlidersHorizontal, X } from "lucide-react";
-
-const EMPTY_DRAFT = {
-  selectedPrice: null,
-  selectedAmenities: [],
-  genderFilter: [],
-  foodFilter: [],
-  minRating: 0,
-};
-
-function SortBtn({ label, field, sortField, sortOrder, onToggle }) {
-  const active = sortField === field;
-  return (
-    <button
-      onClick={() => onToggle(field)}
-      className={`flex items-center gap-1 text-sm px-3 py-1.5 rounded-xl border transition-all font-medium ${
-        active
-          ? "bg-blue-50 border-blue-200 text-blue-700"
-          : "bg-white border-slate-200 text-slate-600 hover:border-blue-200 hover:text-slate-900"
-      }`}
-    >
-      {label}
-      {active &&
-        (sortOrder === "asc" ? <ArrowUp size={12} /> : <ArrowDown size={12} />)}
-    </button>
-  );
-}
+import SortBtn from "./components/SortBtn";
+import { SlidersHorizontal, X } from "lucide-react";
+import { usePGFilters } from "./hooks/usePGFilters";
 
 export default function HomeClient({ data }) {
   const { query, setQuery } = useSearch();
 
-  // draft  = what the user is selecting inside the panel (not applied yet)
-  // active = what's actually filtering the results (applied)
-  const [draft, setDraft] = useState(EMPTY_DRAFT);
-  const [active, setActive] = useState(EMPTY_DRAFT);
-  const [sortField, setSortField] = useState(null);
-  const [sortOrder, setSortOrder] = useState("asc");
-  const [drawerOpen, setDrawerOpen] = useState(false);
-
-  const applyFilters = () => {
-    setActive({ ...draft });
-    setDrawerOpen(false); // close mobile drawer after apply
-  };
-
-  const clearFilters = () => {
-    setDraft(EMPTY_DRAFT);
-    setActive(EMPTY_DRAFT);
-  };
-
-  const hasFilters = !!(
-    active.selectedPrice ||
-    active.selectedAmenities.length ||
-    active.minRating ||
-    active.genderFilter.length ||
-    active.foodFilter.length
-  );
-
-  const filterCount = [
-    active.selectedPrice ? 1 : 0,
-    active.genderFilter.length,
-    active.foodFilter.length,
-    active.minRating > 0 ? 1 : 0,
-    active.selectedAmenities.length,
-  ].reduce((a, b) => a + b, 0);
-
-  const toggleSort = (field) => {
-    if (sortField === field)
-      setSortOrder((o) => (o === "asc" ? "desc" : "asc"));
-    else {
-      setSortField(field);
-      setSortOrder("asc");
-    }
-  };
-
-  // filter using ACTIVE (not draft)
-  const filtered = data.filter((pg) => {
-    if (query.trim()) {
-      const q = query.toLowerCase();
-      if (
-        !(pg.name || "").toLowerCase().includes(q) &&
-        !(pg.city || "").toLowerCase().includes(q)
-      )
-        return false;
-    }
-    if (
-      active.selectedPrice &&
-      (pg.price < active.selectedPrice.min ||
-        pg.price > active.selectedPrice.max)
-    )
-      return false;
-    if (
-      active.selectedAmenities.length &&
-      !active.selectedAmenities.every((a) => pg.amenities?.includes(a))
-    )
-      return false;
-    if (
-      active.minRating > 0 &&
-      (parseFloat(pg.ratingData?.avg) || 0) < active.minRating
-    )
-      return false;
-    if (active.genderFilter.length && !active.genderFilter.includes(pg.gender))
-      return false;
-    if (active.foodFilter.length && !active.foodFilter.includes(pg.food))
-      return false;
-    return true;
-  });
-
-  const sorted = [...filtered].sort((a, b) => {
-    if (!sortField) return 0;
-    const map = {
-      price: [a.price, b.price],
-      rating: [
-        parseFloat(a.ratingData?.avg || 0),
-        parseFloat(b.ratingData?.avg || 0),
-      ],
-      reviews: [a.ratingData?.count || 0, b.ratingData?.count || 0],
-    };
-    const [va, vb] = map[sortField];
-    return sortOrder === "asc" ? va - vb : vb - va;
-  });
-
-  const fp = {
-    draft,
-    setDraft,
-    onApply: applyFilters,
-    onClear: clearFilters,
+  const {
+    sorted,
+    fp,
+    filterCount,
+    sortField,
+    sortOrder,
+    toggleSort,
+    drawerOpen,
+    setDrawerOpen,
     hasFilters,
-  };
+    clearFilters,
+  } = usePGFilters(data, query);
 
   return (
     <>
@@ -139,20 +30,11 @@ export default function HomeClient({ data }) {
       {drawerOpen && (
         <div className="fixed inset-0 z-[200] flex lg:hidden">
           <div
-            className="absolute inset-0 bg-black/40"
+            className="absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity"
             onClick={() => setDrawerOpen(false)}
           />
-          <div className="relative w-80 bg-white h-full overflow-y-auto p-5 shadow-2xl">
-            <div className="flex items-center justify-between mb-5">
-              <p className="font-semibold text-slate-900"></p>
-              <button
-                onClick={() => setDrawerOpen(false)}
-                className="p-1.5 rounded-lg hover:bg-slate-100"
-              >
-                <X size={20} className="text-slate-500" />
-              </button>
-            </div>
-            <FilterPanel {...fp} />
+          <div className="relative w-80 bg-white h-full shadow-2xl flex flex-col">
+            <FilterPanel {...fp} onClose={() => setDrawerOpen(false)} />
           </div>
         </div>
       )}
@@ -160,7 +42,7 @@ export default function HomeClient({ data }) {
       <div className="flex gap-6">
         {/* sidebar */}
         <aside className="hidden lg:block w-60 flex-shrink-0">
-          <div className="bg-white border border-slate-200 rounded-2xl p-5 sticky top-20 max-h-[calc(100vh-6rem)] overflow-y-auto scrollbar-hide">
+          <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm flex flex-col sticky top-24 h-[calc(100vh-120px)]">
             <FilterPanel {...fp} />
           </div>
         </aside>

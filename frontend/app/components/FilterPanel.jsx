@@ -8,12 +8,15 @@ const PRICE_RANGES = [
 ];
 const AMENITIES = ["AC","WiFi","Parking","Laundry","Gym","CCTV","RO","TV","Lift","Refrigerator","Garden","Library"];
 
+import { X } from "lucide-react";
+
 export default function FilterPanel({
   draft,
   setDraft,
   onApply,
   onClear,
   hasFilters,
+  onClose,
 }) {
   const sl  = "text-[11px] font-semibold text-slate-500 uppercase tracking-widest mb-3 block";
   const row = "flex items-center gap-2.5 cursor-pointer text-sm text-slate-600 hover:text-slate-900 transition-colors py-0.5";
@@ -25,16 +28,28 @@ export default function FilterPanel({
     }));
 
   return (
-    <div className="flex flex-col gap-6">
-      {/* header */}
-      <div className="flex items-center justify-between">
-        <p className="font-semibold text-slate-900">Filters</p>
-        {hasFilters && (
-          <button onClick={onClear} className="text-xs text-blue-600 hover:text-blue-800 font-medium">
-            Clear all
-          </button>
-        )}
-      </div>
+    <div className="flex flex-col h-full bg-white w-full flex-1 min-h-0">
+      {/* scrollable area */}
+      <div className="flex-1 overflow-y-auto p-5 custom-scrollbar flex flex-col gap-6 min-h-0">
+        {/* header */}
+        <div className="flex items-center justify-between">
+          <p className="font-semibold text-slate-900">Filters</p>
+          <div className="flex items-center gap-3">
+            {hasFilters && (
+              <button onClick={onClear} className="text-xs text-blue-600 hover:text-blue-800 font-medium">
+                Clear all
+              </button>
+            )}
+            {onClose && (
+              <button
+                onClick={onClose}
+                className="p-1.5 -mr-1.5 rounded-lg hover:bg-slate-100 text-slate-500"
+              >
+                <X size={20} />
+              </button>
+            )}
+          </div>
+        </div>
 
       {/* price */}
       <div>
@@ -55,7 +70,7 @@ export default function FilterPanel({
       <div>
         <span className={sl}>Gender</span>
         <div className="flex flex-col gap-1.5">
-          {[["male","Boys"],["female","Girls"],["mix","Co-ed"]].map(([v,d]) => (
+          {[["male","Male"],["female","Female"],["mix","Co-ed"]].map(([v,d]) => (
             <label key={v} className={row}>
               <input type="checkbox" className="w-3.5 h-3.5 flex-shrink-0 accent-blue-600"
                 checked={draft.genderFilter.includes(v)}
@@ -110,13 +125,19 @@ export default function FilterPanel({
             </label>
           ))}
         </div>
+        </div>
       </div>
 
-      {/* apply button */}
-      <button onClick={onApply}
-        className="w-full bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold py-2.5 rounded-xl transition-colors">
-        Apply Filters
-      </button>
+      {/* fixed apply button */}
+      <div className="p-5 border-t border-slate-100 bg-white shrink-0">
+        <button onClick={() => {
+            onApply();
+            if (onClose) onClose();
+          }}
+          className="w-full bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold py-2.5 rounded-xl transition-colors shadow-sm">
+          Apply Filters
+        </button>
+      </div>
     </div>
   );
 }

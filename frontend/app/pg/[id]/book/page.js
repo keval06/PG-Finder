@@ -12,6 +12,8 @@ import {
   Calendar,
   ArrowLeft,
 } from "lucide-react";
+import StepperBar from "../../../components/StepperBar";
+import RoomCard from "../../../components/RoomCard";
 
 const STEPS = ["Room", "Dates", "Confirm"];
 
@@ -61,8 +63,10 @@ export default function BookingPage() {
 
   const months = (() => {
     if (!checkIn || !checkOut) return 0;
+
     const a = new Date(checkIn);
     const b = new Date(checkOut);
+
     const days = Math.ceil((b - a) / (1000 * 60 * 60 * 24));
     if (days <= 0) return 0;
     // round up — any partial month = full month charged
@@ -98,6 +102,7 @@ export default function BookingPage() {
           }),
         },
       );
+
       const data = await res.json();
       if (res.ok) {
         setSuccess(true);
@@ -176,46 +181,18 @@ export default function BookingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] px-4 py-8">
+    <div className="min-h-screen bg-[#f8fafc] px-4 pt-20 sm:pt-24 pb-24 sm:pb-8">
       <div className="max-w-lg mx-auto">
         {/* back */}
         <button
           onClick={() => router.push(`/pg/${pgId}`)}
-          className="flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-800 mb-6 transition-colors"
+          className="flex items-center gap-1.5 text-xs sm:text-sm text-slate-500 hover:text-slate-800 mb-4 sm:mb-6 transition-colors"
         >
-          <ArrowLeft size={16} /> Back to PG
+          <ArrowLeft size={14} /> Back to PG
         </button>
 
         {/* stepper */}
-        <div className="flex items-center gap-2 mb-8">
-          {STEPS.map((s, i) => (
-            <div key={s} className="flex items-center gap-2 flex-1">
-              <div className="flex items-center gap-2">
-                <div
-                  className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-all ${
-                    i < step
-                      ? "bg-green-500 text-white"
-                      : i === step
-                        ? "bg-blue-600 text-white"
-                        : "bg-slate-100 text-slate-400"
-                  }`}
-                >
-                  {i < step ? <Check size={13} /> : i + 1}
-                </div>
-                <span
-                  className={`text-sm font-medium hidden sm:block ${
-                    i === step ? "text-slate-900" : "text-slate-400"
-                  }`}
-                >
-                  {s}
-                </span>
-              </div>
-              {i < STEPS.length - 1 && (
-                <div className="flex-1 h-px bg-slate-200 mx-2" />
-              )}
-            </div>
-          ))}
-        </div>
+        <StepperBar steps={STEPS} currentStep={step} />
 
         {/* card */}
         <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
@@ -225,69 +202,35 @@ export default function BookingPage() {
               <h2 className="text-lg font-bold text-slate-900 mb-1">
                 Select Room Type
               </h2>
-              <p className="text-sm text-slate-400 mb-5">
+              <p className="text-sm text-slate-400 mb-6">
                 Choose the room that suits you
               </p>
 
-              {loadingRooms ? (
-                <div className="flex justify-center py-10">
-                  <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
-                </div>
-              ) : roomTypes.length === 0 ? (
-                <div className="text-center py-10 text-slate-400 text-sm">
-                  No room types available for this PG.
-                </div>
-              ) : (
-                <div className="flex flex-col gap-3">
-                  {roomTypes.map((rt) => {
-                    const full = rt.remainingBeds === 0;
-                    const selected = selectedRoom?._id === rt._id;
-                    return (
-                      <button
-                        key={rt._id}
-                        disabled={full}
-                        onClick={() => setSelectedRoom(rt)}
-                        className={`w-full text-left border rounded-xl p-4 transition-all ${
-                          full
-                            ? "opacity-40 cursor-not-allowed border-slate-100 bg-slate-50"
-                            : selected
-                              ? "border-blue-500 bg-blue-50 ring-2 ring-blue-100"
-                              : "border-slate-200 hover:border-blue-300 bg-white"
-                        }`}
-                      >
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="font-semibold capitalize text-slate-900">
-                            {rt.name}
-                          </span>
-                          {full ? (
-                            <span className="text-xs bg-red-50 text-red-500 border border-red-100 px-2 py-0.5 rounded-full">
-                              Full
-                            </span>
-                          ) : (
-                            selected && (
-                              <div className="w-5 h-5 rounded-full bg-blue-600 flex items-center justify-center">
-                                <Check size={11} className="text-white" />
-                              </div>
-                            )
-                          )}
-                        </div>
-                        <div className="flex items-center gap-4 text-xs text-slate-500">
-                          <span className="flex items-center gap-1">
-                            <Users size={11} /> {rt.sharingCount}-sharing
-                          </span>
-                          <span className="flex items-center gap-1">
-                            <Bed size={11} /> {rt.remainingBeds} beds left
-                          </span>
-                          <span className="flex items-center gap-1 font-semibold text-slate-900 ml-auto">
-                            <IndianRupee size={11} />
-                            {rt.price?.toLocaleString("en-IN")}/mo
-                          </span>
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
+              <div className="flex flex-col gap-3 max-h-[400px] overflow-y-auto pr-1">
+                {loadingRooms ? (
+                  <div className="flex flex-col gap-3">
+                    {[1, 2, 3].map((i) => (
+                      <div
+                        key={i}
+                        className="h-24 bg-slate-100 animate-pulse rounded-xl"
+                      />
+                    ))}
+                  </div>
+                ) : roomTypes.length === 0 ? (
+                  <div className="text-center py-8 text-sm text-slate-500 bg-slate-50 rounded-xl border border-slate-100">
+                    No active rooms available in this PG.
+                  </div>
+                ) : (
+                  roomTypes.map((rt) => (
+                    <RoomCard
+                      key={rt._id}
+                      room={rt}
+                      selected={selectedRoom?._id === rt._id}
+                      onSelect={setSelectedRoom}
+                    />
+                  ))
+                )}
+              </div>
             </div>
           )}
 
@@ -302,6 +245,7 @@ export default function BookingPage() {
               </p>
 
               <div className="flex flex-col gap-4">
+                {/* CheckIn Date */}
                 <div>
                   <label className="text-xs font-medium text-slate-500 mb-1.5 block">
                     Check-in Date
@@ -325,6 +269,7 @@ export default function BookingPage() {
                   </div>
                 </div>
 
+                {/* CheckOut DTE */}
                 <div>
                   <label className="text-xs font-medium text-slate-500 mb-1.5 block">
                     Check-out Date
@@ -423,8 +368,8 @@ export default function BookingPage() {
             </div>
           )}
 
-          {/* nav buttons */}
-          <div className="flex gap-3 mt-6">
+          {/* nav buttons — inside card on desktop, sticky on mobile */}
+          <div className="hidden sm:flex gap-3 mt-6">
             {step > 0 && (
               <button
                 onClick={() => {
@@ -454,6 +399,38 @@ export default function BookingPage() {
               </button>
             )}
           </div>
+        </div>
+
+        {/* mobile sticky bottom nav */}
+        <div className="fixed bottom-0 left-0 right-0 sm:hidden bg-white/95 backdrop-blur-md border-t border-slate-200 px-4 py-3 z-40 flex gap-3">
+          {step > 0 && (
+            <button
+              onClick={() => {
+                setStep((s) => s - 1);
+                setError("");
+              }}
+              className="flex-1 py-2.5 rounded-xl border border-slate-200 text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors"
+            >
+              Back
+            </button>
+          )}
+          {step < 2 ? (
+            <button
+              disabled={step === 0 ? !step1Valid : !step2Valid}
+              onClick={() => setStep((s) => s + 1)}
+              className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed shadow-sm shadow-blue-600/20"
+            >
+              Next <ChevronRight size={15} />
+            </button>
+          ) : (
+            <button
+              disabled={submitting}
+              onClick={handleSubmit}
+              className="flex-1 py-2.5 rounded-xl bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-sm shadow-blue-600/20"
+            >
+              {submitting ? "Booking…" : "Confirm Booking"}
+            </button>
+          )}
         </div>
       </div>
     </div>

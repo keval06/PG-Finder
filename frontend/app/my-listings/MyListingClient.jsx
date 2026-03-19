@@ -3,36 +3,14 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
 import { useRouter } from "next/navigation";
-import { ArrowUp, ArrowDown, SlidersHorizontal, X, Plus } from "lucide-react";
+import { SlidersHorizontal, X, Plus } from "lucide-react";
 import ListingCard from "./ListingCard";
 import PGForm from "./PGForm";
 import FilterPanel from "../components/FilterPanel";
-
-const EMPTY_DRAFT = {
-  selectedPrice: null,
-  selectedAmenities: [],
-  genderFilter: [],
-  foodFilter: [],
-  minRating: 0,
-};
-
-function SortBtn({ label, field, sortField, sortOrder, onToggle }) {
-  const active = sortField === field;
-  return (
-    <button
-      onClick={() => onToggle(field)}
-      className={`flex items-center gap-1 text-sm px-3 py-1.5 rounded-xl border transition-all font-medium ${
-        active
-          ? "bg-blue-50 border-blue-200 text-blue-700"
-          : "bg-white border-slate-200 text-slate-600 hover:border-blue-200 hover:text-slate-900"
-      }`}
-    >
-      {label}
-      {active &&
-        (sortOrder === "asc" ? <ArrowUp size={12} /> : <ArrowDown size={12} />)}
-    </button>
-  );
-}
+import SortBtn from "../components/SortBtn";
+import ConfirmModal from "../components/ConfirmModal";
+import { usePGFilters } from "../hooks/usePGFilters";
+import { Bed } from "lucide-react";
 
 export default function MyListingsClient() {
   const { user, ready } = useAuth();
@@ -42,51 +20,25 @@ export default function MyListingsClient() {
   const [loading, setLoading] = useState(true);
   const [createOpen, setCreateOpen] = useState(false);
   const [creating, setCreating] = useState(false);
-  const [drawerOpen, setDrawerOpen] = useState(false);
 
-  const [draft, setDraft] = useState(EMPTY_DRAFT);
-  const [active, setActive] = useState(EMPTY_DRAFT);
-  const [sortField, setSortField] = useState(null);
-  const [sortOrder, setSortOrder] = useState("asc");
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [pendingData, setPendingData] = useState(null);
 
-  const applyFilters = () => {
-    setActive({ ...draft });
-    setDrawerOpen(false);
-  };
-
-  const clearFilters = () => {
-    setDraft(EMPTY_DRAFT);
-    setActive(EMPTY_DRAFT);
-  };
-  
-  const hasFilters = !!(
-    active.selectedPrice ||
-    active.selectedAmenities.length ||
-    active.minRating ||
-    active.genderFilter.length ||
-    active.foodFilter.length
-  );
-
-  const filterCount = [
-    active.selectedPrice ? 1 : 0,
-    active.genderFilter.length,
-    active.foodFilter.length,
-    active.minRating > 0 ? 1 : 0,
-    active.selectedAmenities.length,
-  ].reduce((a, b) => a + b, 0);
-
-  const toggleSort = (field) => {
-    if (sortField === field)
-      setSortOrder((o) => (o === "asc" ? "desc" : "asc"));
-    else {
-      setSortField(field);
-      setSortOrder("asc");
-    }
-  };
+  const {
+    sorted,
+    fp,
+    filterCount,
+    sortField,
+    sortOrder,
+    toggleSort,
+    drawerOpen,
+    setDrawerOpen,
+    hasFilters,
+    clearFilters,
+  } = usePGFilters(pgs);
 
   useEffect(() => {
-    if (!ready) 
-      return;
+    if (!ready) return;
     if (!user) {
       router.push("/auth/login");
       return;
@@ -94,15 +46,17 @@ export default function MyListingsClient() {
     fetchMyPGs();
   }, [ready, user]);
 
-
   const fetchMyPGs = async () => {
     setLoading(true);
     try {
       const token = localStorage.getItem("token");
-      const ownerRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/pg/owner`, {
-        headers: { Authorization: `Bearer ${token}` },
-        cache: "no-store",
-      });
+      const ownerRes = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/pg/owner`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+          cache: "no-store",
+        },
+      );
       let mine = [];
       if (ownerRes.ok) {
         mine = await ownerRes.json();
@@ -113,7 +67,8 @@ export default function MyListingsClient() {
         mine = Array.isArray(all)
           ? all.filter(
               (pg) =>
-                (pg.owner?._id || pg.owner)?.toString() === user._id?.toString()
+                (pg.owner?._id || pg.owner)?.toString() ===
+                user._id?.toString(),
             )
           : [];
       }
@@ -122,7 +77,7 @@ export default function MyListingsClient() {
           try {
             const r = await fetch(
               `${process.env.NEXT_PUBLIC_API_URL}/api/review?pg=${pg._id}`,
-              { cache: "no-store" }
+              { cache: "no-store" },
             );
             const reviews = await r.json();
             if (!Array.isArray(reviews) || reviews.length === 0)
@@ -136,7 +91,7 @@ export default function MyListingsClient() {
           } catch {
             return { ...pg, ratingData: null };
           }
-        })
+        }),
       );
       setPgs(withRatings);
     } finally {
@@ -144,21 +99,48 @@ export default function MyListingsClient() {
     }
   };
 
-  const handleCreate = async (formData) => {
+  const handleCreate = ({ pgData, roomTypes }) => {
+    setPendingData({ pgData, roomTypes });
+    setConfirmOpen(true);
+  };
+
+  const confirmCreate = async () => {
+    if (!pendingData) return;
+    const { pgData, roomTypes } = pendingData;
+    
     setCreating(true);
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/pg`, {
+      const token = localStorage.getItem("token");
+
+      // step 1 — create PG
+      const pgRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/pg`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ ...formData, coordinate: [0, 0] }),
+        body: JSON.stringify({ ...pgData, coordinate: [0, 0] }),
       });
-      if (res.ok) {
-        setCreateOpen(false);
-        await fetchMyPGs();
+
+      if (!pgRes.ok) return;
+      const newPg = await pgRes.json();
+
+      // step 2 — create each room type sequentially
+      for (const rt of roomTypes) {
+        await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/roomtype`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ ...rt, pg: newPg._id }),
+        });
       }
+
+      setConfirmOpen(false);
+      setPendingData(null);
+      setCreateOpen(false);
+      await fetchMyPGs();
     } finally {
       setCreating(false);
     }
@@ -166,54 +148,8 @@ export default function MyListingsClient() {
 
   const handleUpdated = (updated) =>
     setPgs((p) =>
-      p.map((pg) => (pg._id === updated._id ? { ...pg, ...updated } : pg))
+      p.map((pg) => (pg._id === updated._id ? { ...pg, ...updated } : pg)),
     );
-
-  const filtered = pgs.filter((pg) => {
-    if (
-      active.selectedPrice &&
-      (pg.price < active.selectedPrice.min ||
-        pg.price > active.selectedPrice.max)
-    )
-      return false;
-    if (
-      active.selectedAmenities.length &&
-      !active.selectedAmenities.every((a) => pg.amenities?.includes(a))
-    )
-      return false;
-    if (
-      active.minRating > 0 &&
-      (parseFloat(pg.ratingData?.avg) || 0) < active.minRating
-    )
-      return false;
-    if (active.genderFilter.length && !active.genderFilter.includes(pg.gender))
-      return false;
-    if (active.foodFilter.length && !active.foodFilter.includes(pg.food))
-      return false;
-    return true;
-  });
-  
-  const sorted = [...filtered].sort((a, b) => {
-    if (!sortField) return 0;
-    const map = {
-      price: [a.price, b.price],
-      rating: [
-        parseFloat(a.ratingData?.avg || 0),
-        parseFloat(b.ratingData?.avg || 0),
-      ],
-      reviews: [a.ratingData?.count || 0, b.ratingData?.count || 0],
-    };
-    const [va, vb] = map[sortField];
-    return sortOrder === "asc" ? va - vb : vb - va;
-  });
-
-  const fp = {
-    draft,
-    setDraft,
-    onApply: applyFilters,
-    onClear: clearFilters,
-    hasFilters,
-  };
 
   if (!ready || loading)
     return (
@@ -227,27 +163,18 @@ export default function MyListingsClient() {
       {drawerOpen && (
         <div className="fixed inset-0 z-[200] flex lg:hidden">
           <div
-            className="absolute inset-0 bg-black/40"
+            className="absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity"
             onClick={() => setDrawerOpen(false)}
           />
-          <div className="relative w-80 bg-white h-full overflow-y-auto p-5 shadow-2xl">
-            <div className="flex items-center justify-between mb-5">
-              <p className="font-semibold text-slate-900"></p>
-              <button
-                onClick={() => setDrawerOpen(false)}
-                className="p-1.5 rounded-lg hover:bg-slate-100"
-              >
-                <X size={20} className="text-slate-500" />
-              </button>
-            </div>
-            <FilterPanel {...fp} />
+          <div className="relative w-80 bg-white h-full shadow-2xl flex flex-col">
+            <FilterPanel {...fp} onClose={() => setDrawerOpen(false)} />
           </div>
         </div>
       )}
 
       <div className="flex gap-6">
         <aside className="hidden lg:block w-60 flex-shrink-0">
-          <div className="bg-white border border-slate-200 rounded-2xl p-5 sticky top-20 max-h-[calc(100vh-6rem)] overflow-y-auto scrollbar-hide">
+          <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm flex flex-col sticky top-24 h-[calc(100vh-120px)]">
             <FilterPanel {...fp} />
           </div>
         </aside>
@@ -267,7 +194,7 @@ export default function MyListingsClient() {
                   </span>
                 )}
               </button>
-              
+
               <p className="text-sm text-slate-500">
                 <span className="font-semibold text-slate-900">
                   {sorted.length}
@@ -349,6 +276,52 @@ export default function MyListingsClient() {
           )}
         </div>
       </div>
+
+      <ConfirmModal
+        isOpen={confirmOpen}
+        onClose={() => setConfirmOpen(false)}
+        onConfirm={confirmCreate}
+        title="Confirm New Listing"
+        description="Are you sure you want to list this PG with the following details?"
+        confirmText="Confirm"
+        variant="primary"
+        processing={creating}
+      >
+        <div className="overflow-y-auto custom-scrollbar pr-1 flex flex-col gap-3 max-h-60 mt-2">
+          <div className="bg-slate-50 rounded-xl p-4 border border-slate-100">
+            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">PG Details</p>
+            <div className="flex flex-col gap-1.5 text-left">
+              <p className="text-sm text-slate-700 leading-tight flex items-start gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-blue-400 mt-1.5 shrink-0" />
+                <span>Name: <span className="font-semibold text-slate-900">{pendingData?.pgData?.name || ""}</span></span>
+              </p>
+              <p className="text-sm text-slate-700 leading-tight flex items-start gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-blue-400 mt-1.5 shrink-0" />
+                <span>City: <span className="font-semibold text-slate-900">{pendingData?.pgData?.city || ""}</span></span>
+              </p>
+            </div>
+          </div>
+
+          {(pendingData?.roomTypes?.length > 0) && (
+            <div className="bg-blue-50/50 rounded-xl p-4 border border-blue-100/50">
+              <p className="text-xs font-semibold text-blue-600 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                <Bed size={12} /> Room Types
+              </p>
+              <div className="flex flex-col gap-2">
+                {pendingData.roomTypes.map((rt, i) => (
+                  <div key={i} className="bg-white/80 rounded-lg p-2.5 border border-blue-100 flex justify-between items-center text-xs">
+                    <div className="text-left">
+                      <p className="font-bold text-slate-900 capitalize">{rt.name}</p>
+                      <p className="text-slate-500">{rt.availableRooms} rooms</p>
+                    </div>
+                    <p className="font-bold text-blue-600">₹{rt.price}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </ConfirmModal>
     </>
   );
 }
