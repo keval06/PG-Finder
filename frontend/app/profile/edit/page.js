@@ -21,22 +21,24 @@ export default function EditProfilePage() {
   const [name, setName] = useState("");
   const [mobile, setMobile] = useState("");
   const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [showConfirm, setShowConfirm] = useState(false);
+
   const [loading, setLoading] = useState(false);
 
-  const [message, setMessage] = useState(null);
+  const [message, setMessage] = useState(null); //*Object, Success OR error banner
   const [showConfirmPopup, setShowConfirmPopup] = useState(false);
-  const [pendingBody, setPendingBody] = useState(null);
+  const [pendingBody, setPendingBody] = useState(null); //?Temporarily holds what changed — passed between handleSubmit and confirmUpdate
 
   //? Pre-filling the Form
   useEffect(() => {
     // wait until AuthContext has finished reading localStorage
-    if (!ready) return;
+    if (!ready) return; // ?← guard #1: wait for localStorage to load
 
     if (!user) {
-      router.push("/auth/login");
+      router.push("/auth/login"); //? ← guard #2: not logged in → redirect
       return;
     }
 
@@ -65,7 +67,9 @@ export default function EditProfilePage() {
       return;
     }
 
+    // ? <- Password field is optional here. If empty → don't change it
     if (password && password.length < 8) {
+      // ?← only validate IF user typed something
       setMessage({
         type: "error",
         text: "Password must be at least 8 characters",
@@ -74,13 +78,14 @@ export default function EditProfilePage() {
     }
 
     if (password && !passwordsMatch) {
-      setMessage({ 
-        type: "error", 
-        text: "Passwords do not match" ,
+      setMessage({
+        type: "error",
+        text: "Passwords do not match",
       });
       return;
     }
-
+    //? Token might have expired or been manually deleted from browser
+    //  ?Always verify before making authenticated API calls
     const token = localStorage.getItem("token");
     if (!token) {
       router.push("/auth/login");
@@ -94,9 +99,9 @@ export default function EditProfilePage() {
     if (password) body.password = password;
 
     if (Object.keys(body).length === 0) {
-      setMessage({ 
-        type: "error", 
-        text: "No changes made" 
+      setMessage({
+        type: "error",
+        text: "No changes made",
       });
       return;
     }
@@ -109,40 +114,51 @@ export default function EditProfilePage() {
     setShowConfirmPopup(false);
     const token = localStorage.getItem("token");
     setLoading(true);
+
     try {
-      const res = await fetch(`http://localhost:5000/api/user/${user._id}`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(pendingBody),
-      });
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/user/${user._id}`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`, // ?← NEW: auth header
+          },
+          body: JSON.stringify(pendingBody),
+        }
+      );
+
       const data = await res.json();
 
       if (res.ok) {
         updateUser(data); // context + localStorage updated instantly
         setPassword("");
         setConfirmPassword("");
-        setMessage({ type: "success", text: "Profile updated successfully!" });
+        setMessage({
+          type: "success",
+          text: "Profile updated successfully!",
+        });
       } else {
         setMessage({
           type: "error",
           text: data.message || "Update failed. Please try again.",
         });
       }
-    } catch {
+    } 
+    catch {
       setMessage({
         type: "error",
         text: "Something went wrong. Please try again.",
       });
-    } finally {
+    } 
+    finally {
       setLoading(false);
       setPendingBody(null);
       // name and mobile stay filled with new values — intentional
     }
   };
 
+  // Tailwind classes for inpiuts
   const iconClass = "absolute left-3 text-slate-400 pointer-events-none";
   const inputClass =
     "w-full bg-transparent pl-9 pr-10 py-2.5 text-sm outline-none placeholder:text-slate-400 text-slate-900";
@@ -199,7 +215,8 @@ export default function EditProfilePage() {
           )}
 
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-            {/* Name */}
+              {/* Name   */}
+
             <div>
               <label className="text-xs font-medium text-slate-500 mb-1.5 block">
                 Full Name
@@ -248,6 +265,8 @@ export default function EditProfilePage() {
                 Leave password fields empty to keep current password
               </p>
 
+              {/* New pAssword */}
+
               <div className="flex flex-col gap-1 mb-4">
                 <label className="text-xs font-medium text-slate-500 mb-1.5 block">
                   New Password
@@ -277,6 +296,7 @@ export default function EditProfilePage() {
                 )}
               </div>
 
+              {/* Confirm New Password */}
               <div className="flex flex-col gap-1">
                 <label className="text-xs font-medium text-slate-500 mb-1.5 block">
                   Confirm New Password
@@ -318,11 +338,11 @@ export default function EditProfilePage() {
               </div>
             </div>
 
+          {/*  */}
             <button
               type="submit"
               disabled={
                 loading ||
-                name.trim().length < 3 ||
                 passwordTooShort ||
                 (showMatchIndicator && !passwordsMatch)
               }
@@ -341,10 +361,14 @@ export default function EditProfilePage() {
             className="absolute inset-0 bg-black/40 backdrop-blur-sm"
             onClick={() => setShowConfirmPopup(false)}
           />
+
+          {/* POPUP CARD */}
           <div className="relative bg-white rounded-2xl shadow-2xl p-6 w-full max-w-xs flex flex-col gap-4 z-10 border border-slate-100">
+
+            {/* Message */}
             <div className="text-center">
               <div className="bg-blue-50 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3 border border-blue-100">
-                <User size={22} className="text-blue-600" />
+                <User size={26} className="text-blue-600" />
               </div>
               <h3 className="text-base font-bold text-slate-900">
                 Save Changes?
@@ -354,7 +378,10 @@ export default function EditProfilePage() {
               </p>
             </div>
 
+            {/* Show what will change */}
             <div className="bg-slate-50 rounded-xl p-3 flex flex-col gap-1.5 text-xs text-slate-600 border border-slate-100">
+
+              {/* Show name if updated */}
               {pendingBody?.name && (
                 <p>
                   • Name →{" "}
@@ -363,6 +390,8 @@ export default function EditProfilePage() {
                   </span>
                 </p>
               )}
+
+              {/* Show mobile if updated */}
               {pendingBody?.mobile && (
                 <p>
                   • Mobile →{" "}
@@ -371,16 +400,20 @@ export default function EditProfilePage() {
                   </span>
                 </p>
               )}
+
               {pendingBody?.password && <p>• Password will be updated</p>}
             </div>
 
             <div className="flex gap-3">
+              {/* Cancel */}
               <button
                 onClick={() => setShowConfirmPopup(false)}
                 className="flex-1 py-2.5 rounded-xl border border-slate-200 text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors"
               >
                 Cancel
               </button>
+
+              {/* Apply Button */}
               <button
                 onClick={confirmUpdate}
                 className="flex-1 py-2.5 rounded-xl bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 transition-colors"

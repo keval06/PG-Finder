@@ -1,24 +1,11 @@
 import Link from "next/link";
-
-function BookBtn({ id }) {
-  const router = useRouter();
-  return (
-    <button
-      onClick={e => { e.preventDefault(); e.stopPropagation(); router.push(`/pg/${id}#booking`); }}
-      className="block w-full text-center bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-4 py-2.5 rounded-xl transition-colors"
-    >
-      Book Now
-    </button>
-  );
-}
-
 import Image from "next/image";
 import {
   Wifi, Car, Snowflake, Tv, Camera, Dumbbell,
   Book, Trees, Refrigerator, WashingMachine,
   ArrowUpDown, Utensils, User, Star, MapPin,
 } from "lucide-react";
-import { useRouter } from "next/navigation";
+import BookNowButton from "./BookNowButton";
 
 const amenityIcons = {
   WiFi: Wifi, Parking: Car, AC: Snowflake, Laundry: WashingMachine,
@@ -26,11 +13,6 @@ const amenityIcons = {
   Refrigerator: Refrigerator, Gym: Dumbbell, Garden: Trees, Library: Book,
 };
 
-// const genderBadge = {
-//   male:   "bg-blue-50 text-blue-700 border-blue-100",
-//   female: "bg-pink-50 text-pink-700 border-pink-100",
-//   mix:    "bg-violet-50 text-violet-700 border-violet-100",
-// };
 const genderLabel = { male: "Male",      female: "Female",    mix: "Co-ed"    };
 const foodLabel   = { "with food": "Food incl.", "without food": "No food", flexible: "Flexible" };
 
@@ -51,10 +33,6 @@ export default function PGCard({ pg }) {
             alt={pg.name} fill className="object-cover"
             sizes="(max-width: 640px) 100vw, 208px"
           />
-          {/* gender badge */}
-          {/* <div className={`absolute top-3 left-3 text-[10px] font-semibold px-2 py-0.5 rounded-full border backdrop-blur-sm ${genderBadge[pg.gender] || "bg-white/80 text-slate-600 border-slate-200"}`}>
-            {genderLabel[pg.gender] || pg.gender}
-          </div> */}
         </div>
 
         {/* ── CONTENT ── */}
@@ -122,7 +100,8 @@ export default function PGCard({ pg }) {
             </p>
             <p className="text-[10px] text-slate-400 mt-0.5">/month</p>
           </div>
-           <BookBtn id={pg._id} />
+           {/* <BookBtn id={pg._id} /> */}
+           <BookNowButton pgId={pg._id} />
         </div>
 
       </div>

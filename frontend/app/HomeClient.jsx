@@ -1,137 +1,90 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef } from "react";
+import { useRouter, usePathname } from "next/navigation";
 import { useSearch } from "./context/SearchContext";
 import PGCard from "./components/PGCard";
 import FilterPanel from "./components/FilterPanel";
-import { ArrowUp, ArrowDown, SlidersHorizontal, X } from "lucide-react";
+import SortBtn from "./components/SortBtn";
+import { SlidersHorizontal } from "lucide-react";
+import { usePGFilters } from "./hooks/usePGFilters";
 
-const EMPTY_DRAFT = {
-  selectedPrice: null,
-  selectedAmenities: [],
-  genderFilter: [],
-  foodFilter: [],
-  minRating: 0,
-};
+export default function HomeClient({
+  data,
+  pagination = { currentPage: 1, totalPages: 1, totalCount: 0 },
+}) {
+  const { query } = useSearch();
+  const router = useRouter();
+  const pathname = usePathname();
 
-function SortBtn({ label, field, sortField, sortOrder, onToggle }) {
-  const active = sortField === field;
-  return (
-    <button
-      onClick={() => onToggle(field)}
-      className={`flex items-center gap-1 text-sm px-3 py-1.5 rounded-xl border transition-all font-medium ${
-        active
-          ? "bg-blue-50 border-blue-200 text-blue-700"
-          : "bg-white border-slate-200 text-slate-600 hover:border-blue-200 hover:text-slate-900"
-      }`}
-    >
-      {label}
-      {active &&
-        (sortOrder === "asc" ? <ArrowUp size={12} /> : <ArrowDown size={12} />)}
-    </button>
-  );
-}
-
-export default function HomeClient({ data }) {
-  const { query, setQuery } = useSearch();
-
-  // draft  = what the user is selecting inside the panel (not applied yet)
-  // active = what's actually filtering the results (applied)
-  const [draft, setDraft] = useState(EMPTY_DRAFT);
-  const [active, setActive] = useState(EMPTY_DRAFT);
-  const [sortField, setSortField] = useState(null);
-  const [sortOrder, setSortOrder] = useState("asc");
-  const [drawerOpen, setDrawerOpen] = useState(false);
-
-  const applyFilters = () => {
-    setActive({ ...draft });
-    setDrawerOpen(false); // close mobile drawer after apply
-  };
-
-  const clearFilters = () => {
-    setDraft(EMPTY_DRAFT);
-    setActive(EMPTY_DRAFT);
-  };
-
-  const hasFilters = !!(
-    active.selectedPrice ||
-    active.selectedAmenities.length ||
-    active.minRating ||
-    active.genderFilter.length ||
-    active.foodFilter.length
-  );
-
-  const filterCount = [
-    active.selectedPrice ? 1 : 0,
-    active.genderFilter.length,
-    active.foodFilter.length,
-    active.minRating > 0 ? 1 : 0,
-    active.selectedAmenities.length,
-  ].reduce((a, b) => a + b, 0);
-
-  const toggleSort = (field) => {
-    if (sortField === field)
-      setSortOrder((o) => (o === "asc" ? "desc" : "asc"));
-    else {
-      setSortField(field);
-      setSortOrder("asc");
-    }
-  };
-
-  // filter using ACTIVE (not draft)
-  const filtered = data.filter((pg) => {
-    if (query.trim()) {
-      const q = query.toLowerCase();
-      if (
-        !(pg.name || "").toLowerCase().includes(q) &&
-        !(pg.city || "").toLowerCase().includes(q)
-      )
-        return false;
-    }
-    if (
-      active.selectedPrice &&
-      (pg.price < active.selectedPrice.min ||
-        pg.price > active.selectedPrice.max)
-    )
-      return false;
-    if (
-      active.selectedAmenities.length &&
-      !active.selectedAmenities.every((a) => pg.amenities?.includes(a))
-    )
-      return false;
-    if (
-      active.minRating > 0 &&
-      (parseFloat(pg.ratingData?.avg) || 0) < active.minRating
-    )
-      return false;
-    if (active.genderFilter.length && !active.genderFilter.includes(pg.gender))
-      return false;
-    if (active.foodFilter.length && !active.foodFilter.includes(pg.food))
-      return false;
-    return true;
-  });
-
-  const sorted = [...filtered].sort((a, b) => {
-    if (!sortField) return 0;
-    const map = {
-      price: [a.price, b.price],
-      rating: [
-        parseFloat(a.ratingData?.avg || 0),
-        parseFloat(b.ratingData?.avg || 0),
-      ],
-      reviews: [a.ratingData?.count || 0, b.ratingData?.count || 0],
-    };
-    const [va, vb] = map[sortField];
-    return sortOrder === "asc" ? va - vb : vb - va;
-  });
-
-  const fp = {
-    draft,
-    setDraft,
-    onApply: applyFilters,
-    onClear: clearFilters,
+  const {
+    sorted,
+    fp,
+    filterCount,
+    sortField,
+    sortOrder,
+    toggleSort,
+    drawerOpen,
+    setDrawerOpen,
     hasFilters,
+    clearFilters,
+    active,
+  } = usePGFilters(data, query, "remote");
+
+  const isFirstRender = useRef(true);
+
+  const buildParams = (pageOverride = null) => {
+    const params = new URLSearchParams();
+    if (query) params.append("q", query);
+
+    if (active.selectedPrice) {
+      params.append("minprice", active.selectedPrice.min);
+      // FIX: don't append maxprice when it's Infinity ("Above ₹15,000" option)
+      if (isFinite(active.selectedPrice.max)) {
+        params.append("maxprice", active.selectedPrice.max);
+      }
+    }
+    if (active.selectedAmenities?.length > 0) {
+      params.append("amenities", active.selectedAmenities.join(","));
+    }
+    if (active.genderFilter?.length > 0) {
+      params.append("gender", active.genderFilter.join(","));
+    }
+    if (active.foodFilter?.length > 0) {
+      params.append("food", active.foodFilter.join(","));
+    }
+    if (sortField) {
+      params.append("sortField", sortField);
+      params.append("sortOrder", sortOrder);
+    }
+    if (pageOverride !== null) {
+      params.append("page", pageOverride);
+    }
+    return params;
   };
+
+  const handlePageChange = (newPage) => {
+    if (newPage < 1 || newPage > pagination.totalPages) return;
+    const params = buildParams(newPage);
+    router.push(`${pathname}?${params.toString()}`, { scroll: true });
+  };
+
+  useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
+    const debounceId = setTimeout(() => {
+      const params = buildParams(1);
+      router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+    }, 400);
+    return () => clearTimeout(debounceId);
+  }, [active, query, sortField, sortOrder, pathname, router]);
+
+  // FIX: in remote mode, the real count comes from the backend's totalCount,
+  // not sorted.length (which is only the current page slice).
+  const displayCount =
+    pagination.totalCount > 0 ? pagination.totalCount : sorted.length;
 
   return (
     <>
@@ -139,20 +92,11 @@ export default function HomeClient({ data }) {
       {drawerOpen && (
         <div className="fixed inset-0 z-[200] flex lg:hidden">
           <div
-            className="absolute inset-0 bg-black/40"
+            className="absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity"
             onClick={() => setDrawerOpen(false)}
           />
-          <div className="relative w-80 bg-white h-full overflow-y-auto p-5 shadow-2xl">
-            <div className="flex items-center justify-between mb-5">
-              <p className="font-semibold text-slate-900"></p>
-              <button
-                onClick={() => setDrawerOpen(false)}
-                className="p-1.5 rounded-lg hover:bg-slate-100"
-              >
-                <X size={20} className="text-slate-500" />
-              </button>
-            </div>
-            <FilterPanel {...fp} />
+          <div className="relative w-80 bg-white h-full shadow-2xl flex flex-col">
+            <FilterPanel {...fp} onClose={() => setDrawerOpen(false)} />
           </div>
         </div>
       )}
@@ -160,7 +104,7 @@ export default function HomeClient({ data }) {
       <div className="flex gap-6">
         {/* sidebar */}
         <aside className="hidden lg:block w-60 flex-shrink-0">
-          <div className="bg-white border border-slate-200 rounded-2xl p-5 sticky top-20 max-h-[calc(100vh-6rem)] overflow-y-auto scrollbar-hide">
+          <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm flex flex-col sticky top-24 h-[calc(100vh-120px)]">
             <FilterPanel {...fp} />
           </div>
         </aside>
@@ -181,13 +125,16 @@ export default function HomeClient({ data }) {
                   </span>
                 )}
               </button>
+
+              {/* FIX: show totalCount (all pages) not just current page slice */}
               <p className="text-sm text-slate-500">
                 <span className="font-semibold text-slate-900">
-                  {sorted.length}
+                  {displayCount}
                 </span>{" "}
                 PGs found
               </p>
             </div>
+
             <div className="flex gap-2 flex-wrap">
               <SortBtn
                 label="Price"
@@ -207,6 +154,7 @@ export default function HomeClient({ data }) {
             </div>
           </div>
 
+          {/* empty state */}
           {sorted.length === 0 ? (
             <div className="text-center py-24">
               <p className="text-4xl mb-3">🏠</p>
@@ -214,7 +162,6 @@ export default function HomeClient({ data }) {
               <p className="text-sm text-slate-500">
                 Try adjusting your filters or search term
               </p>
-
               {hasFilters && (
                 <button
                   onClick={clearFilters}
@@ -225,11 +172,36 @@ export default function HomeClient({ data }) {
               )}
             </div>
           ) : (
-            <div className="flex flex-col gap-4">
-              {sorted.map((pg) => (
-                <PGCard key={pg._id} pg={pg} />
-              ))}
-            </div>
+            <>
+              <div className="flex flex-col gap-4">
+                {sorted.map((pg) => (
+                  <PGCard key={pg._id} pg={pg} />
+                ))}
+              </div>
+
+              {/* Pagination Controls */}
+              {pagination.totalPages > 1 && (
+                <div className="flex justify-center items-center gap-2 mt-8">
+                  <button
+                    onClick={() => handlePageChange(pagination.currentPage - 1)}
+                    disabled={pagination.currentPage <= 1}
+                    className="px-4 py-2 border border-slate-200 rounded-xl text-sm font-medium text-slate-700 bg-white hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm"
+                  >
+                    Previous
+                  </button>
+                  <span className="text-sm font-medium text-slate-600 px-4">
+                    Page {pagination.currentPage} of {pagination.totalPages}
+                  </span>
+                  <button
+                    onClick={() => handlePageChange(pagination.currentPage + 1)}
+                    disabled={pagination.currentPage >= pagination.totalPages}
+                    className="px-4 py-2 border border-slate-200 rounded-xl text-sm font-medium text-slate-700 bg-white hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm"
+                  >
+                    Next
+                  </button>
+                </div>
+              )}
+            </>
           )}
         </div>
       </div>

@@ -14,6 +14,12 @@ const bookingSchema = new mongoose.Schema(
       required: true,
     },
 
+    roomType: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "RoomType",
+      required: true,
+    },
+
     checkInDate: {
       type: Date,
       required: true,
@@ -35,7 +41,7 @@ const bookingSchema = new mongoose.Schema(
       type: Number,
       required: true,
     },
-
+    
     paymentStatus: {
       type: String,
       enum: ["pending", "paid", "failed"],
@@ -43,6 +49,9 @@ const bookingSchema = new mongoose.Schema(
       required: true,
     },
   },
+
   { timestamps: true }
+  
 );
+
 module.exports = mongoose.model("Booking", bookingSchema);

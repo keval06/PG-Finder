@@ -88,4 +88,10 @@ const pgSchema = new mongoose.Schema({
   },
   isActive: { type: Boolean, default: true }, // ← NEW: false = hidden from home page
 });
+
+// Indexes for scalable filtering
+pgSchema.index({ city: 1, gender: 1, price: 1, isActive: 1 });
+pgSchema.index({ amenities: 1 });
+pgSchema.index({ owner: 1 });
+
 module.exports = mongoose.model("PG", pgSchema);

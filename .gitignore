@@ -6,6 +6,9 @@ backend/node_modules/
 # Next.js
 frontend/.next/
 frontend/out/
+data/test.pgs.json
+data/test.reviews.json
+data/test.user.json
 
 # Environment
 .env
@@ -21,7 +24,7 @@ npm-debug.log*
 
 # dependencies
 
-/.pnp
+/.pnp   
 .pnp.*
 .yarn/*
 !.yarn/patches
