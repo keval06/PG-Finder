@@ -67,14 +67,14 @@ exports.registerBooking = async (req, res) => {
           amount,
         },
       ],
-      { session },
+      { session }
     );
 
     // update room type
     await RoomType.findByIdAndUpdate(
       roomTypeId,
       { $inc: { occupiedBeds: 1 } },
-      { session },
+      { session }
     );
 
     // commit transaction
@@ -96,7 +96,8 @@ exports.getMyBookings = async (req, res) => {
     // get bookings
     const bookings = await Booking.find({ user: req.user._id })
       .populate("pg", "name price city")
-      .populate("roomType", "name sharingCount price");
+      .populate("roomType", "name sharingCount price")
+      .sort({ createdAt: -1 });
     res.json(bookings);
   } catch (error) {
     res.status(500).json(error.message);
@@ -112,7 +113,8 @@ exports.getReceivedBookings = async (req, res) => {
     const bookings = await Booking.find({ pg: { $in: pgIds } })
       .populate("user", "name mobile") // populate user
       .populate("pg", "name city") // populate pg
-      .populate("roomType", "name sharingCount price"); // populate room type
+      .populate("roomType", "name sharingCount price") // populate room type
+      .sort({ createdAt: -1 });
 
     res.json(bookings);
   } catch (error) {
@@ -144,7 +146,7 @@ exports.updateBooking = async (req, res) => {
       await RoomType.findByIdAndUpdate(
         existing.roomType,
         { $inc: { occupiedBeds: -1 } },
-        { session },
+        { session }
       );
     }
 
@@ -155,7 +157,7 @@ exports.updateBooking = async (req, res) => {
     ) {
       // if room type is not found
       const roomType = await RoomType.findById(existing.roomType).session(
-        session,
+        session
       );
       if (!roomType) {
         await session.abortTransaction();
@@ -177,7 +179,7 @@ exports.updateBooking = async (req, res) => {
       await RoomType.findByIdAndUpdate(
         existing.roomType,
         { $inc: { occupiedBeds: 1 } },
-        { session },
+        { session }
       );
     }
 

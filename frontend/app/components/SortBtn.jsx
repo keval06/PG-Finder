@@ -1,7 +1,13 @@
 import { ArrowUp, ArrowDown } from "lucide-react";
 
-export default function SortBtn({ label, field, sortField, sortOrder, onToggle }) {
-  const active = sortField === field;
+export default function SortBtn({ 
+  label,
+  field, 
+  sortField, 
+  sortOrder, 
+  onToggle,
+}) {
+  const active = (sortField === field);
   return (
     <button
       onClick={() => onToggle(field)}

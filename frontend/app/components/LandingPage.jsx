@@ -274,6 +274,14 @@ export default function LandingPage() {
                       >
                         My Listings
                       </button>
+                    <button
+                        onClick={() => {
+                          router.push("/received-bookings");
+                        }}
+                        className="w-full text-left px-3 py-2 text-sm hover:bg-slate-50 rounded-xl"
+                      >
+                        Received Bookings
+                      </button>
                     <div className="border-t border-slate-100 my-1" />
                     <button
                       onClick={() => {
@@ -588,7 +596,7 @@ export default function LandingPage() {
               Everything you need,
               <br />
               <span className="text-slate-400 font-normal">
-                nothing you don't.
+                nothing you don`&apos;`t.
               </span>
             </h2>
           </div>

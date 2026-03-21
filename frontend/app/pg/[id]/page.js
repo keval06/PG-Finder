@@ -19,11 +19,16 @@ import {
   PartyPopper,
   PawPrint,
   Users,
+  Toilet,
   CreditCard,
   MapPin,
+  Bath,
+  BedDouble,
+  BedSingle,
 } from "lucide-react";
 import ReviewsSection from "../../components/ReviewsSection";
 import BookNowButton from "../../components/BookNowButton";
+import OwnerEditButton from "./OwnerEditButton";
 
 async function getPG(id) {
   const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/pg/${id}`, {
@@ -36,7 +41,7 @@ async function getImages(id) {
   try {
     const res = await fetch(
       `${process.env.NEXT_PUBLIC_API_URL}/api/image?pgId=${id}`,
-      { cache: "no-store" },
+      { cache: "no-store" }
     );
     if (res.ok) return await res.json();
     return [];
@@ -49,7 +54,20 @@ async function getReviews(id) {
   try {
     const res = await fetch(
       `${process.env.NEXT_PUBLIC_API_URL}/api/review?pg=${id}`,
-      { cache: "no-store" },
+      { cache: "no-store" }
+    );
+    if (res.ok) return await res.json();
+    return [];
+  } catch {
+    return [];
+  }
+}
+
+async function getRoomTypes(id) {
+  try {
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/api/roomtype?pgId=${id}`,
+      { cache: "no-store" }
     );
     if (res.ok) return await res.json();
     return [];
@@ -76,15 +94,60 @@ const amenityIcons = {
 export default async function PGDetails({ params }) {
   const { id } = await params;
 
-  const [pg, images, reviews] = await Promise.all([
+  const [pg, images, reviews, roomTypes] = await Promise.all([
     getPG(id),
     getImages(id),
     getReviews(id),
+    getRoomTypes(id),
   ]);
 
   const avgRating = reviews.length
     ? (reviews.reduce((sum, r) => sum + r.star, 0) / reviews.length).toFixed(1)
     : null;
+
+  // const bathroomRatio =
+  //   pg.bathroom && pg.room
+  //     ? pg.bathroom >= pg.room
+  //       ? "Attached"
+  //       : `Shared (1:${Math.round(pg.room / pg.bathroom)})`
+  //     : "—";
+
+  // const toiletRatio =
+  //   pg.toilet && pg.room
+  //     ? pg.toilet >= pg.room
+  //       ? "Attached"
+  //       : `Shared (1:${Math.round(pg.room / pg.toilet)})`
+  //     : "—";
+
+  const bathroomRatio =
+    pg.bathroom && pg.room
+      ? `${pg.bathroom} (${
+          pg.bathroom >= pg.room
+            ? "Attached"
+            : `1:${Math.round(pg.room / pg.bathroom)}`
+        })`
+      : "—";
+
+  const toiletRatio =
+    pg.toilet && pg.room
+      ? `${pg.toilet} (${
+          pg.toilet >= pg.room
+            ? "Attached"
+            : `1:${Math.round(pg.room / pg.toilet)}`
+        })`
+      : "—";
+
+  const totalBeds = roomTypes.reduce(
+    (s, rt) => s + rt.availableRooms * rt.sharingCount,
+    0
+  );
+  const freeBeds = roomTypes.reduce(
+    (s, rt) =>
+      s +
+      (rt.remainingBeds ??
+        rt.availableRooms * rt.sharingCount - (rt.occupiedBeds || 0)),
+    0
+  );
 
   return (
     <div className="bg-gray-50 min-h-screen">
@@ -115,16 +178,21 @@ export default async function PGDetails({ params }) {
                   </span>
                 </p>
               )}
+              <OwnerEditButton pgOwnerId={pg.owner} pgId={id} />
             </div>
 
             {/* Room details */}
             <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
               <h2 className="text-lg font-semibold mb-4">Room Details</h2>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
                 {[
                   { icon: Bed, label: "Rooms", value: pg.room },
                   { icon: User, label: "Gender", value: pg.gender },
                   { icon: Utensils, label: "Food", value: pg.food },
+                  { icon: Bath, label: "Bathroom", value: bathroomRatio },
+                  { icon: Toilet, label: "Toilet", value: toiletRatio },
+                  { icon:BedDouble, label: "Total Beds", value: totalBeds },
+                  { icon: BedSingle, label: "Free Beds", value: freeBeds },
                 ].map(({ icon: Icon, label, value }) => (
                   <div
                     key={label}

@@ -1,15 +1,21 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef } from "react";
+import { useRouter, usePathname } from "next/navigation";
 import { useSearch } from "./context/SearchContext";
 import PGCard from "./components/PGCard";
 import FilterPanel from "./components/FilterPanel";
 import SortBtn from "./components/SortBtn";
-import { SlidersHorizontal, X } from "lucide-react";
+import { SlidersHorizontal } from "lucide-react";
 import { usePGFilters } from "./hooks/usePGFilters";
 
-export default function HomeClient({ data }) {
-  const { query, setQuery } = useSearch();
+export default function HomeClient({
+  data,
+  pagination = { currentPage: 1, totalPages: 1, totalCount: 0 },
+}) {
+  const { query } = useSearch();
+  const router = useRouter();
+  const pathname = usePathname();
 
   const {
     sorted,
@@ -22,7 +28,63 @@ export default function HomeClient({ data }) {
     setDrawerOpen,
     hasFilters,
     clearFilters,
-  } = usePGFilters(data, query);
+    active,
+  } = usePGFilters(data, query, "remote");
+
+  const isFirstRender = useRef(true);
+
+  const buildParams = (pageOverride = null) => {
+    const params = new URLSearchParams();
+    if (query) params.append("q", query);
+
+    if (active.selectedPrice) {
+      params.append("minprice", active.selectedPrice.min);
+      // FIX: don't append maxprice when it's Infinity ("Above ₹15,000" option)
+      if (isFinite(active.selectedPrice.max)) {
+        params.append("maxprice", active.selectedPrice.max);
+      }
+    }
+    if (active.selectedAmenities?.length > 0) {
+      params.append("amenities", active.selectedAmenities.join(","));
+    }
+    if (active.genderFilter?.length > 0) {
+      params.append("gender", active.genderFilter.join(","));
+    }
+    if (active.foodFilter?.length > 0) {
+      params.append("food", active.foodFilter.join(","));
+    }
+    if (sortField) {
+      params.append("sortField", sortField);
+      params.append("sortOrder", sortOrder);
+    }
+    if (pageOverride !== null) {
+      params.append("page", pageOverride);
+    }
+    return params;
+  };
+
+  const handlePageChange = (newPage) => {
+    if (newPage < 1 || newPage > pagination.totalPages) return;
+    const params = buildParams(newPage);
+    router.push(`${pathname}?${params.toString()}`, { scroll: true });
+  };
+
+  useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
+    const debounceId = setTimeout(() => {
+      const params = buildParams(1);
+      router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+    }, 400);
+    return () => clearTimeout(debounceId);
+  }, [active, query, sortField, sortOrder, pathname, router]);
+
+  // FIX: in remote mode, the real count comes from the backend's totalCount,
+  // not sorted.length (which is only the current page slice).
+  const displayCount =
+    pagination.totalCount > 0 ? pagination.totalCount : sorted.length;
 
   return (
     <>
@@ -63,13 +125,16 @@ export default function HomeClient({ data }) {
                   </span>
                 )}
               </button>
+
+              {/* FIX: show totalCount (all pages) not just current page slice */}
               <p className="text-sm text-slate-500">
                 <span className="font-semibold text-slate-900">
-                  {sorted.length}
+                  {displayCount}
                 </span>{" "}
                 PGs found
               </p>
             </div>
+
             <div className="flex gap-2 flex-wrap">
               <SortBtn
                 label="Price"
@@ -89,6 +154,7 @@ export default function HomeClient({ data }) {
             </div>
           </div>
 
+          {/* empty state */}
           {sorted.length === 0 ? (
             <div className="text-center py-24">
               <p className="text-4xl mb-3">🏠</p>
@@ -96,7 +162,6 @@ export default function HomeClient({ data }) {
               <p className="text-sm text-slate-500">
                 Try adjusting your filters or search term
               </p>
-
               {hasFilters && (
                 <button
                   onClick={clearFilters}
@@ -107,11 +172,36 @@ export default function HomeClient({ data }) {
               )}
             </div>
           ) : (
-            <div className="flex flex-col gap-4">
-              {sorted.map((pg) => (
-                <PGCard key={pg._id} pg={pg} />
-              ))}
-            </div>
+            <>
+              <div className="flex flex-col gap-4">
+                {sorted.map((pg) => (
+                  <PGCard key={pg._id} pg={pg} />
+                ))}
+              </div>
+
+              {/* Pagination Controls */}
+              {pagination.totalPages > 1 && (
+                <div className="flex justify-center items-center gap-2 mt-8">
+                  <button
+                    onClick={() => handlePageChange(pagination.currentPage - 1)}
+                    disabled={pagination.currentPage <= 1}
+                    className="px-4 py-2 border border-slate-200 rounded-xl text-sm font-medium text-slate-700 bg-white hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm"
+                  >
+                    Previous
+                  </button>
+                  <span className="text-sm font-medium text-slate-600 px-4">
+                    Page {pagination.currentPage} of {pagination.totalPages}
+                  </span>
+                  <button
+                    onClick={() => handlePageChange(pagination.currentPage + 1)}
+                    disabled={pagination.currentPage >= pagination.totalPages}
+                    className="px-4 py-2 border border-slate-200 rounded-xl text-sm font-medium text-slate-700 bg-white hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm"
+                  >
+                    Next
+                  </button>
+                </div>
+              )}
+            </>
           )}
         </div>
       </div>

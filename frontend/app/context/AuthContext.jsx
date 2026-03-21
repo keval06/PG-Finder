@@ -1,16 +1,11 @@
 "use client";
 
-import { 
-  createContext, 
-  useContext,
-  useState, 
-  useEffect 
-} from "react";
+import { createContext, useContext, useState, useEffect } from "react";
 
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
-  const [user,  setUser]  = useState(null);
+  const [user, setUser] = useState(null);
   const [ready, setReady] = useState(false); // ← KEY: false until localStorage read
 
   useEffect(() => {
@@ -19,10 +14,9 @@ export function AuthProvider({ children }) {
 
       if (stored && stored !== "undefined") {
         setUser(JSON.parse(stored));
-        
-        //*JSON.parse("undefined") → throws an error 💥
-// *This guard prevents that crash
 
+        //*JSON.parse("undefined") → throws an error 💥
+        // *This guard prevents that crash
       }
     } 
     catch {
@@ -50,7 +44,7 @@ export function AuthProvider({ children }) {
     localStorage.setItem("user", JSON.stringify(merged));
     setUser(merged);
   };
-  
+
   return (
     <AuthContext.Provider value={{ user, ready, login, logout, updateUser }}>
       {children}
@@ -58,7 +52,7 @@ export function AuthProvider({ children }) {
   );
 }
 
-// export const useAuth = () => useContext(AuthContext);
+// ?-custom hook -> export const useAuth = () => useContext(AuthContext);
 export function useAuth() {
-  return useContext(AuthContext)
+  return useContext(AuthContext);
 }

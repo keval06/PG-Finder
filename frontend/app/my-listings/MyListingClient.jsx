@@ -9,6 +9,7 @@ import PGForm from "./PGForm";
 import FilterPanel from "../components/FilterPanel";
 import SortBtn from "../components/SortBtn";
 import ConfirmModal from "../components/ConfirmModal";
+import PaginationWrapper from "../components/PaginationWrapper";
 import { usePGFilters } from "../hooks/usePGFilters";
 import { Bed } from "lucide-react";
 
@@ -50,6 +51,7 @@ export default function MyListingsClient() {
     setLoading(true);
     try {
       const token = localStorage.getItem("token");
+      if (!token) { setLoading(false); return; }
       const ownerRes = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/api/pg/owner`,
         {
@@ -59,18 +61,19 @@ export default function MyListingsClient() {
       );
       let mine = [];
       if (ownerRes.ok) {
-        mine = await ownerRes.json();
+        const ownerData = await ownerRes.json();
+        mine = Array.isArray(ownerData) ? ownerData : [];
       } else {
         const all = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/pg`, {
           cache: "no-store",
         }).then((r) => r.json());
-        mine = Array.isArray(all)
-          ? all.filter(
-              (pg) =>
-                (pg.owner?._id || pg.owner)?.toString() ===
-                user._id?.toString(),
-            )
-          : [];
+        // /api/pg now returns { data: [...], totalCount, ... } — unwrap it
+        const list = Array.isArray(all) ? all : (Array.isArray(all?.data) ? all.data : []);
+        mine = list.filter(
+          (pg) =>
+            (pg.owner?._id || pg.owner)?.toString() ===
+            user._id?.toString(),
+        );
       }
       const withRatings = await Promise.all(
         mine.map(async (pg) => {
@@ -146,10 +149,6 @@ export default function MyListingsClient() {
     }
   };
 
-  const handleUpdated = (updated) =>
-    setPgs((p) =>
-      p.map((pg) => (pg._id === updated._id ? { ...pg, ...updated } : pg)),
-    );
 
   if (!ready || loading)
     return (
@@ -268,11 +267,13 @@ export default function MyListingsClient() {
               )}
             </div>
           ) : (
-            <div className="flex flex-col gap-4">
-              {sorted.map((pg) => (
-                <ListingCard key={pg._id} pg={pg} onUpdated={handleUpdated} />
-              ))}
-            </div>
+            <PaginationWrapper
+              data={sorted}
+              itemsPerPage={5}
+              renderItem={(pg) => (
+                <ListingCard key={pg._id} pg={pg} />
+              )}
+            />
           )}
         </div>
       </div>

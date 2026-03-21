@@ -17,15 +17,15 @@ const AMENITIES_LIST = [
   "Garden",
   "Library",
 ];
-const ROOM_TYPE_NAMES = ["Regular", "Deluxe", "Luxurious", "Premium", "Suite"];
+const ROOM_TYPE_NAMES = ["regular", "deluxe", "luxurious", "premium", "suite"];
 const BLANK_RT = {
-  name: "Regular",
+  name: "regular",
   sharingCount: "",
   availableRooms: "",
   price: "",
 };
 
-export default function PGForm({ initial, onSubmit, onCancel, saving }) {
+export default function PGForm({ initial, onSubmit, onCancel, saving , onRemoveRT}) {
   const blank = {
     name: "",
     price: "",
@@ -81,10 +81,16 @@ export default function PGForm({ initial, onSubmit, onCancel, saving }) {
       p.map((rt, idx) => (idx === i ? { ...rt, [k]: v } : rt)),
     );
   const removeRT = (i) => {
+  if (onRemoveRT) { onRemoveRT(i, () => {
     const rt = roomTypes[i];
     if (rt._id) setRemovedIds((p) => [...p, rt._id]);
     setRoomTypes((p) => p.filter((_, idx) => idx !== i));
-  };
+  }); return; }
+  // fallback if no prop
+  const rt = roomTypes[i];
+  if (rt._id) setRemovedIds((p) => [...p, rt._id]);
+  setRoomTypes((p) => p.filter((_, idx) => idx !== i));
+};
 
   // live allocation check
   const totalRoom = Number(form.room) || 0;
@@ -304,7 +310,7 @@ export default function PGForm({ initial, onSubmit, onCancel, saving }) {
 
         {roomTypes.length === 0 && (
           <p className="text-xs text-slate-400 text-center py-4 border border-dashed border-slate-200 rounded-xl">
-            No room types added yet. Click "Add Room Type" to begin.
+            No room types added yet. Click `&quot;`Add Room Type`&quot;` to begin.
           </p>
         )}
 
@@ -342,7 +348,7 @@ export default function PGForm({ initial, onSubmit, onCancel, saving }) {
                   >
                     {ROOM_TYPE_NAMES.map((n) => (
                       <option key={n} value={n} className="capitalize">
-                        {n}
+                         {n.charAt(0).toUpperCase() + n.slice(1)}
                       </option>
                     ))}
                   </select>

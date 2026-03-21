@@ -18,7 +18,7 @@ import {
   XCircle,
 } from "lucide-react";
 import ConfirmModal from "../components/ConfirmModal";
-
+import PaginationWrapper from "../components/PaginationWrapper";
 // ────────────────helpers───────────────────────────────────
 function daysLeft(checkOutDate) {
   return Math.ceil(
@@ -87,10 +87,12 @@ export default function MyBookingsPage() {
     setLoading(true);
     try {
       const token = localStorage.getItem("token");
+      if (!token) { setLoading(false); return; }
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/api/booking/my`,
         { headers: { Authorization: `Bearer ${token}` } },
       );
+      if (!res.ok) { setBookings([]); return; }
       const data = await res.json();
       setBookings(Array.isArray(data) ? data : []);
     } catch {
@@ -222,17 +224,21 @@ export default function MyBookingsPage() {
           <>
             {/* ── active bookings ── */}
             {active.length > 0 && (
-              <div className="flex flex-col gap-4 mb-8">
-                {active.map((b) => (
-                  <BookingCard
-                    key={b._id}
-                    booking={b}
-                    onCancel={() => {
-                      setCancelTarget(b);
-                      setPopupError("");
-                    }}
-                  />
-                ))}
+              <div className="mb-8">
+                <PaginationWrapper
+                  data={active}
+                  itemsPerPage={5}
+                  renderItem={(b) => (
+                    <BookingCard
+                      key={b._id}
+                      booking={b}
+                      onCancel={() => {
+                        setCancelTarget(b);
+                        setPopupError("");
+                      }}
+                    />
+                  )}
+                />
               </div>
             )}
 
@@ -242,11 +248,13 @@ export default function MyBookingsPage() {
                 <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">
                   Cancelled ({cancelled.length})
                 </p>
-                <div className="flex flex-col gap-3">
-                  {cancelled.map((b) => (
+                <PaginationWrapper
+                  data={cancelled}
+                  itemsPerPage={5}
+                  renderItem={(b) => (
                     <BookingCard key={b._id} booking={b} />
-                  ))}
-                </div>
+                  )}
+                />
               </>
             )}
           </>
