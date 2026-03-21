@@ -2,7 +2,13 @@ const Image = require("../models/image.js");
 
 exports.registerImage = async (req, res) => {
   try {
-    const { pg, url } = req.body;
+    const { pg, category } = req.body;
+
+    if (!req.file) {
+      return res.status(400).json({ message: "No file uploaded" });
+    }
+
+    const url = req.file.location;
 
     const existingImage = await Image.findOne({ pg, url });
 
@@ -12,8 +18,14 @@ exports.registerImage = async (req, res) => {
       });
     }
 
-    const image = await Image.create(req.body);
-
+    console.log("FILE:", req.file);
+    console.log("BODY:", req.body);
+    const image = await Image.create({
+      pg,
+      url,
+      category,
+    });
+    console.log("SAVED:", image);
     res.json(image);
   } catch (error) {
     res.status(500).json(error.message);

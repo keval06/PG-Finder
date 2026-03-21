@@ -177,7 +177,7 @@ export default function LandingPage() {
 
   const go = () =>
     router.push(
-      query.trim() ? `/home?search=${encodeURIComponent(query)}` : "/home"
+      query.trim() ? `/home?city=${encodeURIComponent(query)}` : "/home"    
     );
 
   const fly = (show, delay = 0) =>

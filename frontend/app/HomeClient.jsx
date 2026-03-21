@@ -13,7 +13,8 @@ export default function HomeClient({
   data,
   pagination = { currentPage: 1, totalPages: 1, totalCount: 0 },
 }) {
-  const { query } = useSearch();
+  const search = useSearch();
+const query = search?.query || "";
   const router = useRouter();
   const pathname = usePathname();
 

@@ -39,7 +39,9 @@ import {
   Toilet,
   BathIcon,
   BedDouble,
+  ImagePlusIcon,
 } from "lucide-react";
+import Image from "next/image";
 
 const amenityIcons = {
   WiFi: Wifi,
@@ -294,6 +296,32 @@ export default function EditListingClient({ pgId }) {
     }
   };
 
+  const handleUpload = async (file) => {
+    try {
+      const formData = new FormData();
+      formData.append("image", file);
+      formData.append("pg", pgId);
+      formData.append("category", activeCategory);
+
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/image`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token()}`,
+        },
+        body: formData,
+      });
+
+      if (res.ok) {
+        await fetchAll(); // refresh images
+        setActiveImg(0);
+      } else {
+        console.error("Upload failed");
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   if (!ready || loading)
     return (
       <div className="min-h-screen bg-[#f8fafc] flex items-center justify-center">
@@ -380,58 +408,94 @@ export default function EditListingClient({ pgId }) {
         )}
 
         {/* ── GALLERY ── */}
-        <div className="mb-6">
-          {filteredImgs.length > 0 ? (
-            <div>
-              <img
-                src={filteredImgs[activeImg]?.url}
-                className="w-full h-[380px] object-cover rounded-2xl"
-                alt={activeCategory}
-              />
-              <div className="flex gap-3 mt-3 overflow-x-auto pb-1">
-                {filteredImgs.map((img, i) => (
-                  <img
-                    key={img._id}
-                    src={img.url}
-                    onClick={() => setActiveImg(i)}
-                    className={`w-20 h-14 object-cover rounded-lg cursor-pointer border-2 flex-shrink-0 ${
-                      activeImg === i ? "border-blue-500" : "border-transparent"
-                    }`}
-                  />
-                ))}
-              </div>
-            </div>
-          ) : (
-            // placeholder grid — ready for S3 upload later
-            <div className="w-full h-[380px] bg-slate-100 border-2 border-dashed border-slate-300 rounded-2xl flex flex-col items-center justify-center gap-3 text-slate-400">
-              <ImagePlus size={40} className="text-slate-300" />
-              <p className="text-sm font-medium">
-                No {activeCategory} images yet
-              </p>
-              <p className="text-xs">Image upload coming soon</p>
-            </div>
-          )}
+        {/* ── GALLERY ── */}
+        <input
+          type="file"
+          accept="image/*"
+          id="imageUpload"
+          hidden
+          onChange={(e) => {
+            if (e.target.files[0]) handleUpload(e.target.files[0]);
+          }}
+        />
 
-          {/* category tabs */}
-          <div className="flex gap-2 mt-3 overflow-x-auto pb-1">
-            {CATEGORIES.map((cat) => (
-              <button
-                key={cat}
-                onClick={() => {
-                  setActiveCategory(cat);
-                  setActiveImg(0);
-                }}
-                className={`px-4 py-1.5 rounded-full capitalize text-xs font-medium border flex-shrink-0 transition-colors ${
-                  activeCategory === cat
-                    ? "bg-blue-600 text-white border-blue-600"
-                    : "text-slate-600 border-slate-200 hover:border-blue-300"
-                }`}
-              >
-                {cat}
-              </button>
-            ))}
-          </div>
-        </div>
+      <div className="mb-6">
+  {/* main image or empty placeholder */}
+  {filteredImgs.length > 0 ? (
+    <div className="relative w-full h-[380px]">
+      <Image
+        src={filteredImgs[activeImg]?.url}
+        alt={activeCategory}
+        fill
+        className="object-cover rounded-2xl"
+        sizes="100vw"
+        priority
+      />
+    </div>
+  ) : (
+    <div
+      onClick={() => document.getElementById("imageUpload").click()}
+      className="w-full h-[380px] bg-slate-50 border-2 border-dashed border-slate-200 rounded-3xl flex flex-col items-center justify-center gap-2 text-slate-400 group hover:border-blue-400 hover:bg-blue-50/30 transition-all cursor-pointer"
+    >
+      <div className="w-16 h-16 bg-white rounded-2xl shadow-sm flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
+        <ImagePlus size={32} className="text-blue-500/50" />
+      </div>
+      <p className="text-base font-semibold text-slate-600">
+        No {activeCategory} images yet
+      </p>
+      <p className="text-sm text-slate-400">Click to upload</p>
+    </div>
+  )}
+
+  {/* category tabs */}
+  <div className="flex gap-2 mt-3 mb-3 overflow-x-auto pb-1 scrollbar-hide">
+    {CATEGORIES.map((cat) => (
+      <button
+        key={cat}
+        onClick={() => { setActiveCategory(cat); setActiveImg(0); }}
+        className={`px-4 py-1.5 rounded-full capitalize text-xs font-medium border flex-shrink-0 transition-colors ${
+          activeCategory === cat
+            ? "bg-blue-600 text-white border-blue-600 shadow-sm"
+            : "text-slate-600 border-slate-200 hover:border-blue-300 bg-white"
+        }`}
+      >
+        {cat}
+      </button>
+    ))}
+  </div>
+
+  {/* thumbnail row */}
+  <div className="flex gap-3 overflow-x-auto pb-1 scrollbar-hide">
+    {filteredImgs.map((img, i) => (
+      <div
+        key={i}
+        onClick={() => setActiveImg(i)}
+        className={`relative w-20 h-14 flex-shrink-0 overflow-hidden rounded-xl cursor-pointer border-2 transition-all ${
+          activeImg === i
+            ? "border-blue-500 scale-105 ring-4 ring-blue-50"
+            : "border-transparent opacity-60 hover:opacity-100"
+        }`}
+      >
+        <Image
+          src={img.url}
+          alt="thumb"
+          fill
+          className="object-cover"
+          sizes="80px"
+        />
+      </div>
+    ))}
+
+    {/* + add button */}
+    <div
+      onClick={() => document.getElementById("imageUpload").click()}
+      className="w-20 h-14 flex-shrink-0 rounded-xl border-2 border-dashed border-slate-300 flex items-center justify-center cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition-colors"
+    >
+      <ImagePlus size={18} className="text-slate-400" />
+    </div>
+  </div>
+</div>
+
 
         {/* ── MAIN GRID ── */}
         <div className="flex flex-col lg:grid lg:grid-cols-3 lg:gap-8">
