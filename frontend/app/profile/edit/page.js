@@ -3,6 +3,8 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../../context/AuthContext";
+import { userApi } from "../../../lib/api/user";
+
 import {
   User,
   Phone,
@@ -116,21 +118,10 @@ export default function EditProfilePage() {
     setLoading(true);
 
     try {
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/user/${user._id}`,
-        {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`, // ?← NEW: auth header
-          },
-          body: JSON.stringify(pendingBody),
-        }
-      );
+      // Direct API update
+      const data = await userApi.update(user._id, pendingBody, token);
 
-      const data = await res.json();
-
-      if (res.ok) {
+      if (data && data._id) {
         updateUser(data); // context + localStorage updated instantly
         setPassword("");
         setConfirmPassword("");
@@ -144,14 +135,12 @@ export default function EditProfilePage() {
           text: data.message || "Update failed. Please try again.",
         });
       }
-    } 
-    catch {
+    } catch {
       setMessage({
         type: "error",
         text: "Something went wrong. Please try again.",
       });
-    } 
-    finally {
+    } finally {
       setLoading(false);
       setPendingBody(null);
       // name and mobile stay filled with new values — intentional
@@ -215,7 +204,7 @@ export default function EditProfilePage() {
           )}
 
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-              {/* Name   */}
+            {/* Name   */}
 
             <div>
               <label className="text-xs font-medium text-slate-500 mb-1.5 block">
@@ -338,7 +327,7 @@ export default function EditProfilePage() {
               </div>
             </div>
 
-          {/*  */}
+            {/*  */}
             <button
               type="submit"
               disabled={
@@ -364,7 +353,6 @@ export default function EditProfilePage() {
 
           {/* POPUP CARD */}
           <div className="relative bg-white rounded-2xl shadow-2xl p-6 w-full max-w-xs flex flex-col gap-4 z-10 border border-slate-100">
-
             {/* Message */}
             <div className="text-center">
               <div className="bg-blue-50 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3 border border-blue-100">
@@ -380,7 +368,6 @@ export default function EditProfilePage() {
 
             {/* Show what will change */}
             <div className="bg-slate-50 rounded-xl p-3 flex flex-col gap-1.5 text-xs text-slate-600 border border-slate-100">
-
               {/* Show name if updated */}
               {pendingBody?.name && (
                 <p>

@@ -12,8 +12,8 @@ import {
   Calendar,
   ArrowLeft,
 } from "lucide-react";
-import StepperBar from "../../../components/StepperBar";
-import RoomCard from "../../../components/RoomCard";
+import StepperBar from "./components/StepperBar";
+import RoomCard from "./components/RoomCard";
 
 const STEPS = ["Room", "Dates", "Confirm"];
 
@@ -45,7 +45,7 @@ export default function BookingPage() {
       setLoadingRooms(true);
       try {
         const res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/roomtype?pgId=${pgId}`,
+          `${process.env.NEXT_PUBLIC_API_URL}/api/roomtype?pgId=${pgId}`
         );
         const data = await res.json();
         setRoomTypes(Array.isArray(data) ? data : []);
@@ -100,7 +100,7 @@ export default function BookingPage() {
             checkOutDate: checkOut,
             amount: totalAmount,
           }),
-        },
+        }
       );
 
       const data = await res.json();

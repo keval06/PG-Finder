@@ -5,7 +5,7 @@ import {
   Book, Trees, Refrigerator, WashingMachine,
   ArrowUpDown, Utensils, User, Star, MapPin,
 } from "lucide-react";
-import BookNowButton from "./BookNowButton";
+import BookNowButton from "../app/pg/[id]/components/BookNowButton";
 
 const amenityIcons = {
   WiFi: Wifi, Parking: Car, AC: Snowflake, Laundry: WashingMachine,

@@ -3,7 +3,11 @@
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../context/AuthContext";
-import StatusBadge from "../components/StatusBadge";
+import StatusBadge from "../../components/StatusBadge";
+import ConfirmModal from "../../components/ConfirmModal";
+import PaginationWrapper from "../../components/PaginationWrapper";
+import { bookingApi } from "../../lib/api/booking";
+
 import {
   MapPin,
   Calendar,
@@ -17,12 +21,10 @@ import {
   CheckCircle2,
   XCircle,
 } from "lucide-react";
-import ConfirmModal from "../components/ConfirmModal";
-import PaginationWrapper from "../components/PaginationWrapper";
 // ────────────────helpers───────────────────────────────────
 function daysLeft(checkOutDate) {
   return Math.ceil(
-    (new Date(checkOutDate) - new Date()) / (1000 * 60 * 60 * 24),
+    (new Date(checkOutDate) - new Date()) / (1000 * 60 * 60 * 24)
   );
 }
 
@@ -87,13 +89,13 @@ export default function MyBookingsPage() {
     setLoading(true);
     try {
       const token = localStorage.getItem("token");
-      if (!token) { setLoading(false); return; }
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/booking/my`,
-        { headers: { Authorization: `Bearer ${token}` } },
-      );
-      if (!res.ok) { setBookings([]); return; }
-      const data = await res.json();
+      if (!token) {
+        setLoading(false);
+        return;
+      }
+
+      const data = await bookingApi.getUserBookings(token);
+
       setBookings(Array.isArray(data) ? data : []);
     } catch {
       setBookings([]);
@@ -120,24 +122,18 @@ export default function MyBookingsPage() {
 
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/booking/${cancelTarget._id}`,
-        {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ status: "cancelled" }),
-        },
-      );
-      const data = await res.json();
 
-      if (res.ok) {
+      const data = await bookingApi.updateStatus(
+        cancelTarget._id,
+        "cancelled",
+        token
+      );
+
+      if (data.message === "Booking status updated successfully") {
         setBookings((prev) =>
           prev.map((b) =>
-            b._id === cancelTarget._id ? { ...b, status: "cancelled" } : b,
-          ),
+            b._id === cancelTarget._id ? { ...b, status: "cancelled" } : b
+          )
         );
         setCancelTarget(null);
         showToast("success", "Booking cancelled successfully.");
@@ -251,9 +247,7 @@ export default function MyBookingsPage() {
                 <PaginationWrapper
                   data={cancelled}
                   itemsPerPage={5}
-                  renderItem={(b) => (
-                    <BookingCard key={b._id} booking={b} />
-                  )}
+                  renderItem={(b) => <BookingCard key={b._id} booking={b} />}
                 />
               </>
             )}

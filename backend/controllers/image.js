@@ -18,16 +18,16 @@ exports.registerImage = async (req, res) => {
       });
     }
 
-    console.log("FILE:", req.file);
-    console.log("BODY:", req.body);
+    // console.log("FILE:", req.file);
+    // console.log("BODY:", req.body);
     const image = await Image.create({
       pg,
       url,
       category,
     });
-    console.log("SAVED:", image);
+    // console.log("SAVED:", image);
     res.json(image);
-  } catch (error) {
+  } catch (error) { 
     res.status(500).json(error.message);
   }
 };

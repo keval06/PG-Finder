@@ -3,17 +3,28 @@
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../context/AuthContext";
-import StatusBadge from "../components/StatusBadge";
-import ConfirmModal from "../components/ConfirmModal";
-import PaginationWrapper from "../components/PaginationWrapper";
+import StatusBadge from "../../components/StatusBadge";
+import ConfirmModal from "../../components/ConfirmModal";
+import PaginationWrapper from "../../components/PaginationWrapper";
+import { bookingApi } from "../../lib/api/booking";
+
 import {
-  MapPin, Calendar, Users, Bed, IndianRupee,
-  Phone, CheckCircle2, XCircle, ChevronRight,
+  MapPin,
+  Calendar,
+  Users,
+  Bed,
+  IndianRupee,
+  Phone,
+  CheckCircle2,
+  XCircle,
+  ChevronRight,
 } from "lucide-react";
 
 function formatDate(d) {
   return new Date(d).toLocaleDateString("en-IN", {
-    day: "numeric", month: "short", year: "numeric",
+    day: "numeric",
+    month: "short",
+    year: "numeric",
   });
 }
 
@@ -21,12 +32,12 @@ export default function ReceivedBookingsPage() {
   const { user, ready } = useAuth();
   const router = useRouter();
 
-  const [bookings, setBookings]       = useState([]);
-  const [loading, setLoading]         = useState(true);
+  const [bookings, setBookings] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [actionTarget, setActionTarget] = useState(null); // { booking, newStatus }
-  const [processing, setProcessing]   = useState(false);
-  const [popupError, setPopupError]   = useState("");
-  const [toast, setToast]             = useState(null);
+  const [processing, setProcessing] = useState(false);
+  const [popupError, setPopupError] = useState("");
+  const [toast, setToast] = useState(null);
 
   useEffect(() => {
     if (!ready) return;
@@ -38,12 +49,9 @@ export default function ReceivedBookingsPage() {
     try {
       const token = localStorage.getItem("token");
       if (!token) return;
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/booking/received`,
-        { headers: { Authorization: `Bearer ${token}` } },
-      );
-      if (!res.ok) { setBookings([]); return; }
-      const data = await res.json();
+
+      const data = await bookingApi.getOwnerBookings(token);
+
       setBookings(Array.isArray(data) ? data : []);
     } catch {
       setBookings([]);
@@ -67,25 +75,19 @@ export default function ReceivedBookingsPage() {
     setPopupError("");
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/booking/${actionTarget.booking._id}`,
-        {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ status: actionTarget.newStatus }),
-        },
+      const data = await bookingApi.updateStatus(
+        actionTarget.booking._id,
+        actionTarget.newStatus,
+        token
       );
-      const data = await res.json();
-      if (res.ok) {
+
+      if (data.message === "Booking status updated successfully") {
         setBookings((prev) =>
           prev.map((b) =>
             b._id === actionTarget.booking._id
               ? { ...b, status: actionTarget.newStatus }
-              : b,
-          ),
+              : b
+          )
         );
         setActionTarget(null);
         showToast("success", `Booking ${actionTarget.newStatus}.`);
@@ -107,20 +109,22 @@ export default function ReceivedBookingsPage() {
     );
   }
 
-  const pending   = bookings.filter((b) => b.status === "pending");
+  const pending = bookings.filter((b) => b.status === "pending");
   const confirmed = bookings.filter((b) => b.status === "confirmed");
   const cancelled = bookings.filter((b) => b.status === "cancelled");
 
   return (
     <div className="min-h-screen bg-[#f8fafc] px-4 py-8">
       <div className="max-w-3xl mx-auto">
-
         {/* header */}
         <div className="flex items-end justify-between mb-6">
           <div>
-            <h1 className="text-2xl font-bold text-slate-900">Received Bookings</h1>
+            <h1 className="text-2xl font-bold text-slate-900">
+              Received Bookings
+            </h1>
             <p className="text-sm text-slate-400 mt-0.5">
-              {bookings.length} booking{bookings.length !== 1 ? "s" : ""} across your PGs
+              {bookings.length} booking{bookings.length !== 1 ? "s" : ""} across
+              your PGs
             </p>
           </div>
           <button
@@ -133,12 +137,18 @@ export default function ReceivedBookingsPage() {
 
         {/* toast */}
         {toast && (
-          <div className={`flex items-center gap-2 px-4 py-3 rounded-xl text-sm font-medium mb-5 border ${
-            toast.type === "success"
-              ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-              : "bg-red-50 text-red-600 border-red-100"
-          }`}>
-            {toast.type === "success" ? <CheckCircle2 size={15} /> : <XCircle size={15} />}
+          <div
+            className={`flex items-center gap-2 px-4 py-3 rounded-xl text-sm font-medium mb-5 border ${
+              toast.type === "success"
+                ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                : "bg-red-50 text-red-600 border-red-100"
+            }`}
+          >
+            {toast.type === "success" ? (
+              <CheckCircle2 size={15} />
+            ) : (
+              <XCircle size={15} />
+            )}
             {toast.text}
           </div>
         )}
@@ -149,12 +159,15 @@ export default function ReceivedBookingsPage() {
             <div className="w-16 h-16 bg-blue-50 border border-blue-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
               <Bed size={28} className="text-blue-500" />
             </div>
-            <p className="font-semibold text-slate-900 text-lg mb-1">No bookings yet</p>
-            <p className="text-sm text-slate-400">Bookings for your PGs will appear here</p>
+            <p className="font-semibold text-slate-900 text-lg mb-1">
+              No bookings yet
+            </p>
+            <p className="text-sm text-slate-400">
+              Bookings for your PGs will appear here
+            </p>
           </div>
         ) : (
           <div className="flex flex-col gap-8">
-
             {pending.length > 0 && (
               <section>
                 <p className="text-xs font-semibold text-amber-600 uppercase tracking-wider mb-3">
@@ -167,8 +180,12 @@ export default function ReceivedBookingsPage() {
                     <ReceivedCard
                       key={b._id}
                       booking={b}
-                      onConfirm={() => setActionTarget({ booking: b, newStatus: "confirmed" })}
-                      onCancel={() => setActionTarget({ booking: b, newStatus: "cancelled" })}
+                      onConfirm={() =>
+                        setActionTarget({ booking: b, newStatus: "confirmed" })
+                      }
+                      onCancel={() =>
+                        setActionTarget({ booking: b, newStatus: "cancelled" })
+                      }
                     />
                   )}
                 />
@@ -187,7 +204,9 @@ export default function ReceivedBookingsPage() {
                     <ReceivedCard
                       key={b._id}
                       booking={b}
-                      onCancel={() => setActionTarget({ booking: b, newStatus: "cancelled" })}
+                      onCancel={() =>
+                        setActionTarget({ booking: b, newStatus: "cancelled" })
+                      }
                     />
                   )}
                 />
@@ -206,25 +225,35 @@ export default function ReceivedBookingsPage() {
                 />
               </section>
             )}
-
           </div>
         )}
       </div>
 
       <ConfirmModal
         isOpen={!!actionTarget}
-        title={actionTarget?.newStatus === "confirmed" ? "Confirm Booking?" : "Cancel Booking?"}
+        title={
+          actionTarget?.newStatus === "confirmed"
+            ? "Confirm Booking?"
+            : "Cancel Booking?"
+        }
         description={
           actionTarget?.newStatus === "confirmed"
             ? "This will confirm the guest's booking and occupy a bed."
             : "This will cancel the booking and free up the bed."
         }
-        confirmText={actionTarget?.newStatus === "confirmed" ? "Yes, Confirm" : "Yes, Cancel"}
+        confirmText={
+          actionTarget?.newStatus === "confirmed"
+            ? "Yes, Confirm"
+            : "Yes, Cancel"
+        }
         cancelText="Go Back"
         processing={processing}
         error={popupError}
         onConfirm={handleAction}
-        onClose={() => { setActionTarget(null); setPopupError(""); }}
+        onClose={() => {
+          setActionTarget(null);
+          setPopupError("");
+        }}
         variant={actionTarget?.newStatus === "confirmed" ? "primary" : "danger"}
       />
     </div>
@@ -234,16 +263,17 @@ export default function ReceivedBookingsPage() {
 // ─── Card ──────────────────────────────────────────────────────
 function ReceivedCard({ booking: b, onConfirm, onCancel }) {
   const isCancelled = b.status === "cancelled";
-  const isPending   = b.status === "pending";
+  const isPending = b.status === "pending";
 
   return (
-    <div className={`bg-white border rounded-2xl overflow-hidden transition-all ${
-      isCancelled
-        ? "opacity-50 border-slate-200"
-        : "border-slate-200 hover:border-blue-300 hover:shadow-lg hover:shadow-blue-50/60"
-    }`}>
+    <div
+      className={`bg-white border rounded-2xl overflow-hidden transition-all ${
+        isCancelled
+          ? "opacity-50 border-slate-200"
+          : "border-slate-200 hover:border-blue-300 hover:shadow-lg hover:shadow-blue-50/60"
+      }`}
+    >
       <div className="p-4 sm:p-5">
-
         {/* row 1: pg name + status */}
         <div className="flex items-start justify-between gap-3 mb-3">
           <div className="min-w-0">
@@ -264,7 +294,9 @@ function ReceivedCard({ booking: b, onConfirm, onCancel }) {
             {b.user?.name?.[0]?.toUpperCase() || "?"}
           </div>
           <div className="min-w-0">
-            <p className="text-xs font-semibold text-slate-800 truncate">{b.user?.name || "—"}</p>
+            <p className="text-xs font-semibold text-slate-800 truncate">
+              {b.user?.name || "—"}
+            </p>
             <p className="text-[10px] text-slate-400 flex items-center gap-1">
               <Phone size={9} /> {b.user?.mobile || "—"}
             </p>
@@ -332,7 +364,6 @@ function ReceivedCard({ booking: b, onConfirm, onCancel }) {
             </div>
           )}
         </div>
-
       </div>
     </div>
   );

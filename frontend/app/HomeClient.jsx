@@ -3,9 +3,9 @@
 import { useEffect, useRef } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { useSearch } from "./context/SearchContext";
-import PGCard from "./components/PGCard";
-import FilterPanel from "./components/FilterPanel";
-import SortBtn from "./components/SortBtn";
+import PGCard from "../components/PGCard";
+import FilterPanel from "../components/FilterPanel";
+import SortBtn from "../components/SortBtn";
 import { SlidersHorizontal } from "lucide-react";
 import { usePGFilters } from "./hooks/usePGFilters";
 

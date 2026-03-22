@@ -1,4 +1,4 @@
-import Navbar from "./components/Navbar";
+import Navbar from "../components/Navbar";
 import { SearchProvider } from "./context/SearchContext";
 import { AuthProvider } from "./context/AuthContext";
 import "./globals.css";

@@ -3,8 +3,8 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../../context/AuthContext";
-import PGForm from "../PGForm";
-import ConfirmModal from "../../components/ConfirmModal";
+import PGForm from "../components/PGForm";
+import ConfirmModal from "../../../components/ConfirmModal";
 import {
   ArrowLeft,
   Pencil,
@@ -109,6 +109,7 @@ export default function EditListingClient({ pgId }) {
   const fetchAll = async () => {
     setLoading(true);
     try {
+
       const [pgRes, imgRes, rtRes] = await Promise.all([
         fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/pg/${pgId}`, {
           cache: "no-store",
@@ -120,15 +121,18 @@ export default function EditListingClient({ pgId }) {
           cache: "no-store",
         }),
       ]);
+
       const [pgData, imgData, rtData] = await Promise.all([
         pgRes.json(),
         imgRes.json(),
         rtRes.json(),
       ]);
+
       setPg(pgData);
       setImages(Array.isArray(imgData) ? imgData : []);
       setRoomTypes(Array.isArray(rtData) ? rtData : []);
-    } finally {
+    } 
+    finally {
       setLoading(false);
     }
   };
@@ -305,6 +309,7 @@ export default function EditListingClient({ pgId }) {
 
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/image`, {
         method: "POST",
+
         headers: {
           Authorization: `Bearer ${token()}`,
         },
@@ -314,11 +319,13 @@ export default function EditListingClient({ pgId }) {
       if (res.ok) {
         await fetchAll(); // refresh images
         setActiveImg(0);
-      } else {
+      } 
+      else {
         console.error("Upload failed");
       }
-    } catch (err) {
-      console.error(err);
+    } 
+    catch (err) {
+      console.error(err.message);
     }
   };
 
@@ -408,14 +415,14 @@ export default function EditListingClient({ pgId }) {
         )}
 
         {/* ── GALLERY ── */}
-        {/* ── GALLERY ── */}
         <input
           type="file"
           accept="image/*"
           id="imageUpload"
           hidden
           onChange={(e) => {
-            if (e.target.files[0]) handleUpload(e.target.files[0]);
+            if (e.target.files[0]) 
+              handleUpload(e.target.files[0]);
           }}
         />
 
