@@ -14,6 +14,7 @@ import { usePGFilters } from "../hooks/usePGFilters";
 import { pgApi } from "../../lib/api/pg";
 import { reviewApi } from "../../lib/api/review";
 import { roomTypeApi } from "../../lib/api/roomType";
+import { imageApi } from "../../lib/api/image";
 
 import { Bed } from "lucide-react";
 
@@ -66,20 +67,27 @@ export default function MyListingsClient() {
       const withRatings = await Promise.all(
         mine.map(async (pg) => {
           try {
-            const reviews = await reviewApi.getByPgId(pg._id);
+            const [reviews, images] = await Promise.all([
+              reviewApi.getByPgId(pg._id).catch(() => []),
+              imageApi.getByPgId(pg._id).catch(() => []),
+            ]);
 
-            if (!Array.isArray(reviews) || reviews.length === 0)
-              return { ...pg, ratingData: null };
-            const avg =
-              reviews.reduce((s, rv) => s + rv.star, 0) / reviews.length;
+            let ratingData = null;
+            if (Array.isArray(reviews) && reviews.length > 0) {
+              const avg =
+                reviews.reduce((s, rv) => s + rv.star, 0) / reviews.length;
+              ratingData = { avg: avg.toFixed(1), count: reviews.length };
+            }
+
             return {
               ...pg,
-              ratingData: { avg: avg.toFixed(1), count: reviews.length },
+              image: images?.[0]?.url || null,
+              ratingData,
             };
           } catch {
-            return { ...pg, ratingData: null };
+            return { ...pg, ratingData: null, image: null };
           }
-        })
+        }),
       );
       setPgs(withRatings);
     } finally {
@@ -103,7 +111,7 @@ export default function MyListingsClient() {
       // step 1 — create PG
       const newPg = await pgApi.create(
         { ...pgData, coordinate: [0, 0] },
-        token
+        token,
       );
       if (!newPg._id) return;
 
