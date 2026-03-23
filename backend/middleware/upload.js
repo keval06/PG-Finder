@@ -8,7 +8,7 @@ const upload = multer({
     bucket: process.env.S3_BUCKET,
     contentType: multerS3.AUTO_CONTENT_TYPE,
     key: (req, file, cb) => {
-      cb(null, `images/${Date.now()} - ${file.originalname.replace(/\s+/g, "-")}`);
+      cb(null, `images/${Date.now()}-${file.originalname.replace(/\s+/g, "-")}`);
     },
   }),
 });
