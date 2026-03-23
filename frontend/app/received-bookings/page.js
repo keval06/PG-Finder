@@ -78,7 +78,7 @@ export default function ReceivedBookingsPage() {
       const data = await bookingApi.updateStatus(
         actionTarget.booking._id,
         actionTarget.newStatus,
-        token
+        token,
       );
 
       if (data.message === "Booking status updated successfully") {
@@ -86,8 +86,8 @@ export default function ReceivedBookingsPage() {
           prev.map((b) =>
             b._id === actionTarget.booking._id
               ? { ...b, status: actionTarget.newStatus }
-              : b
-          )
+              : b,
+          ),
         );
         setActionTarget(null);
         showToast("success", `Booking ${actionTarget.newStatus}.`);

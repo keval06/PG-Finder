@@ -24,7 +24,7 @@ import {
 // ────────────────helpers───────────────────────────────────
 function daysLeft(checkOutDate) {
   return Math.ceil(
-    (new Date(checkOutDate) - new Date()) / (1000 * 60 * 60 * 24)
+    (new Date(checkOutDate) - new Date()) / (1000 * 60 * 60 * 24),
   );
 }
 
@@ -126,14 +126,14 @@ export default function MyBookingsPage() {
       const data = await bookingApi.updateStatus(
         cancelTarget._id,
         "cancelled",
-        token
+        token,
       );
 
       if (data.message === "Booking status updated successfully") {
         setBookings((prev) =>
           prev.map((b) =>
-            b._id === cancelTarget._id ? { ...b, status: "cancelled" } : b
-          )
+            b._id === cancelTarget._id ? { ...b, status: "cancelled" } : b,
+          ),
         );
         setCancelTarget(null);
         showToast("success", "Booking cancelled successfully.");

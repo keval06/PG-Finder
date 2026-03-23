@@ -14,6 +14,8 @@ import {
 } from "lucide-react";
 import StepperBar from "./components/StepperBar";
 import RoomCard from "./components/RoomCard";
+import { roomTypeApi } from "../../../../lib/api/roomType";
+import { bookingApi } from "../../../../lib/api/booking";
 
 const STEPS = ["Room", "Dates", "Confirm"];
 
@@ -44,10 +46,7 @@ export default function BookingPage() {
     const fetchRooms = async () => {
       setLoadingRooms(true);
       try {
-        const res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/roomtype?pgId=${pgId}`
-        );
-        const data = await res.json();
+        const data = await roomTypeApi.getByPgId(pgId);
         setRoomTypes(Array.isArray(data) ? data : []);
       } catch {
         setRoomTypes([]);
@@ -85,26 +84,15 @@ export default function BookingPage() {
     setSubmitting(true);
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/booking`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            pg: pgId,
-            roomType: selectedRoom._id,
-            checkInDate: checkIn,
-            checkOutDate: checkOut,
-            amount: totalAmount,
-          }),
-        }
-      );
+      const data = await bookingApi.create({
+        pg: pgId,
+        roomType: selectedRoom._id,
+        checkInDate: checkIn,
+        checkOutDate: checkOut,
+        amount: totalAmount,
+      }, token);
 
-      const data = await res.json();
-      if (res.ok) {
+      if (data._id) {
         setSuccess(true);
       } else {
         setError(data.message || "Booking failed. Please try again.");

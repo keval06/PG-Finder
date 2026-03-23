@@ -3,10 +3,13 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export const pgApi = {
   // Home Page Listings
-  getAll: async () => {
-    const res = await fetch(`${API_URL}/api/pg`, { cache: "no-store" });
-    return res.json();
-  },
+  getAll: async (queryString = "") => {
+  const url = queryString
+    ? `${API_URL}/api/pg?${queryString}`
+    : `${API_URL}/api/pg`;
+  const res = await fetch(url, { cache: "no-store" });
+  return res.json();
+},
 
   // Owner's Dashboard Listings (Verified: /api/pg/owner)
   getOwnerPgs: async (token) => {

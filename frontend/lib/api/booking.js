@@ -11,7 +11,7 @@ export const bookingApi = {
   },
 
   // Owner Dashboard (Verified: /api/booking/received)
-  getOwnerBookings: async (token) => {
+  getOwnerBookings: async (token) => {                                  
     const res = await fetch(`${API_URL}/api/booking/received`, {
       headers: { Authorization: `Bearer ${token}` },
     });
@@ -27,6 +27,18 @@ export const bookingApi = {
         Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify({ status }),
+    });
+    return res.json();
+  },
+
+  create: async (data, token) => {
+    const res = await fetch(`${API_URL}/api/booking`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(data),
     });
     return res.json();
   },
