@@ -43,11 +43,16 @@ async function getFirstImage(pgId) {
 // ?getAvgRating(pgId) — Calculate Average Rating
 async function getAvgRating(pgId) {
   try {
-    const reviews = await reviewApi.getByPgId(pgId);
+    const result = await reviewApi.getByPgId(pgId);
 
-    if (reviews && reviews.length > 0) {
+    // reviewApi.getByPgId now returns paginated shape: { reviews, total, ... }
+    // but also handle plain array for safety
+    const reviews = Array.isArray(result) ? result : result?.reviews ?? [];
+    const total = Array.isArray(result) ? reviews.length : result?.total ?? 0;
+
+    if (total > 0) {
       const avg = reviews.reduce((sum, r) => sum + r.star, 0) / reviews.length;
-      return { avg: avg.toFixed(1), count: reviews.length };
+      return { avg: avg.toFixed(1), count: total };
     }
     return null;
   } catch {

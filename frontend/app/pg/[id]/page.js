@@ -49,16 +49,16 @@ async function getImages(pgId) {
   return await imageApi.getByPgId(pgId);
 }
 
-
 async function getReviews(pgId) {
-  return await reviewApi.getByPgId(pgId);
+  const result = await reviewApi.getByPgId(pgId);
+  // reviewApi.getByPgId now returns paginated shape: { reviews, total, ... }
+  // unwrap to plain array so avgRating calculation and reviews.length work correctly
+  return Array.isArray(result) ? result : result?.reviews ?? [];
 }
-
 
 async function getRoomTypes(pgId) {
   return await roomTypeApi.getByPgId(pgId);
 }
-
 
 const amenityIcons = {
   Parking: Car,
@@ -250,8 +250,12 @@ export default async function PGDetails({ params }) {
               </ul>
             </div>
 
-            {/* Reviews */}
-            <ReviewsSection reviews={reviews} avgRating={avgRating} />
+            {/* // ✅ After — receives pgId + total count only */}
+            <ReviewsSection
+              pgId={id}
+              initialTotal={reviews.length}
+              avgRating={avgRating}
+            />
           </div>
 
           {/* ── RIGHT / BOOKING CARD ──

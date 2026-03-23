@@ -2,8 +2,7 @@
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export const reviewApi = {
-    
-  // Get reviews for a PG
+  // ── READ (all reviews, used for avg rating in page.js) ──
   getByPgId: async (pgId) => {
     const res = await fetch(`${API_URL}/api/review?pg=${pgId}`, {
       cache: "no-store",
@@ -12,7 +11,31 @@ export const reviewApi = {
     return res.json();
   },
 
-  // Add a new review
+  // ── READ (paginated, used by ReviewsSection) ──
+  getByPgIdPaginated: async (pgId, page = 1, limit = 5, sort = "newest") => {
+    const res = await fetch(
+      `${API_URL}/api/review?pg=${pgId}&page=${page}&limit=${limit}&sort=${sort}`,
+      { cache: "no-store" }
+    );
+    if (!res.ok) return { reviews: [], total: 0, page: 1, totalPages: 1 };
+    return res.json();
+  },
+
+  // ── CHECK — can this user review this PG? ──
+  // Returns:
+  //   { canReview: true }
+  //   { canReview: false, reason: "no_booking" }
+  //   { canReview: false, reason: "already_reviewed", review: {...} }
+  canReview: async (pgId, token) => {
+    const res = await fetch(`${API_URL}/api/review/can-review?pg=${pgId}`, {
+      headers: { Authorization: `Bearer ${token}` },
+      cache: "no-store",
+    });
+    if (!res.ok) return { canReview: false, reason: "error" };
+    return res.json();
+  },
+
+  // ── CREATE ──
   submit: async (data, token) => {
     const res = await fetch(`${API_URL}/api/review`, {
       method: "POST",
@@ -25,7 +48,7 @@ export const reviewApi = {
     return res.json();
   },
 
-  // Update a review
+  // ── UPDATE ──
   update: async (id, data, token) => {
     const res = await fetch(`${API_URL}/api/review/${id}`, {
       method: "PATCH",
@@ -34,6 +57,15 @@ export const reviewApi = {
         Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify(data),
+    });
+    return res.json();
+  },
+
+  // ── DELETE ──
+  delete: async (id, token) => {
+    const res = await fetch(`${API_URL}/api/review/${id}`, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${token}` },
     });
     return res.json();
   },

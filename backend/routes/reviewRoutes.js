@@ -4,12 +4,16 @@ const { protect } = require("../middleware/protect");
 
 const {
   registerReview,
-  updateReview,
   getReviewsByPg,
+  canReview,
+  updateReview,
+  deleteReview,
 } = require("../controllers/review.js");
 
-router.post("/", protect, registerReview);
-router.get("/", getReviewsByPg);
-router.patch("/:id",protect, updateReview);
+router.post("/", protect, registerReview); // create  — must be booked
+router.get("/", getReviewsByPg); // read    — public, paginated
+router.get("/can-review", protect, canReview); // check   — can this user review?
+router.patch("/:id", protect, updateReview); // update  — author only
+router.delete("/:id", protect, deleteReview); // delete  — author only
 
 module.exports = router;
