@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { MapPin, ChevronRight } from "lucide-react";
 import Image from "next/image";
-
+  
 const genderLabel = { male: "Male", female: "Female", mix: "Co-ed" };
 
 export default function ListingCard({ pg }) {

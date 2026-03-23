@@ -25,6 +25,7 @@ exports.registerPG = async (req, res) => {
   }
 };
 
+//for pagination
 const buildPGQuery = (query) => {
   const filter = {};
 
@@ -158,7 +159,9 @@ exports.getPg = async (req, res) => {
   try {
     const pg = await PG.findById(req.params.id);
     if (!pg) {
-      return res.status(404).json({ message: "PG not found" });
+      return res.status(404).json({
+        message: "PG not found",
+      });
     }
 
     const roomTypes = await RoomType.find({
@@ -168,7 +171,7 @@ exports.getPg = async (req, res) => {
 
     const allocatedRooms = roomTypes.reduce(
       (sum, rt) => sum + rt.availableRooms,
-      0
+      0,
     );
 
     res.json({
@@ -206,7 +209,7 @@ exports.updatePg = async (req, res) => {
 
 exports.getMyPgs = async (req, res) => {
   try {
-    const pgs = await PG.find({ owner: req.user._id });
+    const pgs = await PG.find({ owner: req.user._id }).sort({ createdAt: -1 });
     res.json(pgs);
   } catch (error) {
     res.status(500).json(error.message);
