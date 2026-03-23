@@ -1,4 +1,9 @@
-import PGGallery from "../../components/PGGallery";
+import PGGallery from "./components/PGGallery";
+import { pgApi } from "../../../lib/api/pg";
+import { imageApi } from "../../../lib/api/image";
+import { reviewApi } from "../../../lib/api/review";
+import { roomTypeApi } from "../../../lib/api/roomType";
+
 import {
   Wifi,
   Car,
@@ -26,54 +31,33 @@ import {
   BedDouble,
   BedSingle,
 } from "lucide-react";
-import ReviewsSection from "../../components/ReviewsSection";
-import BookNowButton from "../../components/BookNowButton";
+import ReviewsSection from "./components/ReviewsSection";
+import BookNowButton from "./components/BookNowButton";
 import OwnerEditButton from "./OwnerEditButton";
 
+// async function getPG(id) {
+//   const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/pg/${id}`, {
+//     cache: "no-store",
+//   });
+//   return await res.json();
+// }
 async function getPG(id) {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/pg/${id}`, {
-    cache: "no-store",
-  });
-  return await res.json();
+  return await pgApi.getById(id);
 }
 
-async function getImages(id) {
-  try {
-    const res = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/api/image?pgId=${id}`,
-      { cache: "no-store" }
-    );
-    if (res.ok) return await res.json();
-    return [];
-  } catch {
-    return [];
-  }
+async function getImages(pgId) {
+  return await imageApi.getByPgId(pgId);
 }
 
-async function getReviews(id) {
-  try {
-    const res = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/api/review?pg=${id}`,
-      { cache: "no-store" }
-    );
-    if (res.ok) return await res.json();
-    return [];
-  } catch {
-    return [];
-  }
+async function getReviews(pgId) {
+  const result = await reviewApi.getByPgId(pgId);
+  // reviewApi.getByPgId now returns paginated shape: { reviews, total, ... }
+  // unwrap to plain array so avgRating calculation and reviews.length work correctly
+  return Array.isArray(result) ? result : result?.reviews ?? [];
 }
 
-async function getRoomTypes(id) {
-  try {
-    const res = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/api/roomtype?pgId=${id}`,
-      { cache: "no-store" }
-    );
-    if (res.ok) return await res.json();
-    return [];
-  } catch {
-    return [];
-  }
+async function getRoomTypes(pgId) {
+  return await roomTypeApi.getByPgId(pgId);
 }
 
 const amenityIcons = {
@@ -191,7 +175,7 @@ export default async function PGDetails({ params }) {
                   { icon: Utensils, label: "Food", value: pg.food },
                   { icon: Bath, label: "Bathroom", value: bathroomRatio },
                   { icon: Toilet, label: "Toilet", value: toiletRatio },
-                  { icon:BedDouble, label: "Total Beds", value: totalBeds },
+                  { icon: BedDouble, label: "Total Beds", value: totalBeds },
                   { icon: BedSingle, label: "Free Beds", value: freeBeds },
                 ].map(({ icon: Icon, label, value }) => (
                   <div
@@ -266,8 +250,12 @@ export default async function PGDetails({ params }) {
               </ul>
             </div>
 
-            {/* Reviews */}
-            <ReviewsSection reviews={reviews} avgRating={avgRating} />
+            {/* // ✅ After — receives pgId + total count only */}
+            <ReviewsSection
+              pgId={id}
+              initialTotal={reviews.length}
+              avgRating={avgRating}
+            />
           </div>
 
           {/* ── RIGHT / BOOKING CARD ──

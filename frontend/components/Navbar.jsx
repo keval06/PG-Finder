@@ -3,8 +3,8 @@
 import { useState, useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { Search, User, X } from "lucide-react";
-import { useSearch } from "../context/SearchContext";
-import { useAuth } from "../context/AuthContext";
+import { useSearch } from "../app/context/SearchContext";
+import { useAuth } from "../app/context/AuthContext";
 
 export default function Navbar() {
   const router = useRouter();

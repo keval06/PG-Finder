@@ -3,17 +3,19 @@
 import { useEffect, useRef } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { useSearch } from "./context/SearchContext";
-import PGCard from "./components/PGCard";
-import FilterPanel from "./components/FilterPanel";
-import SortBtn from "./components/SortBtn";
+import PGCard from "../components/PGCard";
+import FilterPanel from "../components/FilterPanel";
+import SortBtn from "../components/SortBtn";
 import { SlidersHorizontal } from "lucide-react";
 import { usePGFilters } from "./hooks/usePGFilters";
+import PaginationWrapper from "../components/PaginationWrapper";
 
 export default function HomeClient({
   data,
   pagination = { currentPage: 1, totalPages: 1, totalCount: 0 },
 }) {
-  const { query } = useSearch();
+  const search = useSearch();
+  const query = search?.query || "";
   const router = useRouter();
   const pathname = usePathname();
 
@@ -173,34 +175,15 @@ export default function HomeClient({
             </div>
           ) : (
             <>
-              <div className="flex flex-col gap-4">
-                {sorted.map((pg) => (
-                  <PGCard key={pg._id} pg={pg} />
-                ))}
-              </div>
-
-              {/* Pagination Controls */}
-              {pagination.totalPages > 1 && (
-                <div className="flex justify-center items-center gap-2 mt-8">
-                  <button
-                    onClick={() => handlePageChange(pagination.currentPage - 1)}
-                    disabled={pagination.currentPage <= 1}
-                    className="px-4 py-2 border border-slate-200 rounded-xl text-sm font-medium text-slate-700 bg-white hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm"
-                  >
-                    Previous
-                  </button>
-                  <span className="text-sm font-medium text-slate-600 px-4">
-                    Page {pagination.currentPage} of {pagination.totalPages}
-                  </span>
-                  <button
-                    onClick={() => handlePageChange(pagination.currentPage + 1)}
-                    disabled={pagination.currentPage >= pagination.totalPages}
-                    className="px-4 py-2 border border-slate-200 rounded-xl text-sm font-medium text-slate-700 bg-white hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm"
-                  >
-                    Next
-                  </button>
-                </div>
-              )}
+              <PaginationWrapper
+                data={sorted}
+                renderItem={(pg) => 
+                <PGCard key={pg._id} pg={pg} />}
+                page={pagination.currentPage}
+                onPageChange={handlePageChange}
+                totalPages={pagination.totalPages}
+                totalItems={pagination.totalCount} // ← add this
+              />
             </>
           )}
         </div>

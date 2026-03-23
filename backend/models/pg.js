@@ -86,8 +86,9 @@ const pgSchema = new mongoose.Schema({
     default: ["Parking", "Lift", "CCTV"],
     required: true,
   },
+  
   isActive: { type: Boolean, default: true }, // ← NEW: false = hidden from home page
-});
+}, { timestamps: true });
 
 // Indexes for scalable filtering
 pgSchema.index({ city: 1, gender: 1, price: 1, isActive: 1 });

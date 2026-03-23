@@ -3,8 +3,12 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../../context/AuthContext";
-import PGForm from "../PGForm";
-import ConfirmModal from "../../components/ConfirmModal";
+import { pgApi } from "../../../lib/api/pg";
+import { imageApi } from "../../../lib/api/image";
+import { roomTypeApi } from "../../../lib/api/roomType";
+import PGForm from "../components/PGForm";
+import ConfirmModal from "../../../components/ConfirmModal";
+
 import {
   ArrowLeft,
   Pencil,
@@ -39,7 +43,9 @@ import {
   Toilet,
   BathIcon,
   BedDouble,
+  ImagePlusIcon,
 } from "lucide-react";
+import Image from "next/image";
 
 const amenityIcons = {
   WiFi: Wifi,
@@ -92,6 +98,7 @@ export default function EditListingClient({ pgId }) {
 
   const [activeCategory, setActiveCategory] = useState("room");
   const [activeImg, setActiveImg] = useState(0);
+  const [deleteImgTarget, setDeleteImgTarget] = useState(null); // holds the img._id
 
   const token = () => localStorage.getItem("token");
 
@@ -107,22 +114,12 @@ export default function EditListingClient({ pgId }) {
   const fetchAll = async () => {
     setLoading(true);
     try {
-      const [pgRes, imgRes, rtRes] = await Promise.all([
-        fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/pg/${pgId}`, {
-          cache: "no-store",
-        }),
-        fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/image?pgId=${pgId}`, {
-          cache: "no-store",
-        }),
-        fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/roomtype?pgId=${pgId}`, {
-          cache: "no-store",
-        }),
-      ]);
       const [pgData, imgData, rtData] = await Promise.all([
-        pgRes.json(),
-        imgRes.json(),
-        rtRes.json(),
+        pgApi.getById(pgId),
+        imageApi.getByPgId(pgId),
+        roomTypeApi.getByPgId(pgId),
       ]);
+
       setPg(pgData);
       setImages(Array.isArray(imgData) ? imgData : []);
       setRoomTypes(Array.isArray(rtData) ? rtData : []);
@@ -153,6 +150,7 @@ export default function EditListingClient({ pgId }) {
       pgFields.some((f) => pgData[f] !== pg[f]) ||
       JSON.stringify([...(pgData.amenities || [])].sort()) !==
         JSON.stringify([...(pg.amenities || [])].sort());
+
     const rtChanged =
       removedIds.length > 0 ||
       newRTs.length !== roomTypes.length ||
@@ -180,56 +178,21 @@ export default function EditListingClient({ pgId }) {
     setSaving(true);
     try {
       const tok = token();
-      const pgRes = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/pg/${pgId}`,
-        {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${tok}`,
-          },
-          body: JSON.stringify(pgData),
-        }
-      );
-      if (!pgRes.ok) {
+      const updated = await pgApi.update(pgId, pgData, tok);
+
+      if (!updated._id) {
         showToast("error", "Failed to update PG.");
         return;
       }
-      const updated = await pgRes.json();
 
       for (const id of removedIds) {
-        await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/roomtype/${id}`, {
-          method: "DELETE",
-          headers: { Authorization: `Bearer ${tok}` },
-        });
+        await roomTypeApi.delete(id, tok);
       }
       for (const rt of newRTs) {
         if (rt._id) {
-          await fetch(
-            `${process.env.NEXT_PUBLIC_API_URL}/api/roomtype/${rt._id}`,
-            {
-              method: "PATCH",
-              headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${tok}`,
-              },
-              body: JSON.stringify({
-                name: rt.name,
-                sharingCount: rt.sharingCount,
-                availableRooms: rt.availableRooms,
-                price: rt.price,
-              }),
-            }
-          );
+          await roomTypeApi.update(rt._id, rt, tok);
         } else {
-          await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/roomtype`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${tok}`,
-            },
-            body: JSON.stringify({ ...rt, pg: pgId }),
-          });
+          await roomTypeApi.create({ ...rt, pg: pgId }, tok);
         }
       }
       setPg(updated);
@@ -248,19 +211,12 @@ export default function EditListingClient({ pgId }) {
     setStatusConfirmOpen(false);
     setToggling(true);
     try {
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/pg/${pgId}`,
-        {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token()}`,
-          },
-          body: JSON.stringify({ isActive: !pg.isActive }),
-        }
+      const updated = await pgApi.update(
+        pgId,
+        { isActive: !pg.isActive },
+        token()
       );
-      if (res.ok) {
-        const updated = await res.json();
+      if (updated._id) {
         setPg(updated);
         showToast(
           "success",
@@ -291,6 +247,47 @@ export default function EditListingClient({ pgId }) {
       }
     } finally {
       setDeleting(false);
+    }
+  };
+
+  const handleUpload = async (file) => {
+    try {
+      const formData = new FormData();
+      formData.append("image", file);
+      formData.append("pg", pgId);
+      formData.append("category", activeCategory);
+
+      const res = await imageApi.upload(formData, token());
+
+      if (res._id) {
+        await fetchAll(); // refresh images
+        setActiveImg(0);
+      } else {
+        console.error("Upload failed");
+      }
+    } catch (err) {
+      console.error(err.message);
+    }
+  };
+
+  // step 1 — just open the modal, don't delete yet
+  const requestDeleteImg = (imgId) => {
+    setDeleteImgTarget(imgId);
+  };
+
+  // step 2 — called on modal confirm
+  const handleDeleteImg = async () => {
+    const imgId = deleteImgTarget;
+    setDeleteImgTarget(null);
+
+    setImages((prev) => prev.filter((img) => img._id !== imgId));
+    setActiveImg(0);
+
+    try {
+      await imageApi.delete(imgId, token());
+    } catch (err) {
+      console.error("Delete failed", err);
+      await fetchAll();
     }
   };
 
@@ -380,40 +377,55 @@ export default function EditListingClient({ pgId }) {
         )}
 
         {/* ── GALLERY ── */}
+        <input
+          type="file"
+          accept="image/*"
+          id="imageUpload"
+          hidden
+          onChange={(e) => {
+            if (e.target.files[0]) handleUpload(e.target.files[0]);
+          }}
+        />
+
         <div className="mb-6">
+          {/* main image or empty placeholder */}
           {filteredImgs.length > 0 ? (
-            <div>
-              <img
+            <div className="group relative w-full h-[380px]">
+              <Image
                 src={filteredImgs[activeImg]?.url}
-                className="w-full h-[380px] object-cover rounded-2xl"
                 alt={activeCategory}
+                fill
+                className="object-cover rounded-2xl"
+                sizes="100vw"
+                priority
               />
-              <div className="flex gap-3 mt-3 overflow-x-auto pb-1">
-                {filteredImgs.map((img, i) => (
-                  <img
-                    key={img._id}
-                    src={img.url}
-                    onClick={() => setActiveImg(i)}
-                    className={`w-20 h-14 object-cover rounded-lg cursor-pointer border-2 flex-shrink-0 ${
-                      activeImg === i ? "border-blue-500" : "border-transparent"
-                    }`}
-                  />
-                ))}
-              </div>
+
+              {/* delete button on main image */}
+              <button
+                onClick={() => requestDeleteImg(filteredImgs[activeImg]._id)}
+                className="absolute top-3 right-3 z-10 flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-black/50 text-white text-xs font-medium opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600"
+              >
+                <Trash2 size={13} />
+                Delete
+              </button>
             </div>
           ) : (
-            // placeholder grid — ready for S3 upload later
-            <div className="w-full h-[380px] bg-slate-100 border-2 border-dashed border-slate-300 rounded-2xl flex flex-col items-center justify-center gap-3 text-slate-400">
-              <ImagePlus size={40} className="text-slate-300" />
-              <p className="text-sm font-medium">
+            <div
+              onClick={() => document.getElementById("imageUpload").click()}
+              className="w-full h-[380px] bg-slate-50 border-2 border-dashed border-slate-200 rounded-3xl flex flex-col items-center justify-center gap-2 text-slate-400 group hover:border-blue-400 hover:bg-blue-50/30 transition-all cursor-pointer"
+            >
+              <div className="w-16 h-16 bg-white rounded-2xl shadow-sm flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
+                <ImagePlus size={32} className="text-blue-500/50" />
+              </div>
+              <p className="text-base font-semibold text-slate-600">
                 No {activeCategory} images yet
               </p>
-              <p className="text-xs">Image upload coming soon</p>
+              <p className="text-sm text-slate-400">Click to upload</p>
             </div>
           )}
 
           {/* category tabs */}
-          <div className="flex gap-2 mt-3 overflow-x-auto pb-1">
+          <div className="flex gap-2 mt-3 mb-3 overflow-x-auto pb-1 scrollbar-hide">
             {CATEGORIES.map((cat) => (
               <button
                 key={cat}
@@ -423,13 +435,44 @@ export default function EditListingClient({ pgId }) {
                 }}
                 className={`px-4 py-1.5 rounded-full capitalize text-xs font-medium border flex-shrink-0 transition-colors ${
                   activeCategory === cat
-                    ? "bg-blue-600 text-white border-blue-600"
-                    : "text-slate-600 border-slate-200 hover:border-blue-300"
+                    ? "bg-blue-600 text-white border-blue-600 shadow-sm"
+                    : "text-slate-600 border-slate-200 hover:border-blue-300 bg-white"
                 }`}
               >
                 {cat}
               </button>
             ))}
+          </div>
+
+          {/* thumbnail row */}
+          <div className="flex gap-3 overflow-x-auto pb-1 scrollbar-hide">
+            {filteredImgs.map((img, i) => (
+              <div
+                key={img._id}
+                onClick={() => setActiveImg(i)}
+                className={`group relative w-20 h-14 flex-shrink-0 overflow-hidden rounded-xl cursor-pointer border-2 transition-all ${
+                  activeImg === i
+                    ? "border-blue-500 scale-105 ring-4 ring-blue-50"
+                    : "border-transparent opacity-60 hover:opacity-100"
+                }`}
+              >
+                <Image
+                  src={img.url}
+                  alt="thumb"
+                  fill
+                  className="object-cover"
+                  sizes="80px"
+                />
+              </div>
+            ))}
+
+            {/* + add button */}
+            <div
+              onClick={() => document.getElementById("imageUpload").click()}
+              className="w-20 h-14 flex-shrink-0 rounded-xl border-2 border-dashed border-slate-300 flex items-center justify-center cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition-colors"
+            >
+              <ImagePlus size={18} className="text-slate-400" />
+            </div>
           </div>
         </div>
 
@@ -757,6 +800,18 @@ export default function EditListingClient({ pgId }) {
         title="Remove Room Type?"
         description="This room type will be removed when you save."
         confirmText="Remove"
+        variant="danger"
+      />
+
+      {/* confirm img delete */}
+
+      <ConfirmModal
+        isOpen={!!deleteImgTarget}
+        onClose={() => setDeleteImgTarget(null)}
+        onConfirm={handleDeleteImg}
+        title="Delete Image?"
+        description="This image will be permanently removed from S3 and your listing."
+        confirmText="Yes, Delete"
         variant="danger"
       />
     </div>

@@ -12,6 +12,7 @@ import { Eye,
   CheckCircle2,
   XCircle,
 } from "lucide-react";
+import { userApi } from "../../../lib/api/user";
 
 export default function SignupPage() {
   // The steering wheel
@@ -58,21 +59,13 @@ export default function SignupPage() {
 
     setLoading(true);
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/user/signup`, {
-        method: "POST",
-        headers: { 
-          "Content-Type": "application/json" 
-        },
-        body: JSON.stringify({
-          name: name.trim(),
-          mobile: mobile.trim(),
-          password: password,
-        }),
+      const data = await userApi.signup({
+        name: name.trim(),
+        mobile: mobile.trim(),
+        password: password,
       });
 
-      const data = await res.json();
-
-      if (res.ok) {
+      if (data._id) {
         router.push("/auth/login");
         return; // ← stop here, don't fall through to error handling
       }

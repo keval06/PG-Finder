@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Eye, EyeOff, Phone, Lock } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
+import { authApi } from "../../../lib/api/auth";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -19,31 +20,17 @@ export default function LoginPage() {
     e.preventDefault();
     setLoading(true);
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/login`, {
-        method: "POST",
-        headers: { 
-          "Content-Type": "application/json" 
-        },
-        body: JSON.stringify(
-          { mobile, password }
-        ),
-      });
- 
-      const data = await res.json();
+      const data = await authApi.login({ mobile, password });
 
-      if (res.ok) {
+      if (data.token) {
         const { token, ...user } = data;
-
         //  *login fun called to store -> userData, token in localStorage
         login(user, token);
-
         router.push("/"); //* Home page
-
       } else {
         alert(data.message);
       }
-    } 
-      finally {
+    } finally {
       setLoading(false);
     }
   };

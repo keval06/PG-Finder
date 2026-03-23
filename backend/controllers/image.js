@@ -1,8 +1,15 @@
 const Image = require("../models/image.js");
+const s3 = require("../config/s3.js");
 
 exports.registerImage = async (req, res) => {
   try {
-    const { pg, url } = req.body;
+    const { pg, category } = req.body;
+
+    if (!req.file) {
+      return res.status(400).json({ message: "No file uploaded" });
+    }
+
+    const url = req.file.location;
 
     const existingImage = await Image.findOne({ pg, url });
 
@@ -12,8 +19,14 @@ exports.registerImage = async (req, res) => {
       });
     }
 
-    const image = await Image.create(req.body);
-
+    // console.log("FILE:", req.file);
+    // console.log("BODY:", req.body);
+    const image = await Image.create({
+      pg,
+      url,
+      category,
+    });
+    // console.log("SAVED:", image);
     res.json(image);
   } catch (error) {
     res.status(500).json(error.message);
@@ -38,18 +51,36 @@ exports.getImagesByPg = async (req, res) => {
   }
 };
 
+
 exports.deleteImage = async (req, res) => {
   try {
-    const image = await Image.findByIdAndDelete(req.params.id);
+    const image = await Image.findById(req.params.id);
 
     if (!image) {
-      return res.status(404).json({
-        message: "Image not found",
-      });
+      return res.status(404).json({ message: "Image not found" });
     }
 
-    res.json(image);
-  } catch (error) {
-    res.status(500).json(error.message);
+    // 1. strip query string (?w=640&q=75 etc) if present
+    const cleanUrl = image.url.split("?")[0];
+
+    // 2. extract key — decode %20 back to spaces to match real S3 key
+    const key = decodeURIComponent(cleanUrl.split(".amazonaws.com/")[1]);
+
+    console.log("KEY:", key); // should be: images/1774114223162 - amenities.jpg
+
+    await s3.deleteObject({
+      Bucket: process.env.S3_BUCKET,
+      Key: key,
+    }).promise();
+
+    await image.deleteOne();
+    res.json(
+      { message: "Image deleted", image 
+
+    });
+  } 
+  catch (error) {
+    console.error("DELETE ERROR:", error.message);
+    res.status(500).json({ message: error.message });
   }
 };

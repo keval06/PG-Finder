@@ -5,7 +5,7 @@ import {
   Book, Trees, Refrigerator, WashingMachine,
   ArrowUpDown, Utensils, User, Star, MapPin,
 } from "lucide-react";
-import BookNowButton from "./BookNowButton";
+import BookNowButton from "../app/pg/[id]/components/BookNowButton";
 
 const amenityIcons = {
   WiFi: Wifi, Parking: Car, AC: Snowflake, Laundry: WashingMachine,
@@ -14,7 +14,7 @@ const amenityIcons = {
 };
 
 const genderLabel = { male: "Male",      female: "Female",    mix: "Co-ed"    };
-const foodLabel   = { "with food": "Food incl.", "without food": "No food", flexible: "Flexible" };
+const foodLabel   = { "with food": "With Food", "without food": "Without Food", flexible: "Flexible" };
 
 export default function PGCard({ pg }) {
   const avg   = pg.ratingData?.avg ? parseFloat(pg.ratingData.avg).toFixed(1) : null;

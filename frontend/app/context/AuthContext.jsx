@@ -18,11 +18,9 @@ export function AuthProvider({ children }) {
         //*JSON.parse("undefined") → throws an error 💥
         // *This guard prevents that crash
       }
-    } 
-    catch {
+    } catch {
       setUser(null);
-    } 
-    finally {
+    } finally {
       setReady(true); // always mark ready after attempt — success or fail
     }
   }, []);
