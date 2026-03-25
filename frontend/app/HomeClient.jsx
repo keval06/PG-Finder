@@ -1,14 +1,15 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { useSearch } from "./context/SearchContext";
 import PGCard from "../components/PGCard";
 import FilterPanel from "../components/FilterPanel";
 import SortBtn from "../components/SortBtn";
-import { SlidersHorizontal } from "lucide-react";
+import { SlidersHorizontal, Maximize, Minimize } from "lucide-react";
 import { usePGFilters } from "./hooks/usePGFilters";
 import PaginationWrapper from "../components/PaginationWrapper";
+import { AdvancedMarker, Map } from "@vis.gl/react-google-maps";
 
 export default function HomeClient({
   data,
@@ -33,12 +34,12 @@ export default function HomeClient({
     active,
   } = usePGFilters(data, query, "remote");
 
+  const [isMapFullscreen, setIsMapFullscreen] = useState(false);
   const isFirstRender = useRef(true);
 
   const buildParams = (pageOverride = null) => {
     const params = new URLSearchParams();
     if (query) params.append("q", query);
-
     if (active.selectedPrice) {
       params.append("minprice", active.selectedPrice.min);
       // FIX: don't append maxprice when it's Infinity ("Above ₹15,000" option)
@@ -88,13 +89,21 @@ export default function HomeClient({
   const displayCount =
     pagination.totalCount > 0 ? pagination.totalCount : sorted.length;
 
+  const firstPGWithCoord = sorted.find((p) => p.coordinate?.length === 2);
+  const mapCenter = firstPGWithCoord
+    ? {
+        lat: firstPGWithCoord.coordinate[0],
+        lng: firstPGWithCoord.coordinate[1],
+      }
+    : { lat: 28.6139, lng: 77.209 };
+
   return (
     <>
-      {/* mobile drawer */}
+      {/* Mobile filter drawer */}
       {drawerOpen && (
         <div className="fixed inset-0 z-[200] flex lg:hidden">
           <div
-            className="absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity"
+            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
             onClick={() => setDrawerOpen(false)}
           />
           <div className="relative w-80 bg-white h-full shadow-2xl flex flex-col">
@@ -103,16 +112,18 @@ export default function HomeClient({
         </div>
       )}
 
-      <div className="flex gap-6">
-        {/* sidebar */}
-        <aside className="hidden lg:block w-60 flex-shrink-0">
+      {/* ── MAIN 3-COLUMN LAYOUT ── */}
+      <div className="flex py-6 min-h-screen">
+        {/* COL 1: Filter sidebar (padded from left) */}
+        <aside className="hidden lg:flex flex-col flex-shrink-0 w-60 pl-4 sm:pl-6">
           <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm flex flex-col sticky top-24 h-[calc(100vh-120px)]">
             <FilterPanel {...fp} />
           </div>
         </aside>
 
-        <div className="flex-1 min-w-0">
-          {/* top bar */}
+        {/* COL 2: Cards (takes all remaining space) */}
+        <div className="flex-1 min-w-0 px-4 sm:px-5">
+          {/* Top bar */}
           <div className="flex items-center justify-between mb-5 gap-3 flex-wrap">
             <div className="flex items-center gap-3">
               <button
@@ -127,8 +138,6 @@ export default function HomeClient({
                   </span>
                 )}
               </button>
-
-              {/* FIX: show totalCount (all pages) not just current page slice */}
               <p className="text-sm text-slate-500">
                 <span className="font-semibold text-slate-900">
                   {displayCount}
@@ -136,7 +145,6 @@ export default function HomeClient({
                 PGs found
               </p>
             </div>
-
             <div className="flex gap-2 flex-wrap">
               <SortBtn
                 label="Price"
@@ -156,7 +164,7 @@ export default function HomeClient({
             </div>
           </div>
 
-          {/* empty state */}
+          {/* Empty state / Cards */}
           {sorted.length === 0 ? (
             <div className="text-center py-24">
               <p className="text-4xl mb-3">🏠</p>
@@ -174,23 +182,79 @@ export default function HomeClient({
               )}
             </div>
           ) : (
-            <>
-              <PaginationWrapper
-                data={sorted}
-                renderItem={(pg) => 
-                <PGCard key={pg._id} pg={pg} />}
-                page={pagination.currentPage}
-                onPageChange={handlePageChange}
-                totalPages={pagination.totalPages}
-                totalItems={pagination.totalCount} // ← add this
-              />
-            </>
+            <PaginationWrapper
+              data={sorted}
+              renderItem={(pg) => <PGCard key={pg._id} pg={pg} />}
+              page={pagination.currentPage}
+              onPageChange={handlePageChange}
+              totalPages={pagination.totalPages}
+              totalItems={pagination.totalCount}
+            />
           )}
+        </div>
+
+        {/* Backdrop — hides cards behind map when expanded */}
+        {isMapFullscreen && (
+          <div className="fixed inset-x-0 top-14 bottom-0 z-40 bg-[#f8fafc]" />
+        )}
+
+        {/* COL 3: Map — sticks to right edge, no right padding */}
+        <div
+          className={
+            isMapFullscreen
+              ? "fixed inset-x-0 top-24 z-50 h-[calc(100vh-120px)] px-4"
+              : "hidden xl:block w-[40%] flex-shrink-0 pl-3 pr-4"
+          }
+        >
+          <div
+            className={
+              "sticky top-24 h-[calc(100vh-120px)] rounded-2xl overflow-hidden border border-slate-200 shadow-sm"
+            }
+          >
+            {/* Expand/collapse button */}
+            <button
+              onClick={() => setIsMapFullscreen(!isMapFullscreen)}
+              className="absolute top-3 right-3 z-10 bg-white px-3 py-2 rounded-xl shadow-md border border-slate-200 hover:bg-slate-50 text-slate-700 transition-colors flex items-center gap-1.5 font-medium text-sm"
+            >
+              {isMapFullscreen ? (
+                <>
+                  <Minimize size={15} /> Collapse
+                </>
+              ) : (
+                <>
+                  <Maximize size={15} /> Expand
+                </>
+              )}
+            </button>
+
+            <Map
+              mapId="DEMO_MAP_ID"
+              defaultZoom={11}
+              defaultCenter={mapCenter}
+              disableDefaultUI={true}
+              gestureHandling="cooperative"
+              style={{ width: "100%", height: "100%" }}
+            >
+              {sorted.map(
+                (pg) =>
+                  pg.coordinate &&
+                  pg.coordinate.length === 2 && (
+                    <AdvancedMarker
+                      key={pg._id}
+                      position={{
+                        lat: pg.coordinate[0],
+                        lng: pg.coordinate[1],
+                      }}
+                    />
+                  ),
+              )}
+            </Map>
+          </div>
         </div>
       </div>
 
-      {/* footer */}
-      <footer className="bg-slate-900 py-10 px-5 sm:px-8 mt-12">
+      {/* Footer */}
+      <footer className="bg-slate-900 py-10 px-5 sm:px-8 mt-4">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
             <div className="w-7 h-7 rounded-lg bg-blue-600 flex items-center justify-center">
@@ -198,9 +262,6 @@ export default function HomeClient({
             </div>
             <span className="text-white font-semibold text-sm">Finder</span>
           </div>
-          <p className="text-slate-500 text-xs">
-            © 2026 PGFinder. All rights reserved.
-          </p>
           <div className="flex gap-6">
             {["Privacy", "Terms", "Contact"].map((l) => (
               <a

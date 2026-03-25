@@ -1,23 +1,50 @@
 import Link from "next/link";
 import Image from "next/image";
 import {
-  Wifi, Car, Snowflake, Tv, Camera, Dumbbell,
-  Book, Trees, Refrigerator, WashingMachine,
-  ArrowUpDown, Utensils, User, Star, MapPin,
+  Wifi,
+  Car,
+  Snowflake,
+  Tv,
+  Camera,
+  Dumbbell,
+  Book,
+  Trees,
+  Refrigerator,
+  WashingMachine,
+  ArrowUpDown,
+  Utensils,
+  User,
+  Star,
+  MapPin,
 } from "lucide-react";
 import BookNowButton from "../app/pg/[id]/components/BookNowButton";
 
 const amenityIcons = {
-  WiFi: Wifi, Parking: Car, AC: Snowflake, Laundry: WashingMachine,
-  Lift: ArrowUpDown, CCTV: Camera, RO: Refrigerator, TV: Tv,
-  Refrigerator: Refrigerator, Gym: Dumbbell, Garden: Trees, Library: Book,
+  WiFi: Wifi,
+  Parking: Car,
+  AC: Snowflake,
+  Laundry: WashingMachine,
+  Lift: ArrowUpDown,
+  CCTV: Camera,
+  RO: Refrigerator,
+  TV: Tv,
+  Refrigerator: Refrigerator,
+  Gym: Dumbbell,
+  Garden: Trees,
+  Library: Book,
 };
 
-const genderLabel = { male: "Male",      female: "Female",    mix: "Co-ed"    };
-const foodLabel   = { "with food": "With Food", "without food": "Without Food", flexible: "Flexible" };
+const genderLabel = { male: "Male", female: "Female", mix: "Co-ed" };
+const foodLabel = {
+  "with food": "With Food",
+  "without food": "Without Food",
+  flexible: "Flexible",
+};
 
 export default function PGCard({ pg }) {
-  const avg   = pg.ratingData?.avg ? parseFloat(pg.ratingData.avg).toFixed(1) : null;
+  const avg = pg.ratingData?.avg
+    ? parseFloat(pg.ratingData.avg).toFixed(1)
+    : null;
   const count = pg.ratingData?.count || 0;
   const shown = (pg.amenities || []).slice(0, 5);
   const extra = (pg.amenities?.length || 0) - 5;
@@ -25,12 +52,16 @@ export default function PGCard({ pg }) {
   return (
     <Link href={`/pg/${pg._id}`} className="block group">
       <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden flex flex-col sm:flex-row transition-all duration-200 hover:border-blue-300 hover:shadow-md hover:shadow-blue-50/50">
-
         {/* ── IMAGE ── */}
         <div className="relative w-full sm:w-52 h-48 sm:h-auto flex-shrink-0">
           <Image
-            src={pg.image || "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=400&q=75"}
-            alt={pg.name} fill className="object-cover"
+            src={
+              pg.image ||
+              "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=400&q=75"
+            }
+            alt={pg.name}
+            fill
+            className="object-cover"
             sizes="(max-width: 640px) 100vw, 208px"
           />
         </div>
@@ -38,7 +69,6 @@ export default function PGCard({ pg }) {
         {/* ── CONTENT ── */}
         <div className="flex-1 p-4 sm:p-5 flex flex-col justify-between min-w-0">
           <div>
-
             {/* title */}
             <h2 className="text-xl font-semibold text-slate-900 truncate group-hover:text-blue-600 transition-colors mb-1">
               {pg.name}
@@ -47,8 +77,11 @@ export default function PGCard({ pg }) {
             {/* RATING — always shown, fix 1 */}
             <div className="flex items-center gap-1.5 mb-2">
               {avg ? (
-                <span className="text-yellow-500">★ {avg}/5
-                  <span className="text-slate-400 font-normal ml-1">({count} {count === 1 ? "review" : "reviews"})</span>
+                <span className="text-yellow-500">
+                  ★ {avg}/5
+                  <span className="text-slate-400 font-normal ml-1">
+                    ({count} {count === 1 ? "review" : "reviews"})
+                  </span>
                 </span>
               ) : (
                 <span className="text-slate-400 text-xs">★ No reviews yet</span>
@@ -58,7 +91,10 @@ export default function PGCard({ pg }) {
             {/* location */}
             <div className="flex items-center gap-1 text-xs text-slate-400 mb-3">
               <MapPin size={11} className="flex-shrink-0" />
-              <span className="truncate">{pg.address ? `${pg.address}, ` : ""}{pg.city}</span>
+              <span className="truncate">
+                {pg.address ? `${pg.address}, ` : ""}
+                {pg.city}
+              </span>
             </div>
 
             {/* gender + food chips */}
@@ -73,10 +109,13 @@ export default function PGCard({ pg }) {
 
             {/* AMENITY CHIPS — fix 4: chip style, no blue icon color */}
             <div className="flex items-center gap-2 flex-wrap">
-              {shown.map(a => {
-                const Icon = amenityIcons[a];// Look up the icon for this amenity name
+              {shown.map((a) => {
+                const Icon = amenityIcons[a]; // Look up the icon for this amenity name
                 return (
-                  <div key={a} className="flex items-center gap-1.5 text-xs text-slate-600 bg-slate-50 border border-slate-200 px-2.5 py-1 rounded-full">
+                  <div
+                    key={a}
+                    className="flex items-center gap-1.5 text-xs text-slate-600 bg-slate-50 border border-slate-200 px-2.5 py-1 rounded-full"
+                  >
                     {Icon && <Icon size={11} className="text-slate-400" />}
                     {a}
                   </div>
@@ -88,7 +127,6 @@ export default function PGCard({ pg }) {
                 </span>
               )}
             </div>
-
           </div>
         </div>
 
@@ -103,7 +141,6 @@ export default function PGCard({ pg }) {
            {/* <BookBtn id={pg._id} /> */}
            <BookNowButton pgId={pg._id} />
         </div>
-
       </div>
     </Link>
   );

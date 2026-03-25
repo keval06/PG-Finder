@@ -101,16 +101,14 @@ export default async function Home({ searchParams }) {
   // 3. Render HomeClient and pass the fully cooked `data` DOWN as a prop
   return (
     <div className="bg-gray-50 min-h-screen">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
-        <HomeClient
-          data={data}
-          pagination={{
-            currentPage: Number(pgResponse.page) || 1,
-            totalPages: Number(pgResponse.totalPages) || 1,
-            totalCount: Number(pgResponse.totalCount) || 0,
-          }}
-        />
-      </div>
+      <HomeClient
+        data={data}
+        pagination={{
+          currentPage: Number(pgResponse.page) || 1,
+          totalPages: Number(pgResponse.totalPages) || 1,
+          totalCount: Number(pgResponse.totalCount) || 0,
+        }}
+      />
     </div>
   );
 }
