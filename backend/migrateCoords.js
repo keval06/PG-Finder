@@ -10,8 +10,15 @@ async function migrate() {
   console.log("📦 Backing up...");
   await pgsColl
     .aggregate([
-      { $match: {} },
-      { $out: { db: db.databaseName, coll: `pgs_backup_${Date.now()}` } },
+      {
+        $match: {},
+      },
+      {
+        $out: {
+          db: db.databaseName,
+          coll: `pgs_backup_${Date.now()}`,
+        },
+      },
     ])
     .toArray();
   console.log("✅ Backup done.");
@@ -30,8 +37,17 @@ async function migrate() {
     // India: lat ~8–37, lng ~68–97
     const [lat, lng] = a < 60 ? [a, b] : [b, a]; // safe detection
     await pgsColl.updateOne(
-      { _id: pg._id },
-      { $set: { coordinate: { type: "Point", coordinates: [lng, lat] } } },
+      {
+        _id: pg._id,
+      },
+      {
+        $set: {
+          coordinate: {
+            type: "Point",
+            coordinates: [lng, lat],
+          },
+        },
+      }
     );
     count++;
   }

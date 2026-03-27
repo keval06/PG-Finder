@@ -29,7 +29,8 @@ const pgSchema = new mongoose.Schema({
   coordinate: {
     type: [Number],
     required: true,
-  },
+    index: "2dsphere", // Auto-creates index on fresh databases!
+  },    
 
   city: {
     type: String,
