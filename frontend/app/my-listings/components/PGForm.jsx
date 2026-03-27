@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
-import { XCircle, Plus, Trash2 } from "lucide-react";
+import { useState, useCallback } from "react";
+import { XCircle, Plus, Trash2, MapPin } from "lucide-react";
+import { Map, Marker } from "@vis.gl/react-google-maps";
 
 const AMENITIES_LIST = [
   "AC",
@@ -37,6 +38,7 @@ export default function PGForm({ initial, onSubmit, onCancel, saving , onRemoveR
     toilet: "",
     food: "flexible",
     amenities: [],
+    coordinate: [], // Empty default forces the user to manually click the map
   };
 
   const [form, setForm] = useState(
@@ -47,6 +49,7 @@ export default function PGForm({ initial, onSubmit, onCancel, saving , onRemoveR
           room: initial.room ?? "",
           bathroom: initial.bathroom ?? "",
           toilet: initial.toilet ?? "",
+          coordinate: initial.coordinate?.length === 2 ? initial.coordinate : [],
         }
       : blank,
   );
@@ -74,6 +77,12 @@ export default function PGForm({ initial, onSubmit, onCancel, saving , onRemoveR
         ? form.amenities.filter((x) => x !== a)
         : [...form.amenities, a],
     );
+
+  const handleMapClick = useCallback((e) => {
+    if (e.detail.latLng) {
+      set("coordinate", [e.detail.latLng.lng, e.detail.latLng.lat]);
+    }
+  }, []);
 
   const addRT = () => setRoomTypes((p) => [...p, { ...BLANK_RT }]);
   const setRT = (i, k, v) =>
@@ -116,6 +125,10 @@ export default function PGForm({ initial, onSubmit, onCancel, saving , onRemoveR
       return setErr(
         `Allocated rooms (${allocated}) exceed total rooms (${totalRoom})`,
       );
+
+    if (!form.coordinate || form.coordinate.length !== 2) {
+      return setErr("Please pin your location on the map.");
+    }
 
     // validate each room type block
     for (let i = 0; i < roomTypes.length; i++) {
@@ -204,6 +217,30 @@ export default function PGForm({ initial, onSubmit, onCancel, saving , onRemoveR
             required
           />
         </div>
+
+        {/* ── Map Coordinate Selection ── */}
+        <div className="col-span-2">
+          <label className={lab}>Pin Location on Map <span className="text-slate-400 font-normal">(Click map to set exactly)</span></label>
+          <div className="h-64 w-full rounded-xl overflow-hidden border border-slate-200 shadow-sm relative">
+            <Map
+              mapId={process.env.NEXT_PUBLIC_MAP_ID || "DEMO_MAP_ID"}
+              defaultZoom={11}
+              defaultCenter={form.coordinate.length === 2 ? { lat: form.coordinate[1], lng: form.coordinate[0] } : { lat: 23.0225, lng: 72.5714 }}
+              disableDefaultUI={true}
+              gestureHandling={"cooperative"}
+              onClick={handleMapClick}
+            >
+              {form.coordinate.length === 2 && (
+                 <Marker position={{ lat: form.coordinate[1], lng: form.coordinate[0] }} />
+              )}
+            </Map>
+            <div className={`absolute top-3 left-3 bg-white/90 backdrop-blur-sm px-3 py-1.5 rounded-lg shadow border text-xs font-medium flex items-center gap-1.5 z-10 ${form.coordinate.length === 2 ? 'border-blue-200 text-slate-700' : 'border-red-200 text-red-600'}`}>
+               <MapPin size={14} className={form.coordinate.length === 2 ? "text-blue-600" : "text-red-500"} />
+               {form.coordinate.length === 2 ? "Location Saved" : "Click map to set location"}
+            </div>
+          </div>
+        </div>
+
         <div>
           <label className={lab}>Gender</label>
           <select
