@@ -11,6 +11,13 @@ export const pgApi = {
   return res.json();
 },
 
+  // Radius PGs
+  getNearby: async (lat, lng, radius = 5, queryString = "") => {
+    const qs = queryString ? `${queryString}` : "";
+    const res = await fetch(`${API_URL}/api/pg/nearby?lat=${lat}&lng=${lng}&radius=${radius}&${qs}`, { cache: "no-store" });
+    return res.json();
+  },
+
   // Owner's Dashboard Listings (Verified: /api/pg/owner)
   getOwnerPgs: async (token) => {
     const res = await fetch(`${API_URL}/api/pg/owner`, {
