@@ -26,10 +26,17 @@ const pgSchema = new mongoose.Schema({
     maxLength: 256,
   },
 
-  coordinate: {
+coordinate: {
+  type: {
+    type: String,
+    enum: ["Point"],
+    default: "Point",
+  },
+  coordinates: {
     type: [Number],
     required: true,
   },
+},
 
   city: {
     type: String,
@@ -94,5 +101,6 @@ const pgSchema = new mongoose.Schema({
 pgSchema.index({ city: 1, gender: 1, price: 1, isActive: 1 });
 pgSchema.index({ amenities: 1 });
 pgSchema.index({ owner: 1 });
-
+pgSchema.index({ coordinate: "2dsphere" });
+  
 module.exports = mongoose.model("PG", pgSchema);

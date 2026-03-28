@@ -10,6 +10,8 @@
     "lint:fix": "eslint --fix"
   },
   "dependencies": {
+    "@googlemaps/markerclusterer": "^2.6.2",
+    "@vis.gl/react-google-maps": "^1.7.1",
     "lucide-react": "^0.577.0",
     "next": "16.1.6",
     "react": "19.2.3",

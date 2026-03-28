@@ -14,10 +14,15 @@ exports.registerPG = async (req, res) => {
       });
     }
 
-    const pg = await PG.create({
-      ...req.body,
-      owner: req.user._id,
-    });
+    const pgData = { ...req.body, owner: req.user._id };
+    if (Array.isArray(req.body.coordinate) && req.body.coordinate.length === 2) {
+      pgData.coordinate = {
+        type: "Point",
+        coordinates: req.body.coordinate,
+      };
+    }
+
+    const pg = await PG.create(pgData);
 
     res.json(pg);
   } catch (error) {
@@ -155,6 +160,124 @@ exports.getAllPg = async (req, res) => {
   }
 };
 
+exports.getNearbyPGs = async (req, res) => {
+  try {
+    const {
+      lng,
+      lat,
+      radius = 5,
+      sortField,
+      sortOrder,
+      page = 1,
+      limit = 10,
+    } = req.query;
+
+    if (!lng || !lat) {
+      return res.status(400).json({
+        message: "Latitude and longitude required",
+      });
+    }
+
+    const radiusInMeters = Number(radius) * 1000;
+    const filter = buildPGQuery(req.query);
+    filter.isActive = { $ne: false };
+
+    const sortDir = sortOrder === "desc" ? -1 : 1;
+    const skip = (Number(page) - 1) * Number(limit);
+    const needsAggregation = sortField === "rating" || sortField === "reviews";
+
+    if (needsAggregation) {
+      const pipeline = [
+        {
+          $geoNear: {
+            near: { type: "Point", coordinates: [Number(lng), Number(lat)] },
+            distanceField: "distance",
+            maxDistance: radiusInMeters,
+            query: filter,
+          },
+        },
+        {
+          $lookup: {
+            from: "reviews",
+            localField: "_id",
+            foreignField: "pg",
+            as: "_reviews",
+          },
+        },
+        {
+          $addFields: {
+            avgRating: { $ifNull: [{ $avg: "$_reviews.star" }, 0] },
+            reviewCount: { $size: "$_reviews" },
+          },
+        },
+        {
+          $sort:
+            sortField === "rating"
+              ? { avgRating: sortDir, _id: -1 }
+              : { reviewCount: sortDir, _id: -1 },
+        },
+        {
+          $facet: {
+            metadata: [{ $count: "totalCount" }],
+            data: [{ $skip: skip }, { $limit: Number(limit) }],
+          },
+        },
+      ];
+
+      const [result] = await PG.aggregate(pipeline);
+      const totalCount = result.metadata[0]?.totalCount || 0;
+      const pgs = result.data.map(({ _reviews: _r, ...pg }) => pg); // strip joined array
+
+      return res.json({
+        data: pgs,
+        totalCount,
+        page: Number(page),
+        totalPages: Math.ceil(totalCount / Number(limit)),
+      });
+    }
+
+    // ── Simple sort / Distance path ────────────────
+    const pipeline = [
+      {
+        $geoNear: {
+          near: { 
+            type: "Point", 
+            coordinates: [Number(lng), Number(lat)] 
+          },
+          distanceField: "distance",
+          maxDistance: radiusInMeters,
+          query: filter,
+        },
+      },
+    ];
+
+    if (sortField === "price") {
+      pipeline.push({ $sort: { price: sortDir, _id: -1 } });
+    }
+
+    // Facet pagination ensures accurate document count specifically for geo queries
+    pipeline.push({
+      $facet: {
+        metadata: [{ $count: "totalCount" }],
+        data: [{ $skip: skip }, { $limit: Number(limit) }],
+      },
+    });
+
+    const [result] = await PG.aggregate(pipeline);  
+    const totalCount = result.metadata[0]?.totalCount || 0;
+    const pgs = result.data;
+
+    res.json({
+      data: pgs,
+      totalCount,
+      page: Number(page),
+      totalPages: Math.ceil(totalCount / Number(limit)),
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 exports.getPg = async (req, res) => {
   try {
     const pg = await PG.findById(req.params.id);
@@ -196,7 +319,15 @@ exports.updatePg = async (req, res) => {
       return res.status(403).json({ message: "Not allowed" });
     }
 
-    const updatedPG = await PG.findByIdAndUpdate(req.params.id, req.body, {
+    const updateData = { ...req.body };
+    if (Array.isArray(req.body.coordinate) && req.body.coordinate.length === 2) {
+      updateData.coordinate = {
+        type: "Point",
+        coordinates: req.body.coordinate,
+      };
+    }
+
+    const updatedPG = await PG.findByIdAndUpdate(req.params.id, updateData, {
       new: true,
       runValidators: true,
     });
@@ -207,6 +338,7 @@ exports.updatePg = async (req, res) => {
   }
 };
 
+//my listed pG
 exports.getMyPgs = async (req, res) => {
   try {
     const pgs = await PG.find({ owner: req.user._id }).sort({ createdAt: -1 });

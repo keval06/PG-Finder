@@ -20,7 +20,17 @@ async function getPGs(searchParams) {
     if (!params.has("page")) params.append("page", "1");
     if (!params.has("limit")) params.append("limit", "10"); // 10 PGs per page
 
-    const result = await pgApi.getAll(params.toString());
+    let result;
+    if (searchParams?.lat && searchParams?.lng) {
+      const radius = searchParams.radius || 5;
+      params.delete("lat");
+      params.delete("lng");
+      params.delete("radius");
+      result = await pgApi.getNearby(searchParams.lat, searchParams.lng, radius, params.toString());
+    } else {
+      result = await pgApi.getAll(params.toString());
+    }
+
     return Array.isArray(result)
       ? { data: result, totalPages: 1, page: 1, totalCount: result.length }
       : result;
@@ -101,16 +111,14 @@ export default async function Home({ searchParams }) {
   // 3. Render HomeClient and pass the fully cooked `data` DOWN as a prop
   return (
     <div className="bg-gray-50 min-h-screen">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
-        <HomeClient
-          data={data}
-          pagination={{
-            currentPage: Number(pgResponse.page) || 1,
-            totalPages: Number(pgResponse.totalPages) || 1,
-            totalCount: Number(pgResponse.totalCount) || 0,
-          }}
-        />
-      </div>
+      <HomeClient
+        data={data}
+        pagination={{
+          currentPage: Number(pgResponse.page) || 1,
+          totalPages: Number(pgResponse.totalPages) || 1,
+          totalCount: Number(pgResponse.totalCount) || 0,
+        }}
+      />
     </div>
   );
 }
