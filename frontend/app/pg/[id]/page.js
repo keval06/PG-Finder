@@ -3,7 +3,7 @@ import { pgApi } from "../../../lib/api/pg";
 import { imageApi } from "../../../lib/api/image";
 import { reviewApi } from "../../../lib/api/review";
 import { roomTypeApi } from "../../../lib/api/roomType";
-
+import PGLocationMap from "./components/PGLocationMap";
 import {
   Wifi,
   Car,
@@ -255,6 +255,13 @@ export default async function PGDetails({ params }) {
               pgId={id}
               initialTotal={reviews.length}
               avgRating={avgRating}
+            />
+
+            {/* Location Map */}
+            <PGLocationMap
+              coordinate={pg.coordinate}
+              address={pg.address}
+              city={pg.city}
             />
           </div>
 
