@@ -145,9 +145,17 @@ export default function EditListingClient({ pgId }) {
       "bathroom",
       "toilet",
       "food",
+      "coordinate",
     ];
     const pgChanged =
-      pgFields.some((f) => pgData[f] !== pg[f]) ||
+      pgFields.some((f) => {
+        if (f === "coordinate") {
+           const old = pg.coordinate?.coordinates || pg.coordinate;
+           const cur = pgData.coordinate;
+           return JSON.stringify(old) !== JSON.stringify(cur);
+        }
+        return pgData[f] !== pg[f];
+      }) ||
       JSON.stringify([...(pgData.amenities || [])].sort()) !==
         JSON.stringify([...(pg.amenities || [])].sort());
 

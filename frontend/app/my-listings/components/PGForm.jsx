@@ -49,7 +49,9 @@ export default function PGForm({ initial, onSubmit, onCancel, saving , onRemoveR
           room: initial.room ?? "",
           bathroom: initial.bathroom ?? "",
           toilet: initial.toilet ?? "",
-          coordinate: initial.coordinate?.length === 2 ? initial.coordinate : [],
+          coordinate: initial.coordinate?.coordinates?.length === 2 
+            ? initial.coordinate.coordinates 
+            : (initial.coordinate?.length === 2 ? initial.coordinate : []),
         }
       : blank,
   );

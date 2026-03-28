@@ -110,7 +110,7 @@ export default function MyListingsClient() {
 
       // step 1 — create PG
       const newPg = await pgApi.create(
-        { ...pgData, coordinate: [0, 0] },
+        pgData,
         token,
       );
       if (!newPg._id) return;
