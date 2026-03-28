@@ -14,10 +14,15 @@ exports.registerPG = async (req, res) => {
       });
     }
 
-    const pg = await PG.create({
-      ...req.body,
-      owner: req.user._id,
-    });
+    const pgData = { ...req.body, owner: req.user._id };
+    if (Array.isArray(req.body.coordinate) && req.body.coordinate.length === 2) {
+      pgData.coordinate = {
+        type: "Point",
+        coordinates: req.body.coordinate,
+      };
+    }
+
+    const pg = await PG.create(pgData);
 
     res.json(pg);
   } catch (error) {
@@ -314,7 +319,15 @@ exports.updatePg = async (req, res) => {
       return res.status(403).json({ message: "Not allowed" });
     }
 
-    const updatedPG = await PG.findByIdAndUpdate(req.params.id, req.body, {
+    const updateData = { ...req.body };
+    if (Array.isArray(req.body.coordinate) && req.body.coordinate.length === 2) {
+      updateData.coordinate = {
+        type: "Point",
+        coordinates: req.body.coordinate,
+      };
+    }
+
+    const updatedPG = await PG.findByIdAndUpdate(req.params.id, updateData, {
       new: true,
       runValidators: true,
     });
