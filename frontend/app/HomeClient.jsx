@@ -10,6 +10,8 @@ import { SlidersHorizontal, Maximize, Minimize, MapPin, X } from "lucide-react";
 import { usePGFilters } from "./hooks/usePGFilters";
 import PaginationWrapper from "../components/PaginationWrapper";
 import { Marker, Map, useMap } from "@vis.gl/react-google-maps";
+import { MarkerClusterer } from "@googlemaps/markerclusterer";
+import InfoCard from "./components/InfoCard";
 
 // Helper at top of component — handles BOTH old flat array and new GeoJSON
 const getLatLng = (coordinate) => {
@@ -31,14 +33,44 @@ function MapEffect({ userLocation, defaultMapCenter }) {
   // MapEffect — null guard
   useEffect(() => {
     if (!map) return;
+
     if (userLocation) {
       map.setZoom(13);
       map.panTo(userLocation);
-    } else if (defaultMapCenter) {
+    } 
+    else if (defaultMapCenter) {
       map.setZoom(11);
       map.panTo(defaultMapCenter);
     }
   }, [map, userLocation, defaultMapCenter?.lat, defaultMapCenter?.lng]);
+  return null;
+}
+
+function ClusteredMarkers({ pgs, setActivePin }) {
+  const map = useMap();
+
+  useEffect(() => {
+    if (!map) return;
+    const markers = pgs
+      .map((pg) => {
+        const pos = getLatLng(pg.coordinate);
+        if (!pos) return null;
+        const marker = new google.maps.Marker({
+          position: pos,
+          title: pg.name,
+        });
+        marker.addListener("click", () => setActivePin(pg));
+        return marker;
+      })
+      .filter(Boolean);
+
+    const clusterer = new MarkerClusterer({ markers, map });
+    return () => {
+      clusterer.clearMarkers();
+      markers.forEach((m) => google.maps.event.clearInstanceListeners(m));
+    };
+  }, [map, pgs]);
+
   return null;
 }
 
@@ -70,14 +102,16 @@ export default function HomeClient({
   const lngParam = searchParamsUrl.get("lng");
   const radiusParam = searchParamsUrl.get("radius");
 
+  const [activePin, setActivePin] = useState(null);
   const [isMapFullscreen, setIsMapFullscreen] = useState(false);
   const isFirstRender = useRef(true);
+  console.log(process.env.NEXT_PUBLIC_MAP_ID || "HI");
 
   // Geo state
   const [userLocation, setUserLocation] = useState(
     latParam && lngParam
       ? { lat: Number(latParam), lng: Number(lngParam) }
-      : null,
+      : null
   );
   const [radius, setRadius] = useState(radiusParam ? Number(radiusParam) : 5);
 
@@ -120,6 +154,11 @@ export default function HomeClient({
     router.push(`${pathname}?${params.toString()}`, { scroll: true });
   };
 
+  // Add this useEffect after sorted is available
+  useEffect(() => {
+    setActivePin(null);
+  }, [sorted]);
+
   useEffect(() => {
     if (isFirstRender.current) {
       isFirstRender.current = false;
@@ -153,7 +192,7 @@ export default function HomeClient({
             lat: pos.coords.latitude,
             lng: pos.coords.longitude,
           }),
-        () => alert("Location permission denied."),
+        () => alert("Location permission denied.")
       );
     } else {
       alert("Geolocation is not supported by your browser.");
@@ -168,7 +207,7 @@ export default function HomeClient({
   const firstPGWithCoord = sorted.find((p) => getLatLng(p.coordinate));
   const defaultMapCenter = firstPGWithCoord
     ? getLatLng(firstPGWithCoord.coordinate)
-    : null; // 2. null = don't show map until user location or real data exists
+    : null;
 
   return (
     <>
@@ -189,7 +228,9 @@ export default function HomeClient({
       <div className="flex py-6 min-h-screen">
         {/* COL 1: Filter sidebar (hidden if Map is Fullscreen) */}
         <aside
-          className={`${isMapFullscreen ? "hidden lg:hidden" : "hidden lg:flex"} flex-col flex-shrink-0 w-60 pl-4 sm:pl-6`}
+          className={`${
+            isMapFullscreen ? "hidden lg:hidden" : "hidden lg:flex"
+          } flex-col flex-shrink-0 w-60 pl-4 sm:pl-6`}
         >
           <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm flex flex-col sticky top-24 h-[calc(100vh-120px)]">
             <FilterPanel {...fp} />
@@ -198,7 +239,9 @@ export default function HomeClient({
 
         {/* COL 2: Cards (hidden if Map is Fullscreen) */}
         <div
-          className={`flex-1 min-w-0 px-4 sm:px-5 ${isMapFullscreen ? "hidden" : "block"}`}
+          className={`flex-1 min-w-0 px-4 sm:px-5 ${
+            isMapFullscreen ? "hidden" : "block"
+          }`}
         >
           {/* Top bar */}
           <div className="flex items-center justify-between mb-5 gap-3 flex-wrap">
@@ -298,7 +341,9 @@ export default function HomeClient({
           ) : (
             <PaginationWrapper
               data={sorted}
-              renderItem={(pg) => <PGCard key={pg._id} pg={pg} />}
+              renderItem={
+                (pg) => <PGCard key={pg._id} pg={pg} />
+              }
               page={pagination.currentPage}
               onPageChange={handlePageChange}
               totalPages={pagination.totalPages}
@@ -318,8 +363,8 @@ export default function HomeClient({
           <div
             className={
               isMapFullscreen
-                ? "sticky top-24 h-[calc(100vh-120px)] w-full rounded-2xl overflow-hidden border border-slate-200 shadow-2xl bg-white"
-                : "sticky top-24 h-[calc(100vh-120px)] rounded-2xl overflow-hidden border border-slate-200 shadow-sm bg-white"
+                ? "relative sticky top-24 h-[calc(100vh-120px)] w-full rounded-2xl overflow-hidden border border-slate-200 shadow-2xl bg-white"
+                : "relative sticky top-24 h-[calc(100vh-120px)] rounded-2xl overflow-hidden border border-slate-200 shadow-sm bg-white"
             }
           >
             {/* Expand/collapse button */}
@@ -354,7 +399,6 @@ export default function HomeClient({
                 userLocation={userLocation}
                 defaultMapCenter={defaultMapCenter}
               />
-
               {/* Plot User Location - Custom SVG Blue Circle */}
               {userLocation && (
                 <Marker
@@ -372,18 +416,29 @@ export default function HomeClient({
                 />
               )}
 
-              {sorted.map((pg) => {
-                const pos = getLatLng(pg.coordinate);
-                if (!pos) return null;
-
-                return (
-                  <Marker
-                    key={pg._id}
-                    position={pos}
-                  />
-                );
-              })}
+              {/* // Markers — fix */}
+              <ClusteredMarkers pgs={sorted} setActivePin={setActivePin} />
             </Map>
+
+            {/* ✅ PIN CARD OVERLAY — outside Map, inside map container */}
+            {activePin && (
+              <div
+                className="absolute bottom-5 left-1/2 -translate-x-1/2 z-[999] w-[260px]"
+                style={{ filter: "drop-shadow(0 8px 24px rgba(0,0,0,0.18))" }}
+              >
+                
+                <InfoCard
+                  activePin={activePin}
+                  avg={
+                    activePin.ratingData?.avg
+                      ? parseFloat(activePin.ratingData.avg).toFixed(1)
+                      : null
+                  }
+                  count={activePin.ratingData?.count || 0}
+                  setActivePin={setActivePin}
+                />
+              </div>
+            )}
           </div>
         </div>
       </div>
