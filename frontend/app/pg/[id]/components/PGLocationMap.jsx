@@ -1,6 +1,5 @@
 "use client";
 import { Map, Marker } from "@vis.gl/react-google-maps";
-import { Home } from "lucide-react";
 
 export default function PGLocationMap({ coordinate, address, city }) {
   // handle both flat [lng,lat] and GeoJSON
@@ -32,17 +31,18 @@ export default function PGLocationMap({ coordinate, address, city }) {
           <Marker
             position={pos}
             icon={{
-              path: google.maps.SymbolPath.CIRCLE,
+              path: "M 0,-30 C -16,-30 -28,-18 -28,-4 C -28,14 0,40 0,40 C 0,40 28,14 28,-4 C 28,-18 16,-30 0,-30 Z",
               fillColor: "#0f172a",
               fillOpacity: 1,
-              strokeColor: "#fff",
-              strokeWeight: 2,
-              scale: 14,
+              strokeColor: "#fffeee",
+              strokeWeight: 3,
+              scale: 0.6,
+              anchor: { x: 0, y: 40 },
             }}
             label={{
               text: "⌂",
               color: "#ffffff",
-              fontSize: "16px",
+              fontSize: "28px",
               fontWeight: "bold",
             }}
           />

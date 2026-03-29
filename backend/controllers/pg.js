@@ -15,7 +15,10 @@ exports.registerPG = async (req, res) => {
     }
 
     const pgData = { ...req.body, owner: req.user._id };
-    if (Array.isArray(req.body.coordinate) && req.body.coordinate.length === 2) {
+    if (
+      Array.isArray(req.body.coordinate) &&
+      req.body.coordinate.length === 2
+    ) {
       pgData.coordinate = {
         type: "Point",
         coordinates: req.body.coordinate,
@@ -240,9 +243,9 @@ exports.getNearbyPGs = async (req, res) => {
     const pipeline = [
       {
         $geoNear: {
-          near: { 
-            type: "Point", 
-            coordinates: [Number(lng), Number(lat)] 
+          near: {
+            type: "Point",
+            coordinates: [Number(lng), Number(lat)],
           },
           distanceField: "distance",
           maxDistance: radiusInMeters,
@@ -263,7 +266,7 @@ exports.getNearbyPGs = async (req, res) => {
       },
     });
 
-    const [result] = await PG.aggregate(pipeline);  
+    const [result] = await PG.aggregate(pipeline);
     const totalCount = result.metadata[0]?.totalCount || 0;
     const pgs = result.data;
 
@@ -320,7 +323,10 @@ exports.updatePg = async (req, res) => {
     }
 
     const updateData = { ...req.body };
-    if (Array.isArray(req.body.coordinate) && req.body.coordinate.length === 2) {
+    if (
+      Array.isArray(req.body.coordinate) &&
+      req.body.coordinate.length === 2
+    ) {
       updateData.coordinate = {
         type: "Point",
         coordinates: req.body.coordinate,
@@ -342,8 +348,13 @@ exports.updatePg = async (req, res) => {
 exports.getMyPgs = async (req, res) => {
   try {
     const pgs = await PG.find({ owner: req.user._id }).sort({ createdAt: -1 });
-    res.json(pgs);
+    res.json({
+      data: pgs,
+      totalCount: pgs.length,
+      page: 1,
+      totalPages: 1,
+    });
   } catch (error) {
-    res.status(500).json(error.message);
+    res.status(500).json({ message: error.message });
   }
 };

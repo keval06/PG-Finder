@@ -67,14 +67,14 @@ exports.registerBooking = async (req, res) => {
           amount,
         },
       ],
-      { session }
+      { session },
     );
 
     // update room type
     await RoomType.findByIdAndUpdate(
       roomTypeId,
       { $inc: { occupiedBeds: 1 } },
-      { session }
+      { session },
     );
 
     // commit transaction
@@ -98,9 +98,14 @@ exports.getMyBookings = async (req, res) => {
       .populate("pg", "name price city")
       .populate("roomType", "name sharingCount price")
       .sort({ createdAt: -1 });
-    res.json(bookings);
+    res.json({
+      data: bookings,
+      totalCount: bookings.length,
+      page: 1,
+      totalPages: 1,
+    });
   } catch (error) {
-    res.status(500).json(error.message);
+    res.status(500).json({ message: error.message });
   }
 };
 
@@ -116,9 +121,14 @@ exports.getReceivedBookings = async (req, res) => {
       .populate("roomType", "name sharingCount price") // populate room type
       .sort({ createdAt: -1 });
 
-    res.json(bookings);
+    res.json({
+      data: bookings,
+      totalCount: bookings.length,
+      page: 1,
+      totalPages: 1,
+    });
   } catch (error) {
-    res.status(500).json(error.message);
+    res.status(500).json({ message: error.message });
   }
 };
 
@@ -146,7 +156,7 @@ exports.updateBooking = async (req, res) => {
       await RoomType.findByIdAndUpdate(
         existing.roomType,
         { $inc: { occupiedBeds: -1 } },
-        { session }
+        { session },
       );
     }
 
@@ -157,7 +167,7 @@ exports.updateBooking = async (req, res) => {
     ) {
       // if room type is not found
       const roomType = await RoomType.findById(existing.roomType).session(
-        session
+        session,
       );
       if (!roomType) {
         await session.abortTransaction();
@@ -179,7 +189,7 @@ exports.updateBooking = async (req, res) => {
       await RoomType.findByIdAndUpdate(
         existing.roomType,
         { $inc: { occupiedBeds: 1 } },
-        { session }
+        { session },
       );
     }
 

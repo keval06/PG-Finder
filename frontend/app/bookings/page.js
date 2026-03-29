@@ -94,9 +94,12 @@ export default function MyBookingsPage() {
         return;
       }
 
-      const data = await bookingApi.getUserBookings(token);
+      const response = await bookingApi.getUserBookings(token);
 
-      setBookings(Array.isArray(data) ? data : []);
+      //handle new object struct
+      const bookingList = Array.isArray(response.data) ? response.data : [];
+
+      setBookings(bookingList);
     } catch {
       setBookings([]);
     } finally {

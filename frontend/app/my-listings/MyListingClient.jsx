@@ -61,8 +61,10 @@ export default function MyListingsClient() {
         return;
       }
       // Get owner PGs directly
-      const ownerData = await pgApi.getOwnerPgs(token);
-      let mine = Array.isArray(ownerData) ? ownerData : [];
+      const ownerResponse = await pgApi.getOwnerPgs(token);
+
+      //Extract .data from response
+      let mine = Array.isArray(ownerResponse.data) ? ownerResponse.data : [];
 
       const withRatings = await Promise.all(
         mine.map(async (pg) => {
@@ -109,10 +111,7 @@ export default function MyListingsClient() {
       const token = localStorage.getItem("token");
 
       // step 1 — create PG
-      const newPg = await pgApi.create(
-        pgData,
-        token,
-      );
+      const newPg = await pgApi.create(pgData, token);
       if (!newPg._id) return;
 
       // step 2 — create each room type sequentially
