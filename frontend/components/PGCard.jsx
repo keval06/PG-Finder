@@ -18,6 +18,7 @@ import {
   MapPin,
 } from "lucide-react";
 import BookNowButton from "../app/pg/[id]/components/BookNowButton";
+import Badge from "../app/atoms/Badge";
 
 const amenityIcons = {
   WiFi: Wifi,
@@ -97,14 +98,13 @@ export default function PGCard({ pg }) {
               </span>
             </div>
 
-            {/* gender + food chips */}
             <div className="flex items-center gap-2 flex-wrap mb-3">
-              <span className="flex items-center gap-1 text-xs text-slate-600 bg-slate-50 border border-slate-200 px-2.5 py-1 rounded-full">
+              <Badge variant="blue" className="flex items-center gap-1 normal-case">
                 <User size={10} /> {genderLabel[pg.gender] || pg.gender}
-              </span>
-              <span className="flex items-center gap-1 text-xs text-slate-600 bg-slate-50 border border-slate-200 px-2.5 py-1 rounded-full">
+              </Badge>
+              <Badge variant="slate" className="flex items-center gap-1 normal-case font-medium">
                 <Utensils size={10} /> {foodLabel[pg.food] || pg.food}
-              </span>
+              </Badge>
             </div>
 
             {/* AMENITY CHIPS — fix 4: chip style, no blue icon color */}

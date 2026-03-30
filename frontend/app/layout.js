@@ -20,12 +20,12 @@ export default function RootLayout({ children }) {
     <html lang="en">
       <body className="min-h-screen bg-[#f8fafc]">
         <MapProvider>
-        <AuthProvider>
-          <SearchProvider>
-            <Navbar />
-            {children}
-          </SearchProvider>
-        </AuthProvider>
+          <AuthProvider>
+            <SearchProvider>
+              <Navbar />
+              {children}
+            </SearchProvider>
+          </AuthProvider>
         </MapProvider>
       </body>
     </html>

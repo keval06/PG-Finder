@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { MapPin, ChevronRight } from "lucide-react";
 import Image from "next/image";
+import Badge from "../../atoms/Badge";
   
 const genderLabel = { male: "Male", female: "Female", mix: "Co-ed" };
 
@@ -20,16 +21,16 @@ export default function ListingCard({ pg }) {
       }`}
     >
       {/* image placeholder */}
-      <div className="relative w-full sm:w-44 h-36 sm:h-auto flex-shrink-0 bg-slate-100 flex items-center justify-center">
+      <div className="relative w-full sm:w-44 h-36 sm:h-auto flex-shrink-0 bg-slate-100 flex items-center justify-center font-bold">
         {pg.image ? (
           <Image src={pg.image} alt={pg.name} fill className="object-cover" sizes="176px" />
         ) : (
           <span className="text-3xl">🏠</span>
         )}
         {inactive && (
-          <span className="absolute top-2 left-2 text-[10px] bg-slate-700/80 text-white font-semibold px-2 py-0.5 rounded-full">
+          <Badge variant="red" className="absolute top-2 left-2 shadow-sm">
             Inactive
-          </span>
+          </Badge>
         )}
       </div>
 
@@ -37,7 +38,7 @@ export default function ListingCard({ pg }) {
       <div className="flex-1 p-4 sm:p-5 min-w-0 flex flex-col justify-between">
         <div>
           <h2 className="text-base font-semibold text-slate-900 truncate mb-0.5">{pg.name}</h2>
-          <p className="text-xs text-yellow-500 mb-1">
+          <p className="text-xs text-yellow-600 font-medium mb-1">
             {avg}
             {count > 0 && <span className="text-slate-400 font-normal ml-1">({count} reviews)</span>}
           </p>
@@ -45,18 +46,20 @@ export default function ListingCard({ pg }) {
             <MapPin size={10} />
             <span className="truncate">{pg.address}, {pg.city}</span>
           </div>
-          <div className="flex flex-wrap gap-1.5">
-            <span className="text-xs bg-slate-50 border border-slate-200 px-2.5 py-1 rounded-full text-slate-600">
+          <div className="flex flex-wrap gap-2">
+            <Badge variant="blue" className="normal-case">
               {genderLabel[pg.gender]}
-            </span>
-            <span className="text-xs bg-slate-50 border border-slate-200 px-2.5 py-1 rounded-full text-slate-600 capitalize">
+            </Badge>
+            <Badge variant="slate" className="normal-case font-medium">
               {pg.food}
-            </span>
+            </Badge>
             {(pg.amenities || []).slice(0, 3).map(a => (
-              <span key={a} className="text-xs bg-slate-50 border border-slate-200 px-2.5 py-1 rounded-full text-slate-600">{a}</span>
+              <Badge key={a} variant="slate" className="normal-case font-normal border-slate-100">
+                {a}
+              </Badge>
             ))}
             {(pg.amenities?.length || 0) > 3 && (
-              <span className="text-xs text-slate-400">+{pg.amenities.length - 3} more</span>
+              <span className="text-[10px] text-slate-400 font-medium">+{pg.amenities.length - 3} more</span>
             )}
           </div>
         </div>

@@ -1,4 +1,5 @@
 import { X, AlertCircle } from "lucide-react";
+import Button from "../app/atoms/Button";
 
 /**
  * ConfirmModal - A reusable bottom-sheet / modal for confirming actions
@@ -68,23 +69,21 @@ export default function ConfirmModal({
         )}
 
         <div className="flex gap-2.5 pt-2">
-          <button
+          <Button
+            variant="secondary"
+            className="flex-1"
             onClick={onClose}
-            className="flex-1 py-2.5 rounded-xl border border-slate-200 text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors"
           >
             {cancelText}
-          </button>
-          <button
+          </Button>
+          <Button
+            variant={isDanger ? "danger" : "primary"}
+            className="flex-1"
             onClick={onConfirm}
-            disabled={processing}
-            className={`flex-1 py-2.5 rounded-xl text-white text-sm font-semibold transition-colors disabled:opacity-50 ${
-              isDanger
-                ? "bg-red-500 hover:bg-red-600 shadow-lg shadow-red-100"
-                : "bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-100"
-            }`}
+            loading={processing}
           >
-            {processing ? "Processing…" : confirmText}
-          </button>
+            {confirmText}
+          </Button>
         </div>
       </div>
     </div>

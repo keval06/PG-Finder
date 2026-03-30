@@ -5,6 +5,7 @@ import { useRouter, usePathname } from "next/navigation";
 import { Search, User, X } from "lucide-react";
 import { useSearch } from "../app/context/SearchContext";
 import { useAuth } from "../app/context/AuthContext";
+import ConfirmModal from "./ConfirmModal";
 
 export default function Navbar() {
   const router = useRouter();
@@ -14,8 +15,8 @@ export default function Navbar() {
   const { query, setQuery } = useSearch();
   const { user, logout } = useAuth(); //? logged in user + logout fn
 
-  //? UI mattering
   const [open, setOpen] = useState(false); //?dropdown menu open
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   const [scrolled, setScrolled] = useState(false); // *? Bool -> has user scrolled > 10px? > controls the navbar shadow:
 
@@ -199,7 +200,10 @@ export default function Navbar() {
                       {/* Logout */}
                       <div className="border-t border-slate-100 my-1" />
                       <button
-                        onClick={handleLogout}
+                        onClick={() => {
+                          setOpen(false);
+                          setShowLogoutConfirm(true);
+                        }}
                         className="w-full text-left px-3 py-2 text-sm text-red-500 hover:bg-red-50 rounded-xl transition-colors"
                       >
                         Logout
@@ -250,6 +254,16 @@ export default function Navbar() {
           </div>
         </div>
       </nav>
+
+      <ConfirmModal
+        isOpen={showLogoutConfirm}
+        onClose={() => setShowLogoutConfirm(false)}
+        onConfirm={handleLogout}
+        title="Logout?"
+        description="Are you sure you want to sign out of your account?"
+        confirmText="Yes, Logout"
+        variant="danger"
+      />
     </>
   );
 }

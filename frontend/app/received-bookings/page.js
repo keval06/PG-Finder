@@ -50,9 +50,11 @@ export default function ReceivedBookingsPage() {
       const token = localStorage.getItem("token");
       if (!token) return;
 
-      const data = await bookingApi.getOwnerBookings(token);
+      const response = await bookingApi.getOwnerBookings(token);
 
-      setBookings(Array.isArray(data) ? data : []);
+      const bookingList = Array.isArray(response.data) ? response.data : [];
+
+      setBookings(bookingList);
     } catch {
       setBookings([]);
     } finally {

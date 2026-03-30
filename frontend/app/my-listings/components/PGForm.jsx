@@ -2,6 +2,8 @@
 
 import { useState, useCallback } from "react";
 import { XCircle, Plus, Trash2, MapPin } from "lucide-react";
+import Button from "../../atoms/Button";
+import Badge from "../../atoms/Badge";
 import { Map, Marker } from "@vis.gl/react-google-maps";
 
 const AMENITIES_LIST = [
@@ -337,14 +339,15 @@ export default function PGForm({ initial, onSubmit, onCancel, saving , onRemoveR
               </p>
             )}
           </div>
-          <button
-            type="button"
+          <Button
             onClick={addRT}
+            variant="outline"
+            size="sm"
             disabled={totalRoom > 0 && allocated >= totalRoom}
-            className="flex items-center gap-1 text-xs font-semibold text-blue-600 border border-blue-200 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-xl transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+            icon={Plus}
           >
-            <Plus size={12} /> Add Room Type
-          </button>
+            Add Room Type
+          </Button>
         </div>
 
         {roomTypes.length === 0 && (
@@ -434,20 +437,12 @@ export default function PGForm({ initial, onSubmit, onCancel, saving , onRemoveR
 
       {/* ── actions ── */}
       <div className="flex gap-2 justify-end pt-2">
-        <button
-          type="button"
-          onClick={onCancel}
-          className="px-4 py-2 rounded-xl border border-slate-200 text-sm text-slate-600 hover:bg-slate-50 transition-colors"
-        >
+        <Button variant="outline" onClick={onCancel}>
           Cancel
-        </button>
-        <button
-          type="submit"
-          disabled={saving}
-          className="px-5 py-2 rounded-xl bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 disabled:opacity-50 transition-colors"
-        >
-          {saving ? "Saving…" : "Save"}
-        </button>
+        </Button>
+        <Button type="submit" loading={saving}>
+          Save
+        </Button>
       </div>
     </form>
   );
