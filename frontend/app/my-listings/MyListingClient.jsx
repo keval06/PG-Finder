@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
 import { useRouter } from "next/navigation";
-import { SlidersHorizontal, X, Plus } from "lucide-react";
+import { SlidersHorizontal, Plus, Home as HomeIcon, Bed } from "lucide-react";
 import ListingCard from "./components/ListingCard";
 import PGForm from "./components/PGForm";
 import FilterPanel from "../../components/FilterPanel";
@@ -15,8 +15,9 @@ import { pgApi } from "../../lib/api/pg";
 import { reviewApi } from "../../lib/api/review";
 import { roomTypeApi } from "../../lib/api/roomType";
 import { imageApi } from "../../lib/api/image";
-
-import { Bed } from "lucide-react";
+import Button from "../atoms/Button";
+import EmptyState from "../atoms/EmptyState";
+import Badge from "../atoms/Badge";
 
 export default function MyListingsClient() {
   const { user, ready } = useAuth();
@@ -159,52 +160,40 @@ export default function MyListingsClient() {
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between mb-5 gap-3 flex-wrap">
             <div className="flex items-center gap-3">
-              <button
+              <Button
+                variant="outline"
                 onClick={() => setDrawerOpen(true)}
-                className="lg:hidden flex items-center gap-2 bg-white border border-slate-200 rounded-xl px-3 py-2 text-sm font-medium text-slate-700 hover:border-blue-300 transition-colors"
+                className="lg:hidden"
+                icon={SlidersHorizontal}
               >
-                <SlidersHorizontal size={14} className="text-slate-500" />{" "}
                 Filters
                 {filterCount > 0 && (
-                  <span className="bg-blue-600 text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-bold">
+                  <Badge
+                    variant="blue"
+                    className="ml-1 px-1 min-w-[16px] h-4 flex items-center justify-center"
+                  >
                     {filterCount}
-                  </span>
+                  </Badge>
                 )}
-              </button>
-
-              <p className="text-sm text-slate-500">
-                <span className="font-semibold text-slate-900">
-                  {sorted.length}
-                </span>{" "}
-                PGs found
+              </Button>
+              <p className="text-sm text-slate-500 font-medium">
+                {sorted.length} PGs found
               </p>
             </div>
+
             <div className="flex items-center gap-2 flex-wrap">
               <SortBtn
                 label="Price"
                 field="price"
                 {...{ sortField, sortOrder, onToggle: toggleSort }}
               />
-              <SortBtn
-                label="Rating"
-                field="rating"
-                {...{ sortField, sortOrder, onToggle: toggleSort }}
-              />
-              <SortBtn
-                label="Reviews"
-                field="reviews"
-                {...{ sortField, sortOrder, onToggle: toggleSort }}
-              />
-              <button
-                onClick={() => setCreateOpen((o) => !o)}
-                className={`flex items-center gap-1.5 text-sm font-semibold px-4 py-1.5 rounded-xl border transition-colors ${
-                  createOpen
-                    ? "bg-blue-600 text-white border-blue-600"
-                    : "bg-white text-blue-600 border-blue-300 hover:bg-blue-50"
-                }`}
+              <Button
+                variant={createOpen ? "primary" : "outline"}
+                onClick={() => setCreateOpen(!createOpen)}
+                icon={Plus}
               >
-                <Plus size={14} /> Add PG
-              </button>
+                Add PG
+              </Button>
             </div>
           </div>
 
@@ -225,25 +214,22 @@ export default function MyListingsClient() {
           )}
 
           {sorted.length === 0 ? (
-            <div className="text-center py-24">
-              <p className="text-4xl mb-3">🏠</p>
-              <p className="font-semibold text-slate-900 mb-1">
-                {pgs.length === 0 ? "No listings yet" : "No PGs match filters"}
-              </p>
-              <p className="text-sm text-slate-500 mb-4">
-                {pgs.length === 0
-                  ? 'Click "Add PG" to post your first listing'
-                  : "Try adjusting your filters"}
-              </p>
-              {hasFilters && (
-                <button
-                  onClick={clearFilters}
-                  className="text-sm text-blue-600 hover:underline font-medium"
-                >
-                  Clear All filters
-                </button>
-              )}
-            </div>
+            <EmptyState
+              icon={HomeIcon}
+              title={pgs.length === 0 ? "No listings yet" : "No PGs match filters"}
+              description={
+                pgs.length === 0
+                  ? 'Click "Add PG" to post your first listing.'
+                  : "Try adjusting your filters to find your listings."
+              }
+              action={
+                hasFilters && (
+                  <Button variant="outline" size="sm" onClick={clearFilters}>
+                    Clear all filters
+                  </Button>
+                )
+              }
+            />
           ) : (
             <PaginationWrapper
               data={sorted}

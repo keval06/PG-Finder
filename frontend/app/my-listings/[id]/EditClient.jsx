@@ -8,6 +8,8 @@ import { imageApi } from "../../../lib/api/image";
 import { roomTypeApi } from "../../../lib/api/roomType";
 import PGForm from "../components/PGForm";
 import ConfirmModal from "../../../components/ConfirmModal";
+import Button from "../../atoms/Button";
+import Badge from "../../atoms/Badge";
 
 import {
   ArrowLeft,
@@ -352,16 +354,18 @@ export default function EditListingClient({ pgId }) {
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6">
         {/* back + toast */}
         <div className="flex items-center justify-between mb-5">
-          <button
+          <Button
+            variant="ghost"
+            size="sm"
             onClick={() => router.push("/my-listings")}
-            className="flex items-center gap-2 text-sm text-slate-500 hover:text-slate-900 transition-colors"
+            icon={ArrowLeft}
           >
-            <ArrowLeft size={16} /> Back to listings
-          </button>
+            Back to listings
+          </Button>
           {inactive && (
-            <span className="text-xs bg-slate-100 text-slate-500 font-semibold px-3 py-1 rounded-full border border-slate-200">
+            <Badge variant="slate" className="px-3 py-1 font-semibold">
               Inactive — hidden from guests
-            </span>
+            </Badge>
           )}
         </div>
 
@@ -630,13 +634,14 @@ export default function EditListingClient({ pgId }) {
                   {pg.amenities.map((a) => {
                     const Icon = amenityIcons[a];
                     return (
-                      <div
+                      <Badge
+                        variant="slate"
                         key={a}
-                        className="flex items-center gap-1.5 text-xs text-slate-600 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-full"
+                        className="flex items-center gap-1.5 normal-case font-medium"
                       >
                         {Icon && <Icon size={12} className="text-blue-500" />}
                         {a}
-                      </div>
+                      </Badge>
                     );
                   })}
                 </div>
@@ -652,38 +657,24 @@ export default function EditListingClient({ pgId }) {
               </p>
 
               {/* edit toggle */}
-              <button
-                onClick={() => setEditOpen((o) => !o)}
-                className={`w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold border transition-colors ${
-                  editOpen
-                    ? "bg-blue-600 text-white border-blue-600"
-                    : "bg-white text-blue-600 border-blue-300 hover:bg-blue-50"
-                }`}
+              <Button
+                onClick={() => setEditOpen(!editOpen)}
+                variant={editOpen ? "primary" : "outline"}
+                icon={Pencil}
               >
-                <Pencil size={14} />{" "}
                 {editOpen ? "Close Editor" : "Edit Listing"}
-              </button>
+              </Button>
 
               {/* activate / deactivate */}
-              <button
+              <Button
                 onClick={() => setStatusConfirmOpen(true)}
-                disabled={toggling}
-                className={`w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold border transition-colors disabled:opacity-50 ${
-                  inactive
-                    ? "bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100"
-                    : "bg-slate-50 text-slate-600 border-slate-200 hover:bg-red-50 hover:text-red-600 hover:border-red-200"
-                }`}
+                loading={toggling}
+                variant={inactive ? "secondary" : "danger"}
+                icon={inactive ? Eye : EyeOff}
+                className={inactive ? "bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100" : ""}
               >
-                {inactive ? (
-                  <>
-                    <Eye size={14} /> Activate Listing
-                  </>
-                ) : (
-                  <>
-                    <EyeOff size={14} /> Deactivate Listing
-                  </>
-                )}
-              </button>
+                {inactive ? "Activate Listing" : "Deactivate Listing"}
+              </Button>
 
               {/* stats */}
               <div className="border-t border-slate-100 pt-3 grid grid-cols-2 gap-2">
