@@ -15,6 +15,8 @@ import {
   XCircle,
   ArrowLeft,
 } from "lucide-react";
+import Button from "../../atoms/Button";
+import ConfirmModal from "../../../components/ConfirmModal";
 
 export default function EditProfilePage() {
   const router = useRouter();
@@ -327,90 +329,54 @@ export default function EditProfilePage() {
               </div>
             </div>
 
-            {/*  */}
-            <button
+            <Button
               type="submit"
+              loading={loading}
               disabled={
-                loading ||
                 passwordTooShort ||
                 (showMatchIndicator && !passwordsMatch)
               }
-              className="bg-blue-600 text-white py-2.5 rounded-xl font-semibold text-sm hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed mt-1"
+              className="mt-1"
+              size="lg"
             >
-              {loading ? "Saving…" : "Save Changes"}
-            </button>
+              Save Changes
+            </Button>
           </form>
         </div>
       </div>
 
-      {/* CONFIRM POPUP */}
-      {showConfirmPopup && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
-          <div
-            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
-            onClick={() => setShowConfirmPopup(false)}
-          />
+      <ConfirmModal
+        isOpen={showConfirmPopup}
+        onClose={() => setShowConfirmPopup(false)}
+        onConfirm={confirmUpdate}
+        title="Save Changes?"
+        description="Are you sure you want to update your profile?"
+        confirmText="Yes, Save"
+        variant="primary"
+        processing={loading}
+      >
+        <div className="bg-slate-50 rounded-xl p-3 flex flex-col gap-1.5 text-xs text-slate-600 border border-slate-100 mt-2">
+          {pendingBody?.name && (
+            <p>
+              • Name →{" "}
+              <span className="font-semibold text-slate-900">
+                {pendingBody.name}
+              </span>
+            </p>
+          )}
 
-          {/* POPUP CARD */}
-          <div className="relative bg-white rounded-2xl shadow-2xl p-6 w-full max-w-xs flex flex-col gap-4 z-10 border border-slate-100">
-            {/* Message */}
-            <div className="text-center">
-              <div className="bg-blue-50 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3 border border-blue-100">
-                <User size={26} className="text-blue-600" />
-              </div>
-              <h3 className="text-base font-bold text-slate-900">
-                Save Changes?
-              </h3>
-              <p className="text-sm text-slate-400 mt-1">
-                Are you sure you want to update your profile?
-              </p>
-            </div>
+          {pendingBody?.mobile && (
+            <p>
+              • Mobile →{" "}
+              <span className="font-semibold text-slate-900">
+                {pendingBody.mobile}
+              </span>
+            </p>
+          )}
 
-            {/* Show what will change */}
-            <div className="bg-slate-50 rounded-xl p-3 flex flex-col gap-1.5 text-xs text-slate-600 border border-slate-100">
-              {/* Show name if updated */}
-              {pendingBody?.name && (
-                <p>
-                  • Name →{" "}
-                  <span className="font-semibold text-slate-900">
-                    {pendingBody.name}
-                  </span>
-                </p>
-              )}
-
-              {/* Show mobile if updated */}
-              {pendingBody?.mobile && (
-                <p>
-                  • Mobile →{" "}
-                  <span className="font-semibold text-slate-900">
-                    {pendingBody.mobile}
-                  </span>
-                </p>
-              )}
-
-              {pendingBody?.password && <p>• Password will be updated</p>}
-            </div>
-
-            <div className="flex gap-3">
-              {/* Cancel */}
-              <button
-                onClick={() => setShowConfirmPopup(false)}
-                className="flex-1 py-2.5 rounded-xl border border-slate-200 text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors"
-              >
-                Cancel
-              </button>
-
-              {/* Apply Button */}
-              <button
-                onClick={confirmUpdate}
-                className="flex-1 py-2.5 rounded-xl bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 transition-colors"
-              >
-                Yes, Save
-              </button>
-            </div>
-          </div>
+          {pendingBody?.password && <p>• Password will be updated</p>}
         </div>
-      )}
+      </ConfirmModal>
     </div>
   );
 }

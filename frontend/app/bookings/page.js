@@ -21,10 +21,11 @@ import {
   CheckCircle2,
   XCircle,
 } from "lucide-react";
+
 // ────────────────helpers───────────────────────────────────
 function daysLeft(checkOutDate) {
   return Math.ceil(
-    (new Date(checkOutDate) - new Date()) / (1000 * 60 * 60 * 24),
+    (new Date(checkOutDate) - new Date()) / (1000 * 60 * 60 * 24)
   );
 }
 
@@ -81,10 +82,12 @@ export default function MyBookingsPage() {
   // ─── auth guard
   useEffect(() => {
     if (!ready) return;
+
     if (!user) router.push("/auth/login");
+    
   }, [ready, user]);
 
-  // ─── fetch
+  // ─── fetch bookings on mount & user change 
   const fetchBookings = useCallback(async () => {
     setLoading(true);
     try {
@@ -100,18 +103,21 @@ export default function MyBookingsPage() {
       const bookingList = Array.isArray(response.data) ? response.data : [];
 
       setBookings(bookingList);
-    } catch {
+    } 
+    catch {
       setBookings([]);
-    } finally {
+    } 
+    finally {
       setLoading(false);
     }
   }, []);
 
+  // ─── fetch bookings on mount & user change 
   useEffect(() => {
     if (ready && user) fetchBookings();
   }, [ready, user, fetchBookings]);
 
-  // ─── toast
+  // ─── toast 
   const showToast = (type, text) => {
     setToast({ type, text });
     setTimeout(() => setToast(null), 3500);
@@ -126,27 +132,37 @@ export default function MyBookingsPage() {
     try {
       const token = localStorage.getItem("token");
 
+      // call api
       const data = await bookingApi.updateStatus(
         cancelTarget._id,
         "cancelled",
-        token,
+        token
       );
 
+      // handle response
       if (data.message === "Booking status updated successfully") {
+        
         setBookings((prev) =>
           prev.map((b) =>
-            b._id === cancelTarget._id ? { ...b, status: "cancelled" } : b,
-          ),
+            // if id matches update status
+            b._id === cancelTarget._id ? { ...b, status: "cancelled" } : b
+          )
         );
+        // close modal
         setCancelTarget(null);
+        // show toast
         showToast("success", "Booking cancelled successfully.");
-      } else {
+      } 
+      else {
+        // show error
         setPopupError(data.message || "Something went wrong. Try again.");
       }
-    } catch {
-      setPopupError("Network error. Try again.");
-    } finally {
-      setProcessing(false);
+    } 
+    catch {
+      setPopupError("Network error. Try again."); //? if backend is down
+    } 
+    finally {
+      setProcessing(false); //? stop loading
     }
   };
 
