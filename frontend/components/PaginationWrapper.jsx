@@ -33,11 +33,14 @@ export default function PaginationWrapper({
 
   // in server-side mode data is already the current page slice — render as-is
   // in client-side mode slice it ourselves
-  const paginated = externalTotalPages
+
+  const isRemote = externalTotalPages !== undefined;
+
+  const paginated = isRemote
     ? safeData
     : safeData.slice((page - 1) * itemsPerPage, page * itemsPerPage);
 
-  if (safeData.length === 0) return null;
+  if (safeData.length === 0 && !isRemote) return null;
 
   // ── How many total items exist ──
   // server mode: totalCount prop tells us the real total across all pages
@@ -121,7 +124,7 @@ export default function PaginationWrapper({
                   >
                     {num}
                   </button>
-                )
+                ),
               )}
             </div>
 
