@@ -15,7 +15,7 @@ export default function Loading() {
             <Skeleton className="h-10 w-48" />
             <Skeleton className="h-10 w-64" />
           </div>
-          {[1, 2, 3].map((i) => (
+          {[1, 2,3 ].map((i) => (
             <Skeleton key={i} className="h-48 w-full" />
           ))}
         </div>
