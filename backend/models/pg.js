@@ -1,106 +1,112 @@
 const mongoose = require("mongoose");
 
-const pgSchema = new mongoose.Schema({
-  owner: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "User",
-    required: true,
-  },
+const pgSchema = new mongoose.Schema(
+  {
+    owner: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
 
-  name: {
-    type: String,
-    required: true,
-    minLength: 2,
-    maxLength: 32,
-  },
+    name: {
+      type: String,
+      required: true,
+      minLength: 2,
+      maxLength: 32,
+    },
 
-  price: {
-    type: Number,
-    required: true,
-  },
+    price: {
+      type: Number,
+      required: true,
+    },
 
-  address: {
-    type: String,
-    required: true,
-    minLength: 10,
-    maxLength: 256,
-  },
+    address: {
+      type: String,
+      required: true,
+      minLength: 10,
+      maxLength: 256,
+    },
 
-coordinate: {
-  type: {
-    type: String,
-    enum: ["Point"],
-    default: "Point",
-  },
-  coordinates: {
-    type: [Number],
-    required: true,
-  },
-},
+    coordinate: {
+      type: {
+        type: String,
+        enum: ["Point"],
+        default: "Point",
+      },
+      coordinates: {
+        type: [Number], //long, lat
+        required: true,
+      },
+    },
 
-  city: {
-    type: String,
-    required: true,
-    minLength: 2,
-    maxLength: 64,
-  },
+    city: {
+      type: String,
+      required: true,
+      minLength: 2,
+      maxLength: 64,
+    },
 
-  gender: {
-    type: String,
-    enum: ["male", "female", "mix"],
-    default: "male",
-    required: true,
-  },
+    gender: {
+      type: String,
+      enum: ["male", "female", "mix"],
+      default: "male",
+      required: true,
+    },
 
-  room: {
-    type: Number,
-    required: true,
-  },
+    room: {
+      type: Number,
+      required: true,
+    },
 
-  bathroom: {
-    type: Number,
-    required: true,
-  },
+    bathroom: {
+      type: Number,
+      required: true,
+    },
 
-  toilet: {
-    type: Number,
-    required: true,
-  },
+    toilet: {
+      type: Number,
+      required: true,
+    },
 
-  food: {
-    type: String,
-    enum: ["with food", "without food", "flexible"],
-    default: "flexible",
-    required: true,
-  },
+    food: {
+      type: String,
+      enum: ["with food", "without food", "flexible"],
+      default: "flexible",
+      required: true,
+    },
 
-  amenities: {
-    type: [String],
-    enum: [
-      "Parking",
-      "WiFi",
-      "AC",
-      "Laundry",
-      "Lift",
-      "CCTV",
-      "RO",
-      "TV",
-      "Refrigerator",
-      "Gym",
-      "Garden",
-      "Library",
-    ],
-    default: ["Parking", "Lift", "CCTV"],
-    required: true,
+    amenities: {
+      type: [String],
+      enum: [
+        "Parking",
+        "WiFi",
+        "AC",
+        "Laundry",
+        "Lift",
+        "CCTV",
+        "RO",
+        "TV",
+        "Refrigerator",
+        "Gym",
+        "Garden",
+        "Library",
+      ],
+      default: ["Parking", "Lift", "CCTV"],
+      required: true,
+    },
+
+    isActive: { 
+      type: Boolean, 
+      default: true 
+    }, // ← NEW: false = hidden from home page
   },
-  
-  isActive: { type: Boolean, default: true }, // ← NEW: false = hidden from home page
-}, { timestamps: true });
+    { timestamps: true },
+);
 
 // Indexes for scalable filtering
 pgSchema.index({ city: 1, gender: 1, price: 1, isActive: 1 });
 pgSchema.index({ amenities: 1 });
 pgSchema.index({ owner: 1 });
 pgSchema.index({ coordinate: "2dsphere" });
-  
+
 module.exports = mongoose.model("PG", pgSchema);
