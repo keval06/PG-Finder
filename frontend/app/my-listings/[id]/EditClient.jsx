@@ -6,6 +6,7 @@ import { useAuth } from "../../context/AuthContext";
 import { pgApi } from "../../../lib/api/pg";
 import { imageApi } from "../../../lib/api/image";
 import { roomTypeApi } from "../../../lib/api/roomType";
+import PGGallery from "../../components/PGGallery";
 import PGForm from "../components/PGForm";
 import ConfirmModal from "../../../components/ConfirmModal";
 import Button from "../../atoms/Button";
@@ -33,21 +34,17 @@ import {
   User,
   MapPin,
   Bed,
-  Bath,
+  BathIcon,
   Home,
   Star,
-  ImagePlus,
   Trash2,
   Users,
   IndianRupee,
   CheckCircle2,
   XCircle,
   Toilet,
-  BathIcon,
   BedDouble,
-  ImagePlusIcon,
 } from "lucide-react";
-import Image from "next/image";
 
 const amenityIcons = {
   WiFi: Wifi,
@@ -69,15 +66,6 @@ const foodLabel = {
   "without food": "No Food",
   flexible: "Flexible",
 };
-const CATEGORIES = [
-  "room",
-  "kitchen",
-  "bathroom",
-  "toilet",
-  "building",
-  "amenities",
-];
-
 export default function EditListingClient({ pgId }) {
   const { user, ready } = useAuth();
   const router = useRouter();
@@ -98,9 +86,7 @@ export default function EditListingClient({ pgId }) {
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
-  const [activeCategory, setActiveCategory] = useState("room");
-  const [activeImg, setActiveImg] = useState(0);
-  const [deleteImgTarget, setDeleteImgTarget] = useState(null); // holds the img._id
+  const [deleteImgTarget, setDeleteImgTarget] = useState(null);
 
   const token = () => localStorage.getItem("token");
 
@@ -153,7 +139,7 @@ export default function EditListingClient({ pgId }) {
       pgFields.some((f) => {
         if (f === "coordinate") {
            const old = pg.coordinate?.coordinates || pg.coordinate;
-           const cur = pgData.coordinate;
+           const cur = pgData.coordinate?.coordinates || pgData.coordinate;
            return JSON.stringify(old) !== JSON.stringify(cur);
         }
         return pgData[f] !== pg[f];
@@ -188,7 +174,13 @@ export default function EditListingClient({ pgId }) {
     setSaving(true);
     try {
       const tok = token();
-      const updated = await pgApi.update(pgId, pgData, tok);
+      const updatedPgData = {
+        ...pgData,
+        coordinate: Array.isArray(pgData.coordinate) 
+          ? { type: "Point", coordinates: pgData.coordinate } 
+          : pgData.coordinate
+      };
+      const updated = await pgApi.update(pgId, updatedPgData, tok);
 
       if (!updated._id) {
         showToast("error", "Failed to update PG.");
@@ -260,18 +252,17 @@ export default function EditListingClient({ pgId }) {
     }
   };
 
-  const handleUpload = async (file) => {
+  const handleUpload = async (file, category) => {
     try {
       const formData = new FormData();
       formData.append("image", file);
       formData.append("pg", pgId);
-      formData.append("category", activeCategory);
+      formData.append("category", category);
 
       const res = await imageApi.upload(formData, token());
 
       if (res._id) {
-        await fetchAll(); // refresh images
-        setActiveImg(0);
+        await fetchAll();
       } else {
         console.error("Upload failed");
       }
@@ -315,7 +306,6 @@ export default function EditListingClient({ pgId }) {
       </div>
     );
 
-  const filteredImgs = images.filter((img) => img.category === activeCategory);
   const inactive = pg.isActive === false;
 
   // add this before return
@@ -389,103 +379,12 @@ export default function EditListingClient({ pgId }) {
         )}
 
         {/* ── GALLERY ── */}
-        <input
-          type="file"
-          accept="image/*"
-          id="imageUpload"
-          hidden
-          onChange={(e) => {
-            if (e.target.files[0]) handleUpload(e.target.files[0]);
-          }}
-        />
-
         <div className="mb-6">
-          {/* main image or empty placeholder */}
-          {filteredImgs.length > 0 ? (
-            <div className="group relative w-full h-[380px]">
-              <Image
-                src={filteredImgs[activeImg]?.url}
-                alt={activeCategory}
-                fill
-                className="object-cover rounded-2xl"
-                sizes="100vw"
-                priority
-              />
-
-              {/* delete button on main image */}
-              <button
-                onClick={() => requestDeleteImg(filteredImgs[activeImg]._id)}
-                className="absolute top-3 right-3 z-10 flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-black/50 text-white text-xs font-medium opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600"
-              >
-                <Trash2 size={13} />
-                Delete
-              </button>
-            </div>
-          ) : (
-            <div
-              onClick={() => document.getElementById("imageUpload").click()}
-              className="w-full h-[380px] bg-slate-50 border-2 border-dashed border-slate-200 rounded-3xl flex flex-col items-center justify-center gap-2 text-slate-400 group hover:border-blue-400 hover:bg-blue-50/30 transition-all cursor-pointer"
-            >
-              <div className="w-16 h-16 bg-white rounded-2xl shadow-sm flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
-                <ImagePlus size={32} className="text-blue-500/50" />
-              </div>
-              <p className="text-base font-semibold text-slate-600">
-                No {activeCategory} images yet
-              </p>
-              <p className="text-sm text-slate-400">Click to upload</p>
-            </div>
-          )}
-
-          {/* category tabs */}
-          <div className="flex gap-2 mt-3 mb-3 overflow-x-auto pb-1 scrollbar-hide">
-            {CATEGORIES.map((cat) => (
-              <button
-                key={cat}
-                onClick={() => {
-                  setActiveCategory(cat);
-                  setActiveImg(0);
-                }}
-                className={`px-4 py-1.5 rounded-full capitalize text-xs font-medium border flex-shrink-0 transition-colors ${
-                  activeCategory === cat
-                    ? "bg-blue-600 text-white border-blue-600 shadow-sm"
-                    : "text-slate-600 border-slate-200 hover:border-blue-300 bg-white"
-                }`}
-              >
-                {cat}
-              </button>
-            ))}
-          </div>
-
-          {/* thumbnail row */}
-          <div className="flex gap-3 overflow-x-auto pb-1 scrollbar-hide">
-            {filteredImgs.map((img, i) => (
-              <div
-                key={img._id}
-                onClick={() => setActiveImg(i)}
-                className={`group relative w-20 h-14 flex-shrink-0 overflow-hidden rounded-xl cursor-pointer border-2 transition-all ${
-                  activeImg === i
-                    ? "border-blue-500 scale-105 ring-4 ring-blue-50"
-                    : "border-transparent opacity-60 hover:opacity-100"
-                }`}
-              >
-                <Image
-                  src={img.url}
-                  alt="thumb"
-                  fill
-                  className="object-cover"
-                  sizes="80px"
-                />
-              </div>
-            ))}
-
-            {/* + add button */}
-            <div
-              onClick={() => document.getElementById("imageUpload").click()}
-              className="w-20 h-14 flex-shrink-0 rounded-xl border-2 border-dashed border-slate-300 flex items-center justify-center cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition-colors"
-            >
-              <ImagePlus size={18} className="text-slate-400" />
-            </div>
-          </div>
+          <PGGallery
+            images={images}
+            onUpload={handleUpload}
+            onDelete={requestDeleteImg}
+          />
         </div>
 
         {/* ── MAIN GRID ── */}

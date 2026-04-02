@@ -70,27 +70,35 @@ export default function MyListingsClient() {
       const withRatings = await Promise.all(
         mine.map(async (pg) => {
           try {
-            const [reviews, images] = await Promise.all([
+            const [reviewRes, images] = await Promise.all([
               reviewApi.getByPgId(pg._id).catch(() => []),
               imageApi.getByPgId(pg._id).catch(() => []),
             ]);
 
+            // Extract array from paginated response
+            const reviews = Array.isArray(reviewRes)
+              ? reviewRes
+              : reviewRes?.reviews ?? [];
+            const total = Array.isArray(reviewRes)
+              ? reviews.length
+              : reviewRes?.total ?? 0;
             let ratingData = null;
-            if (Array.isArray(reviews) && reviews.length > 0) {
+            if (reviews.length > 0) {
               const avg =
                 reviews.reduce((s, rv) => s + rv.star, 0) / reviews.length;
-              ratingData = { avg: avg.toFixed(1), count: reviews.length };
+              ratingData = { avg: avg.toFixed(1), count: total };
             }
 
             return {
               ...pg,
+              images: Array.isArray(images) ? images : [],
               image: images?.[0]?.url || null,
               ratingData,
             };
           } catch {
             return { ...pg, ratingData: null, image: null };
           }
-        }),
+        })
       );
       setPgs(withRatings);
     } finally {
@@ -111,8 +119,15 @@ export default function MyListingsClient() {
     try {
       const token = localStorage.getItem("token");
 
+      const pgPayload = {
+        ...pgData,
+        coordinate: Array.isArray(pgData.coordinate)
+          ? { type: "Point", coordinates: pgData.coordinate }
+          : pgData.coordinate,
+      };
+
       // step 1 — create PG
-      const newPg = await pgApi.create(pgData, token);
+      const newPg = await pgApi.create(pgPayload, token);
       if (!newPg._id) return;
 
       // step 2 — create each room type sequentially
@@ -187,6 +202,16 @@ export default function MyListingsClient() {
                 field="price"
                 {...{ sortField, sortOrder, onToggle: toggleSort }}
               />
+              <SortBtn
+                label="Rating"
+                field="rating"
+                {...{ sortField, sortOrder, onToggle: toggleSort }}
+              />
+              <SortBtn
+                label="Reviews"
+                field="reviews"
+                {...{ sortField, sortOrder, onToggle: toggleSort }}
+              />
               <Button
                 variant={createOpen ? "primary" : "outline"}
                 onClick={() => setCreateOpen(!createOpen)}
@@ -216,7 +241,9 @@ export default function MyListingsClient() {
           {sorted.length === 0 ? (
             <EmptyState
               icon={HomeIcon}
-              title={pgs.length === 0 ? "No listings yet" : "No PGs match filters"}
+              title={
+                pgs.length === 0 ? "No listings yet" : "No PGs match filters"
+              }
               description={
                 pgs.length === 0
                   ? 'Click "Add PG" to post your first listing.'
