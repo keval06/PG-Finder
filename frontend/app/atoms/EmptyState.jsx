@@ -4,7 +4,7 @@ export default function EmptyState({
   icon: Icon, 
   title, 
   description, 
-  action 
+  action  //accepts a JSX element as a prop. Not a string. Not a function. An actual React element.
 }) {
   return (
     <div className="text-center py-20 px-4 bg-white rounded-3xl border border-slate-100 shadow-sm">
