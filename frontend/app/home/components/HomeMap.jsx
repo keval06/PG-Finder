@@ -88,7 +88,6 @@ export default function HomeMap({
       </Button>
 
       <Map
-        mapId={process.env.NEXT_PUBLIC_MAP_ID}
         defaultZoom={userLocation ? 13 : 11}
         defaultCenter={
           userLocation ?? defaultMapCenter ?? { lat: 20.5937, lng: 78.9629 }

@@ -10,6 +10,7 @@ export default function HomeHeader({
   displayCount,
   handleNearMe,
   userLocation,
+  isLocationLoading,
   radius,
   setRadius,
   sortField,
@@ -17,8 +18,9 @@ export default function HomeHeader({
   toggleSort,
 }) {
   return (
-    <div className="flex items-center justify-between mb-5 gap-3 flex-wrap">
-      <div className="flex items-center gap-3">
+    <div className="flex flex-col gap-3 mb-5">
+      {/* Row 1: Filters + Count + Near Me */}
+      <div className="flex items-center gap-2 flex-wrap">
         <Button
           onClick={() => setDrawerOpen(true)}
           variant="outline"
@@ -32,6 +34,7 @@ export default function HomeHeader({
             </span>
           )}
         </Button>
+
         <p className="text-sm text-slate-500">
           <span className="font-semibold text-slate-900">{displayCount}</span>{" "}
           PGs found
@@ -40,28 +43,29 @@ export default function HomeHeader({
         <Button
           onClick={handleNearMe}
           variant={userLocation ? "danger" : "outline"}
-          className="hidden md:flex"
           icon={userLocation ? X : MapPin}
+          loading={isLocationLoading}
+          disabled={isLocationLoading}
         >
-          {userLocation ? "Clear Map" : "Near Me"}
+          {isLocationLoading ? "Locating…" : userLocation ? "Clear Map" : "Near Me"}
         </Button>
 
         {userLocation && (
           <select
             value={radius}
             onChange={(e) => setRadius(Number(e.target.value))}
-            className="hidden md:block bg-white border border-slate-200 text-slate-700 text-sm rounded-xl px-2 py-1.5 outline-none shadow-sm cursor-pointer"
+            className="bg-white border border-slate-200 text-slate-700 text-xs sm:text-sm rounded-xl px-2 py-1.5 outline-none shadow-sm cursor-pointer"
           >
-            <option value={2}>Within 2 km</option>
-            <option value={5}>Within 5 km</option>
-            <option value={10}>Within 10 km</option>
-            <option value={20}>Within 20 km</option>
-            <option value={100}>Within 100 km</option>
-            <option value={500}>Within 500 km</option>
+            <option value={2}>2 km</option>
+            <option value={5}>5 km</option>
+            <option value={10}>10 km</option>
+            <option value={20}>20 km</option>
+            <option value={30}>30 km</option>
           </select>
         )}
       </div>
 
+      {/* Row 2: Sort buttons */}
       <div className="flex gap-2 flex-wrap">
         <SortBtn
           label="Price"

@@ -3,14 +3,14 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export const pgApi = {
   // Home Page Listings
+  // cache: "no-store" → always hits the backend fresh; prevents stale error
+  // responses from being cached and served for 60s after a backend restart.
   getAll: async (queryString = "") => {
     const url = queryString
       ? `${API_URL}/api/pg?${queryString}`
       : `${API_URL}/api/pg`;
-    const res = await fetch(url, { 
-      next: { revalidate: 60 } 
-    }
-  );
+    const res = await fetch(url, { cache: "no-store" });
+    if (!res.ok) throw new Error(`getAll failed: ${res.status}`);
     return res.json();
   },
 
@@ -21,6 +21,7 @@ export const pgApi = {
       `${API_URL}/api/pg/nearby?lat=${lat}&lng=${lng}&radius=${radius}&${qs}`,
       { cache: "no-store" },
     );
+    if (!res.ok) throw new Error(`getNearby failed: ${res.status}`);
     return res.json();
   },
 

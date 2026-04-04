@@ -39,16 +39,8 @@ async function getPGs(searchParams) {
   }
 }
 
-//? getFirstImage(pgId) — Fetch One Image Per PG
-async function getFirstImage(pgId) {
-  try {
-    // 1. Fetch raw PG list from Node.js Backend
-    const imgs = await imageApi.getByPgId(pgId);
-    return imgs?.[0]?.url ?? null; //*     ?? null → nullish coalescing → if undefined/null → return null
-  } catch {
-    return null;
-  }
-}
+
+
 
 // ?getAvgRating(pgId) — Calculate Average Rating
 async function getAvgRating(pgId) {
@@ -96,15 +88,18 @@ export default async function Home({ searchParams }) {
 
   const data = await Promise.all(
     (pgResponse.data || []).map(async (pg) => {
-      // Step B-1: Fire BOTH APIs at the exact same moment
-
-      const [image, ratingData] = await Promise.all([
-        getFirstImage(pg._id),
+      const [allImages, ratingData] = await Promise.all([
+        imageApi.getByPgId(pg._id).catch(() => []),
         getAvgRating(pg._id),
-      ]); // Step B-2: Glue the new data onto the old PG object
+      ]);
 
-      // Combine it all into one rich PG object
-      return { ...pg, image, ratingData };
+      const images = Array.isArray(allImages) ? allImages : [];
+      return {
+        ...pg,
+        images,
+        image: images[0]?.url ?? null,
+        ratingData,
+      };
     })
   );
 
