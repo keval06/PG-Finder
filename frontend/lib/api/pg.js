@@ -4,17 +4,23 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL;
 export const pgApi = {
   // Home Page Listings
   getAll: async (queryString = "") => {
-  const url = queryString
-    ? `${API_URL}/api/pg?${queryString}`
-    : `${API_URL}/api/pg`;
-  const res = await fetch(url, { cache: "no-store" });
-  return res.json();
-},
+    const url = queryString
+      ? `${API_URL}/api/pg?${queryString}`
+      : `${API_URL}/api/pg`;
+    const res = await fetch(url, { 
+      next: { revalidate: 60 } 
+    }
+  );
+    return res.json();
+  },
 
   // Radius PGs
   getNearby: async (lat, lng, radius = 5, queryString = "") => {
     const qs = queryString ? `${queryString}` : "";
-    const res = await fetch(`${API_URL}/api/pg/nearby?lat=${lat}&lng=${lng}&radius=${radius}&${qs}`, { cache: "no-store" });
+    const res = await fetch(
+      `${API_URL}/api/pg/nearby?lat=${lat}&lng=${lng}&radius=${radius}&${qs}`,
+      { cache: "no-store" },
+    );
     return res.json();
   },
 
@@ -29,7 +35,9 @@ export const pgApi = {
 
   // PG Details (Verified: /api/pg/:id)
   getById: async (id) => {
-    const res = await fetch(`${API_URL}/api/pg/${id}`, { cache: "no-store" });
+    const res = await fetch(`${API_URL}/api/pg/${id}`, 
+      { cache: "no-store" },
+    );
     return res.json();
   },
 

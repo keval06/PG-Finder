@@ -6,14 +6,16 @@ export const bookingApi = {
   getUserBookings: async (token) => {
     const res = await fetch(`${API_URL}/api/booking/my`, {
       headers: { Authorization: `Bearer ${token}` },
+      cache: "no-store",
     });
     return res.json();
   },
 
   // Owner Dashboard (Verified: /api/booking/received)
-  getOwnerBookings: async (token) => {                                  
+  getOwnerBookings: async (token) => {
     const res = await fetch(`${API_URL}/api/booking/received`, {
       headers: { Authorization: `Bearer ${token}` },
+      cache: "no-store",
     });
     return res.json();
   },
