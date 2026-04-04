@@ -281,13 +281,14 @@ export default function EditListingClient({ pgId }) {
     const imgId = deleteImgTarget;
     setDeleteImgTarget(null);
 
+    // Optimistic update — remove from local state
     setImages((prev) => prev.filter((img) => img._id !== imgId));
-    setActiveImg(0);
 
     try {
       await imageApi.delete(imgId, token());
     } catch (err) {
       console.error("Delete failed", err);
+      // Revert by refetching from server
       await fetchAll();
     }
   };

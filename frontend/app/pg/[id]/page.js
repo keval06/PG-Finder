@@ -34,6 +34,7 @@ import {
 import ReviewsSection from "./components/ReviewsSection";
 import BookNowButton from "./components/BookNowButton";
 import OwnerEditButton from "./OwnerEditButton";
+import BackButton from "./components/BackButton";
 
 // async function getPG(id) {
 //   const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/pg/${id}`, {
@@ -136,6 +137,11 @@ export default async function PGDetails({ params }) {
   return (
     <div className="bg-gray-50 min-h-screen">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6">
+        {/* BACK BUTTON */}
+        <div className="mb-4">
+          <BackButton />
+        </div>
+
         {/* GALLERY */}
         <PGGallery images={images} />
 

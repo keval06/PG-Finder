@@ -83,16 +83,11 @@ export default function ReceivedBookingsPage() {
         token,
       );
 
-      if (data.message === "Booking status updated successfully") {
-        setBookings((prev) =>
-          prev.map((b) =>
-            b._id === actionTarget.booking._id
-              ? { ...b, status: actionTarget.newStatus }
-              : b,
-          ),
-        );
+      // Backend returns the updated booking doc (has _id), NOT { message: "..." }
+      if (data._id) {
         setActionTarget(null);
         showToast("success", `Booking ${actionTarget.newStatus}.`);
+        fetchBookings(); // refetch fresh data from server
       } else {
         setPopupError(data.message || "Something went wrong.");
       }

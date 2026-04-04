@@ -1,6 +1,6 @@
 "use client";
 
-import { act, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { useSearch } from "./context/SearchContext";
 import PGCard from "../components/PGCard";
@@ -11,7 +11,7 @@ import HomeMap from "./home/components/HomeMap";
 import HomeHeader from "./home/components/HomeHeader";
 import EmptyState from "./atoms/EmptyState";
 import Button from "./atoms/Button";
-import { Home as HomeIcon } from "lucide-react";
+import { Home as HomeIcon, AlertCircle, X, Map as MapIcon } from "lucide-react";
 
 // Helper for initial map center — handles BOTH GeoJSON and flat array
 const getLatLng = (coordinate) => {
@@ -63,6 +63,8 @@ export default function HomeClient({
       : null,
   );
   const [radius, setRadius] = useState(radiusParam ? Number(radiusParam) : 5);
+  const [isLocationLoading, setIsLocationLoading] = useState(false);
+  const [locationError, setLocationError] = useState(null);
 
   const buildParams = (pageOverride = null) => {
     const params = new URLSearchParams();
@@ -118,7 +120,7 @@ export default function HomeClient({
     }
     const debounceId = setTimeout(() => {
       const params = buildParams(1);
-      router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+      router.push(`${pathname}?${params.toString()}`, { scroll: false });
     }, 400);
     return () => clearTimeout(debounceId);
   }, [
@@ -133,22 +135,42 @@ export default function HomeClient({
   ]);
 
   const handleNearMe = () => {
+    // Toggle off if already active
     if (userLocation) {
       setUserLocation(null);
+      setLocationError(null);
       return;
     }
-    if ("geolocation" in navigator) {
-      navigator.geolocation.getCurrentPosition(
-        (pos) =>
-          setUserLocation({
-            lat: pos.coords.latitude,
-            lng: pos.coords.longitude,
-          }),
-        () => alert("Location permission denied."),
-      );
-    } else {
-      alert("Geolocation is not supported by your browser.");
+
+    // No pre-flight guards — just let the browser handle it.
+    // getCurrentPosition will trigger the native permission prompt automatically.
+    if (!("geolocation" in navigator)) {
+      setLocationError("Your browser doesn't support location. Try Chrome, Firefox, or Edge.");
+      return;
     }
+
+    setIsLocationLoading(true);
+    setLocationError(null);
+
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setIsLocationLoading(false);
+        setUserLocation({
+          lat: pos.coords.latitude,
+          lng: pos.coords.longitude,
+        });
+      },
+      (err) => {
+        setIsLocationLoading(false);
+        const errorMessages = {
+          1: "Location permission denied. Click the 🔒 icon in your address bar → Allow location → try again.",
+          2: "Location unavailable. Check your device's location settings or move to an open area.",
+          3: "Location request timed out. Please try again.",
+        };
+        setLocationError(errorMessages[err.code] || "Could not get your location. Please try again.");
+      },
+      { timeout: 10000, maximumAge: 60000, enableHighAccuracy: false },
+    );
   };
 
   const displayCount =
@@ -173,10 +195,88 @@ export default function HomeClient({
         </div>
       )}
 
-      <div className="flex py-6 min-h-screen">
+      {/* ── MOBILE / TABLET LAYOUT (below xl) ── */}
+      {/* Fixed map top half + scrollable PG cards bottom half */}
+      <div className="xl:hidden flex flex-col min-h-screen">
+        {/* Map — sticky at top, 45vh tall, rounded with side margins */}
+        <div
+          className={
+            isMapFullscreen
+              ? "fixed inset-0 z-[150] bg-white"
+              : "sticky top-[60px] z-20 h-[45vh] px-3 pt-3 pb-1"
+          }
+        >
+          <div className={isMapFullscreen ? "w-full h-full" : "w-full h-full rounded-2xl overflow-hidden border border-slate-200 shadow-sm"}>
+            <HomeMap
+              pgs={sorted}
+              userLocation={userLocation}
+              defaultMapCenter={defaultMapCenter}
+              activePin={activePin}
+              setActivePin={setActivePin}
+              isFullscreen={isMapFullscreen}
+              setIsFullscreen={setIsMapFullscreen}
+            />
+          </div>
+        </div>
+
+        {/* PG listings — scrollable below map */}
+        <div className={`flex-1 px-4 sm:px-5 py-4 ${isMapFullscreen ? "hidden" : ""}`}>
+          {/* Location error toast */}
+          {locationError && (
+            <div className="mb-3 flex items-start gap-2.5 text-sm text-amber-800 bg-amber-50 border border-amber-200 rounded-xl px-3.5 py-2.5">
+              <AlertCircle size={16} className="flex-shrink-0 mt-0.5" />
+              <span className="flex-1">{locationError}</span>
+              <button onClick={() => setLocationError(null)} className="flex-shrink-0 text-amber-600 hover:text-amber-900 transition-colors">
+                <X size={15} />
+              </button>
+            </div>
+          )}
+
+          <HomeHeader
+            setDrawerOpen={setDrawerOpen}
+            filterCount={filterCount}
+            displayCount={displayCount}
+            handleNearMe={handleNearMe}
+            userLocation={userLocation}
+            isLocationLoading={isLocationLoading}
+            radius={radius}
+            setRadius={setRadius}
+            sortField={sortField}
+            sortOrder={sortOrder}
+            toggleSort={toggleSort}
+          />
+
+          {sorted.length === 0 ? (
+            <EmptyState
+              icon={HomeIcon}
+              title="No PGs found"
+              description="Try adjusting your filters or search term to find what you're looking for."
+              action={
+                hasFilters && (
+                  <Button variant="outline" size="sm" onClick={clearFilters}>
+                    Clear all filters
+                  </Button>
+                )
+              }
+            />
+          ) : (
+            <PaginationWrapper
+              data={sorted}
+              renderItem={(pg) => <PGCard key={pg._id} pg={pg} />}
+              page={pagination.currentPage}
+              onPageChange={handlePageChange}
+              totalPages={pagination.totalPages}
+              totalItems={pagination.totalCount}
+            />
+          )}
+        </div>
+      </div>
+
+      {/* ── DESKTOP LAYOUT (xl and above) ── */}
+      <div className="hidden xl:flex py-6 min-h-screen">
         <aside
           className={`${
-            isMapFullscreen ? "hidden lg:hidden" : "hidden lg:flex"
+            isMapFullscreen ? "hidden" : "flex"
           } flex-col flex-shrink-0 w-60 pl-4 sm:pl-6`}
         >
           <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm flex flex-col sticky top-24 h-[calc(100vh-120px)]">
@@ -187,12 +287,24 @@ export default function HomeClient({
         <div
           className={`flex-1 min-w-0 px-4 sm:px-5 ${isMapFullscreen ? "hidden" : "block"}`}
         >
+          {/* Location error toast */}
+          {locationError && (
+            <div className="mb-3 flex items-start gap-2.5 text-sm text-amber-800 bg-amber-50 border border-amber-200 rounded-xl px-3.5 py-2.5">
+              <AlertCircle size={16} className="flex-shrink-0 mt-0.5" />
+              <span className="flex-1">{locationError}</span>
+              <button onClick={() => setLocationError(null)} className="flex-shrink-0 text-amber-600 hover:text-amber-900 transition-colors">
+                <X size={15} />
+              </button>
+            </div>
+          )}
+
           <HomeHeader
             setDrawerOpen={setDrawerOpen}
             filterCount={filterCount}
             displayCount={displayCount}
             handleNearMe={handleNearMe}
             userLocation={userLocation}
+            isLocationLoading={isLocationLoading}
             radius={radius}
             setRadius={setRadius}
             sortField={sortField}
@@ -225,11 +337,12 @@ export default function HomeClient({
           )}
         </div>
 
+        {/* Desktop Map sidebar */}
         <div
           className={
             isMapFullscreen
-              ? "flex-1 w-full px-4 sm:px-6 z-[100]"
-              : "hidden xl:block w-[40%] flex-shrink-0 pl-3 pr-4 sticky top-24 h-[calc(100vh-120px)]"
+              ? "hidden"
+              : "w-[40%] flex-shrink-0 pl-3 pr-4 sticky top-24 h-[calc(100vh-120px)]"
           }
         >
           <HomeMap

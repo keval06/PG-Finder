@@ -66,19 +66,20 @@ export default function ListingCard({ pg }) {
                 fill
                 className="object-cover transition-transform duration-300 group-hover:scale-[1.03]"
                 sizes="(max-width: 640px) 100vw, 240px"
+                unoptimized={true}
               />
               <button
                 onClick={(e) => openLightbox(e, cardIdx)}
-                className="absolute top-2 right-2 bg-black/50 hover:bg-black/70 text-white rounded-lg p-1.5 opacity-0 group-hover:opacity-100 transition-all"
+                className="absolute top-2 right-2 bg-black/50 hover:bg-black/70 text-white rounded-lg p-1.5 sm:opacity-0 sm:group-hover:opacity-100 transition-all"
               >
                 <Maximize2 size={12} />
               </button>
               {images.length > 1 && (
                 <>
-                  <button onClick={(e) => { e.stopPropagation(); setCardIdx(i => (i - 1 + images.length) % images.length); }} className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white text-slate-700 rounded-full w-6 h-6 flex items-center justify-center shadow opacity-0 group-hover:opacity-100 transition-all">
+                  <button onClick={(e) => { e.stopPropagation(); setCardIdx(i => (i - 1 + images.length) % images.length); }} className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white text-slate-700 rounded-full w-6 h-6 flex items-center justify-center shadow sm:opacity-0 sm:group-hover:opacity-100 transition-all">
                     <ChevronLeft size={13} />
                   </button>
-                  <button onClick={(e) => { e.stopPropagation(); setCardIdx(i => (i + 1) % images.length); }} className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white text-slate-700 rounded-full w-6 h-6 flex items-center justify-center shadow opacity-0 group-hover:opacity-100 transition-all">
+                  <button onClick={(e) => { e.stopPropagation(); setCardIdx(i => (i + 1) % images.length); }} className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white text-slate-700 rounded-full w-6 h-6 flex items-center justify-center shadow sm:opacity-0 sm:group-hover:opacity-100 transition-all">
                     <ChevronRight size={13} />
                   </button>
                   <div className="absolute bottom-2 left-1/2 -translate-x-1/2 bg-black/50 text-white text-[10px] px-1.5 py-0.5 rounded-md">

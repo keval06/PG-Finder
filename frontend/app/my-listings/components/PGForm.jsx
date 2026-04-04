@@ -227,7 +227,6 @@ export default function PGForm({ initial, onSubmit, onCancel, saving , onRemoveR
           <label className={lab}>Pin Location on Map <span className="text-slate-400 font-normal">(Click map to set exactly)</span></label>
           <div className="h-64 w-full rounded-xl overflow-hidden border border-slate-200 shadow-sm relative">
             <Map
-              mapId={process.env.NEXT_PUBLIC_MAP_ID || "DEMO_MAP_ID"}
               defaultZoom={11}
               defaultCenter={form.coordinate.length === 2 ? { lat: form.coordinate[1], lng: form.coordinate[0] } : { lat: 23.0225, lng: 72.5714 }}
               disableDefaultUI={true}
