@@ -21,7 +21,6 @@ export default function PGLocationMap({ coordinate, address, city }) {
 
       <div className="w-full h-[340px] rounded-2xl overflow-hidden border border-gray-100">
         <Map
-          mapId={process.env.NEXT_PUBLIC_MAP_ID}
           defaultCenter={pos}
           defaultZoom={14}
           disableDefaultUI={true}

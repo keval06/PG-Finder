@@ -216,7 +216,7 @@ export default function PGGallery({ images, onDelete, onUpload }) {
                 {onUpload && (
                   <label className="w-[88px] h-[60px] flex-shrink-0 rounded-xl border-2 border-dashed border-slate-300 flex items-center justify-center cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition-colors">
                     <ImagePlus size={18} className="text-slate-400" />
-                    <input type="file" accept="image/*" hidden onChange={(e) => { if (e.target.files[0]) onUpload(e.target.files[0], activeCategory); }} />
+                    <input type="file" accept="image/*" className="sr-only" onChange={(e) => { if (e.target.files[0]) onUpload(e.target.files[0], activeCategory); e.target.value = ''; }} />
                   </label>
                 )}
               </div>
@@ -231,7 +231,7 @@ export default function PGGallery({ images, onDelete, onUpload }) {
               </div>
               <p className="text-sm font-semibold text-slate-600">No {CATEGORY_LABELS[activeCategory]} images yet</p>
               <p className="text-xs text-slate-400">Click to upload</p>
-              <input type="file" accept="image/*" hidden onChange={(e) => { if (e.target.files[0]) onUpload(e.target.files[0], activeCategory); }} />
+              <input type="file" accept="image/*" className="sr-only" onChange={(e) => { if (e.target.files[0]) onUpload(e.target.files[0], activeCategory); e.target.value = ''; }} />
             </label>
           ) : (
             <div className="w-full h-[340px] bg-slate-50 border-2 border-dashed border-slate-200 rounded-2xl flex flex-col items-center justify-center gap-2 text-slate-400">
