@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import BookNowButton from "../app/pg/[id]/components/BookNowButton";
 import Badge from "../app/atoms/Badge";
+import imageLoader from "../lib/imageLoader";
 
 const amenityIcons = {
   WiFi: Wifi,
@@ -61,9 +62,10 @@ export default function PGCard({ pg }) {
               "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=400&q=75"
             }
             alt={pg.name}
-            fill
+            fill = {true}
             className="object-cover"
             sizes="(max-width: 640px) 100vw, 208px"
+            loader={imageLoader}
           />
         </div>
 
