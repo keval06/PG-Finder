@@ -132,37 +132,24 @@ export default function MyBookingsPage() {
     try {
       const token = localStorage.getItem("token");
 
-      // call api
       const data = await bookingApi.updateStatus(
         cancelTarget._id,
         "cancelled",
         token
       );
 
-      // handle response
-      if (data.message === "Booking status updated successfully") {
-        
-        setBookings((prev) =>
-          prev.map((b) =>
-            // if id matches update status
-            b._id === cancelTarget._id ? { ...b, status: "cancelled" } : b
-          )
-        );
-        // close modal
+      // Backend returns the updated booking doc (has _id), NOT { message: "..." }
+      if (data._id) {
         setCancelTarget(null);
-        // show toast
         showToast("success", "Booking cancelled successfully.");
-      } 
-      else {
-        // show error
+        fetchBookings(); // refetch fresh data from server
+      } else {
         setPopupError(data.message || "Something went wrong. Try again.");
       }
-    } 
-    catch {
-      setPopupError("Network error. Try again."); //? if backend is down
-    } 
-    finally {
-      setProcessing(false); //? stop loading
+    } catch {
+      setPopupError("Network error. Try again.");
+    } finally {
+      setProcessing(false);
     }
   };
 
