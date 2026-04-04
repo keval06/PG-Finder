@@ -17,6 +17,7 @@ import {
   TrendingUp,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
+import ConfirmModal from "../../components/ConfirmModal";
 
 // ── DATA ──────────────────────────────────────────────────────────────────────
 const STATS = [
@@ -161,6 +162,7 @@ export default function LandingPage() {
   const [mobileMenu, setMobileMenu] = useState(false);
   const [dropOpen, setDropOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   const [heroRef, heroInView] = useInView(0.05);
   const [statRef, statInView] = useInView();
@@ -195,6 +197,13 @@ export default function LandingPage() {
     `transition-all duration-700 ease-out ${
       delay ? `delay-[${delay}ms]` : ""
     } ${show ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"}`;
+
+  const handleLogout = () => {
+    setShowLogoutConfirm(false);
+    logout();
+    setDropOpen(false);
+    setMobileMenu(false);
+  };
 
   return (
     <div
@@ -291,9 +300,11 @@ export default function LandingPage() {
                     ))}
                     <div className="border-t border-slate-100 my-1" />
                     <button
-                      onClick={() => {
-                        logout();
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
                         setDropOpen(false);
+                        setShowLogoutConfirm(true);
                       }}
                       className="w-full text-left px-3 py-2.5 text-sm text-red-500 hover:bg-red-50 rounded-xl font-medium transition-colors"
                     >
@@ -377,9 +388,11 @@ export default function LandingPage() {
               ))}
             {user ? (
               <button
-                onClick={() => {
-                  logout();
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
                   setMobileMenu(false);
+                  setShowLogoutConfirm(true);
                 }}
                 className="text-left px-4 py-3 rounded-xl text-sm font-medium text-red-500 hover:bg-red-50 transition-colors mt-1"
               >
@@ -963,6 +976,15 @@ export default function LandingPage() {
           }
         }
       `}</style>
+      <ConfirmModal
+        isOpen={showLogoutConfirm}
+        onClose={() => setShowLogoutConfirm(false)}
+        onConfirm={handleLogout}
+        title="Logout?"
+        description="Are you sure you want to sign out of your account?"
+        confirmText="Yes, Logout"
+        variant="danger"
+      />
     </div>
   );
 }

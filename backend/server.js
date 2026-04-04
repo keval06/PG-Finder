@@ -7,14 +7,8 @@ require("dotenv").config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-connectDB()
-  .then(() => {
-    app.listen(PORT, () => {
-      console.log(`Server running on port ${PORT}`);
-    });
-  })
-  .catch((err) => console.log(err));
-
+// ── Middleware ──────────────────────────────────────────────────────────────
+// Must be registered BEFORE app.listen() so every request is processed correctly.
 app.use(
   cors({
     origin: process.env.FRONTEND_URL,
@@ -37,8 +31,17 @@ app.use("/api/image", require("./routes/imageRoutes.js"));
 app.use("/api/auth", require("./routes/authRoutes.js"));
 app.use("/api/roomtype", require("./routes/roomType.js"));
 
-// Error handling middleware
+// ── Global error handler ─────────────────────────────────────────────────────
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).json({ error: "Something went wrong" });
 });
+
+// ── Start server AFTER all middleware & routes are registered ────────────────
+connectDB()
+  .then(() => {
+    app.listen(PORT, () => {
+      console.log(`Server running on port ${PORT}`);
+    });
+  })
+  .catch((err) => console.log(err));

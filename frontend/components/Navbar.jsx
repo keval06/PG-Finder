@@ -13,7 +13,7 @@ export default function Navbar() {
 
   //? Context API
   const { query, setQuery } = useSearch();
-  const { user, logout } = useAuth(); //? logged in user + logout fn
+  const { user, logout, ready } = useAuth(); //? logged in user + logout fn
 
   const [open, setOpen] = useState(false); //?dropdown menu open
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
@@ -40,6 +40,7 @@ export default function Navbar() {
 
   // ?3 things, clean order: clear auth → close UI → navigate.
   const handleLogout = () => {
+    setShowLogoutConfirm(false);
     logout();
     setOpen(false);
     router.push("/");
@@ -94,9 +95,12 @@ export default function Navbar() {
             </div>
           </div>
 
-          {/* RIGHT */}
+          {/* RIGHT — auth-gated: render nothing until localStorage is read to avoid hydration mismatch */}
           <div className="ml-auto flex items-center gap-2">
-            {user ? (
+            {!ready ? (
+              // Placeholder with same dimensions as the sign-in buttons so layout doesn't shift
+              <div className="w-20 h-8" />
+            ) : user ? (
               <>
                 <span className="hidden sm:block text-sm text-slate-500">
                   Hey,{" "}
@@ -200,7 +204,9 @@ export default function Navbar() {
                       {/* Logout */}
                       <div className="border-t border-slate-100 my-1" />
                       <button
-                        onClick={() => {
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
                           setOpen(false);
                           setShowLogoutConfirm(true);
                         }}
