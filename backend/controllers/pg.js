@@ -1,38 +1,10 @@
 const PG = require("../models/pg.js");
 const RoomType = require("../models/roomType.js");
 
-exports.registerPG = async (req, res) => {
-  try {
-    const existingPG = await PG.findOne({
-      owner: req.user._id,
-      name: req.body.name,
-    });
+// *This is called Server-Side Filtering. Always filter at database level, not in JS.
 
-    if (existingPG) {
-      return res.status(400).json({
-        message: "PG already exists",
-      });
-    }
 
-    const pgData = { ...req.body, owner: req.user._id };
-    if (
-      Array.isArray(req.body.coordinate) &&
-      req.body.coordinate.length === 2
-    ) {
-      pgData.coordinate = {
-        type: "Point",
-        coordinates: req.body.coordinate,
-      };
-    }
-
-    const pg = await PG.create(pgData);
-
-    res.json(pg);
-  } catch (error) {
-    res.status(500).json(error.message);
-  }
-};
-
+// helper: builds filter object from URL params
 //for pagination
 const buildPGQuery = (query) => {
   const filter = {};
@@ -79,6 +51,43 @@ const buildPGQuery = (query) => {
   return filter;
 };
 
+exports.registerPG = async (req, res) => {
+  try {
+    const existingPG = await PG.findOne({
+      owner: req.user._id,
+      name: req.body.name,
+    });
+
+    if (existingPG) {
+      return res.status(400).json({
+        message: "PG already exists",
+      });
+    }
+
+
+// This is called: Server-side Trust — never trust client-sent identity fields.
+    const pgData = { 
+      ...req.body, 
+      owner: req.user._id 
+    };
+
+    if (Array.isArray(req.body.coordinate) &&
+      req.body.coordinate.length === 2 ) {
+      pgData.coordinate = {
+        type: "Point",
+        coordinates: req.body.coordinate,
+      };
+    }
+
+    const pg = await PG.create(pgData);
+
+    res.status(201).json(pg);
+  } catch (error) {
+    res.status(500).json(error.message);
+  }
+};
+
+// READ all PGs with filtering + pagination
 exports.getAllPg = async (req, res) => {
   try {
     const filter = buildPGQuery(req.query);
@@ -163,6 +172,7 @@ exports.getAllPg = async (req, res) => {
   }
 };
 
+//  READ PGs within a radius (geospatial)
 exports.getNearbyPGs = async (req, res) => {
   try {
     const {
@@ -281,6 +291,7 @@ exports.getNearbyPGs = async (req, res) => {
   }
 };
 
+// READ single PG detail
 exports.getPg = async (req, res) => {
   try {
     const pg = await PG.findById(req.params.id);
@@ -310,6 +321,7 @@ exports.getPg = async (req, res) => {
   }
 };
 
+// UPDATE a PG
 exports.updatePg = async (req, res) => {
   try {
     const pg = await PG.findById(req.params.id);
@@ -345,6 +357,7 @@ exports.updatePg = async (req, res) => {
 };
 
 //my listed pG
+// READ owner's own listings
 exports.getMyPgs = async (req, res) => {
   try {
     const pgs = await PG.find({ owner: req.user._id }).sort({ createdAt: -1 });

@@ -27,8 +27,9 @@ exports.registerImage = async (req, res) => {
       category,
     });
     // console.log("SAVED:", image);
-    res.json(image);
-  } catch (error) {
+    res.status(201).json(image);
+  } 
+  catch (error) {
     res.status(500).json(error.message);
   }
 };
@@ -37,6 +38,7 @@ exports.getImagesByPg = async (req, res) => {
   try {
     const { pgId, category } = req.query;
 
+    //* Dynamic filter building — starts with base filter, adds category only if provided.
     let filter = { pg: pgId };
 
     if (category) {
@@ -64,20 +66,24 @@ exports.deleteImage = async (req, res) => {
     const cleanUrl = image.url.split("?")[0];
 
     // 2. extract key — decode %20 back to spaces to match real S3 key
+    // "-" -> "%20" => Encoding
+    // "%20" -> "-" => Decoding
     const key = decodeURIComponent(cleanUrl.split(".amazonaws.com/")[1]);
 
-    console.log("KEY:", key); // should be: images/1774114223162 - amenities.jpg
-
+    // console.log("KEY:", key); // should be: images/1774114223162 - amenities.jpg
+// *Without .promise():
+//   s3.deleteObject() returns an AWS Request object, not a Promise
     await s3.deleteObject({
       Bucket: process.env.S3_BUCKET,
       Key: key,
     }).promise();
 
-    await image.deleteOne();
+    await image.deleteOne();  //*instance method,  Deletes the exact document already loaded.
     res.json(
-      { message: "Image deleted", image 
-
-    });
+      { 
+        message: "Image deleted", image 
+      }
+    );
   } 
   catch (error) {
     console.error("DELETE ERROR:", error.message);
