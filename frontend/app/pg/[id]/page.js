@@ -1,4 +1,4 @@
-import PGGallery from "./components/PGGallery";
+import PGGallery from "../../components/PGGallery";
 import { pgApi } from "../../../lib/api/pg";
 import { imageApi } from "../../../lib/api/image";
 import { reviewApi } from "../../../lib/api/review";

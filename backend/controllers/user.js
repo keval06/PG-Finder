@@ -14,7 +14,8 @@ exports.registerUser = async (req, res) => {
     const user = await User.create({ name, mobile, password: hash });
 
     res.status(201).json(user);
-  } catch (error) {
+  } 
+  catch (error) {
     console.error("registerUser:", error);
     if (error.code === 11000) {
       return res.status(400).json({ message: "Mobile already registered" });
@@ -29,10 +30,15 @@ exports.getUser = async (req, res) => {
   try {
     const { name } = req.query;
     let filter = {};
-    if (name) filter.name = { $regex: name, $options: "i" };
+
+    if (name) {
+      filter.name = { $regex: name, $options: "i" };
+    }
+
     const users = await User.find(filter).select("-password");
     res.json(users);
-  } catch (error) {
+  } 
+  catch (error) {
     console.error("getUser:", error);
     res
       .status(500)
@@ -54,26 +60,32 @@ exports.updateUser = async (req, res) => {
 
     // ─── GUARD 2: If password is being updated, hash it before saving ───
     if (password) {
-      req.body.password = await bcrypt.hash(password, 10);
+      password = await bcrypt.hash(password, 10);
        // We overwrite req.body.password with the HASHED version
       // So the next step saves the hash, not plain text
     }
 
     const updatedUser = await User.findByIdAndUpdate(
       userId, 
-      req.body,
+      mobile,
+      password,
       {
         new: true,
-      runValidators: true,
+        runValidators: true,
       }
   ).select("-password");
 
     if (!updatedUser) {
-      return res.status(404).json({ message: "User not found" });
+      return res.status(404).json(
+        { 
+          message: "User not found" 
+        }
+      );
     }
 
     res.json(updatedUser);
-  } catch (error) {
+  } 
+  catch (error) {
     console.error("updateUser:", error);
     if (error.code === 11000) {
       return res.status(400).json({ message: "Mobile already in use" });

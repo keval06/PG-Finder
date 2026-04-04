@@ -2,16 +2,18 @@
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export const reviewApi = {
-  // ── READ (all reviews, used for avg rating in page.js) ──
+  // ── READ  used in page.js (server-side) to calculate AVERAGE RATING
+  //
   getByPgId: async (pgId) => {
     const res = await fetch(`${API_URL}/api/review?pg=${pgId}`, {
-      cache: "no-store",
+      next: { revalidate: 900 },
     });
     if (!res.ok) return [];
     return res.json();
   },
 
-  // ── READ (paginated, used by ReviewsSection) ──
+  //? ── READ (paginated, used by ReviewsSection) ──
+  
   getByPgIdPaginated: async (pgId, page = 1, limit = 5, sort = "newest") => {
     const res = await fetch(
       `${API_URL}/api/review?pg=${pgId}&page=${page}&limit=${limit}&sort=${sort}`,
@@ -23,9 +25,11 @@ export const reviewApi = {
 
   // ── CHECK — can this user review this PG? ──
   // Returns:
-  //   { canReview: true }
-  //   { canReview: false, reason: "no_booking" }
-  //   { canReview: false, reason: "already_reviewed", review: {...} }
+  //*   { canReview: false, reason: "no_booking" }
+  // *  { canReview: false, reason: "already_reviewed", review: {...} }
+  //  * { canReview: true }
+  // ?Business rule: you can only review a PG if you've actually stayed there (made a booking).
+  // ?And you can only review once.
   canReview: async (pgId, token) => {
     const res = await fetch(`${API_URL}/api/review/can-review?pg=${pgId}`, {
       headers: { Authorization: `Bearer ${token}` },

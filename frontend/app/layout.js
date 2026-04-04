@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import Navbar from "../components/Navbar";
 import { SearchProvider } from "./context/SearchContext";
 import { AuthProvider } from "./context/AuthContext";
@@ -21,10 +22,12 @@ export default function RootLayout({ children }) {
       <body className="min-h-screen bg-[#f8fafc]">
         <MapProvider>
           <AuthProvider>
-            <SearchProvider>
-              <Navbar />
-              {children}
-            </SearchProvider>
+            <Suspense fallback={null}>
+              <SearchProvider>
+                <Navbar />
+                {children}
+              </SearchProvider>
+            </Suspense>
           </AuthProvider>
         </MapProvider>
       </body>

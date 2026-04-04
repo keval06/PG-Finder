@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { act, useEffect, useRef, useState } from "react";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { useSearch } from "./context/SearchContext";
 import PGCard from "../components/PGCard";
@@ -86,6 +86,10 @@ export default function HomeClient({
     }
     if (active.foodFilter?.length > 0) {
       params.append("food", active.foodFilter.join(","));
+    }
+
+    if (active.minRating > 0) {
+      params.append("minRating", active.minRating);
     }
     if (sortField) {
       params.append("sortField", sortField);

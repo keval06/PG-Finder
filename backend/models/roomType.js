@@ -38,7 +38,7 @@ const roomTypeSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
-    
+
     occupiedBeds: {
       type: Number,
       default: 0,

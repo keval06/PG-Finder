@@ -5,27 +5,26 @@ const PG = require("../models/pg.js");
 // create room type
 exports.createRoomType = async (req, res) => {
   try {
-    // find pg
+    //*1 find pg
     const pg = await PG.findById(req.body.pg);
     if (!pg) {
       return res.status(404).json({ message: "PG not found" });
     }
     
-    // check if owner
+    //?2 check if owner, user is attached from protect middleware
+    //* Always .toString() both sides when comparing ObjectIds
+
     if (pg.owner.toString() !== req.user._id.toString()) {
       return res.status(403).json({ message: "Not allowed" });
     }
-    //
 
+    //
     const existingRoomTypes = await RoomType.find({
-      pg: req.body.pg,
+      pg,
       isActive: true,
     });
 
-    const alreadyAllocated = existingRoomTypes.reduce(
-      (sum, rt) => sum + rt.availableRooms,
-      0,
-    );
+    const alreadyAllocated = existingRoomTypes.reduce( (sum, rt) => sum + rt.availableRooms, 0, );
 
     // check if room type already exists
     if (alreadyAllocated + req.body.availableRooms > pg.room) {
@@ -36,7 +35,7 @@ exports.createRoomType = async (req, res) => {
       });
     }
 
-    // create room type
+    // ?If all checks pass — create the room type. req.body has all the fields (pg, name, price, sharingCount, availableRooms...). Mongoose schema validators run on create.
     const roomType = await RoomType.create(req.body);
 
     await PG.findByIdAndUpdate(req.body.pg, {
@@ -69,16 +68,19 @@ exports.getRoomTypesByPg = async (req, res) => {
     }
 
     // get room types
+    // new mongoose.Types.ObjectId(pgId) — converts string to ObjectId type for the query.
+
     const roomTypes = await RoomType.find({
       pg: new mongoose.Types.ObjectId(pgId),
       isActive: true,
     }).populate("pg", "name city room");
 
+    //* totalBeds and remainingBeds — Computed/Derived Fields:
     // calculate total beds and remaining beds
     const response = roomTypes.map((rt) => ({
       ...rt.toObject(),
-      totalBeds: rt.availableRooms * rt.sharingCount,
-      remainingBeds: rt.availableRooms * rt.sharingCount - rt.occupiedBeds,
+      totalBeds: (rt.availableRooms * rt.sharingCount),
+      remainingBeds: (rt.availableRooms * rt.sharingCount) - (rt.occupiedBeds),
     }));
 
     res.json(response);
@@ -113,7 +115,7 @@ exports.updateRoomType = async (req, res) => {
     // check if availableRooms is provided
     if (req.body.availableRooms !== undefined) {
 
-      // check if beds are available
+      // ?check if beds are available, if 8 bookings, 6 newBeds, where 2 guests stayed
       const newTotalBeds = req.body.availableRooms * roomType.sharingCount;
       if (newTotalBeds < roomType.occupiedBeds) {
         return res.status(400).json({
@@ -121,11 +123,11 @@ exports.updateRoomType = async (req, res) => {
         });
       }
 
-      // check if beds are available
+      // check if beds are available, fetch all room type of pg, 
       const existingRoomTypes = await RoomType.find({
         pg: roomType.pg._id,
         isActive: true,
-        _id: { $ne: req.params.id }, // exclude current one
+        _id: { $ne: req.params.id }, //"not equal" operator, exclude current one
       });
 
       const alreadyAllocated = existingRoomTypes.reduce(
@@ -142,20 +144,20 @@ exports.updateRoomType = async (req, res) => {
       }
     }
 
-    // update room type
+    // ?update room type
     const updated = await RoomType.findByIdAndUpdate(req.params.id, req.body, {
       new: true,
       runValidators: true,
     });
 
-    // recalculate PG minimum price after update
+    // ?recalculate PG minimum price after update
     const allRoomTypes = await RoomType.find({
       pg: roomType.pg._id,
       isActive: true,
     });
 
-    const minPrice = Math.min(...allRoomTypes.map((r) => r.price));
-    await PG.findByIdAndUpdate(roomType.pg._id, { price: minPrice });
+    const minPrice = Math.min(...allRoomTypes.map( (r) => r.price) );
+    await PG.findByIdAndUpdate( roomType.pg._id, { price: minPrice });
 
     res.json(updated);
   } 
@@ -206,7 +208,8 @@ exports.deleteRoomType = async (req, res) => {
       const minPrice = Math.min(...allRoomTypes.map((r) => r.price));
 
       await PG.findByIdAndUpdate(roomType.pg._id, { price: minPrice });
-    } else {
+    } 
+    else {
       await PG.findByIdAndUpdate(roomType.pg._id, { isActive: false });
     }
     // if no room types left, PG.price stays as is — not reset to 0

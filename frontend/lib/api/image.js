@@ -5,7 +5,7 @@ export const imageApi = {
   // Get all images for a PG
   getByPgId: async (pgId) => {
     const res = await fetch(`${API_URL}/api/image?pgId=${pgId}`, {
-      cache: "no-store",
+      next: { revalidate: 600 },
     });
     if (!res.ok) return [];
     return res.json();

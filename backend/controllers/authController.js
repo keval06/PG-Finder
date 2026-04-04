@@ -6,7 +6,7 @@ exports.loginUser = async (req, res) => {
   try {
     const { mobile, password } = req.body;
 
-    const user = await User.findOne({ mobile });
+    const user = await User.findOne( {mobile: mobile });
 
     if (!user) {
       return res.status(400).json({ message: "Invalid credentials" });
@@ -17,10 +17,7 @@ exports.loginUser = async (req, res) => {
     if (!isMatch) {
       return res.status(400).json({ message: "Invalid credentials" });
     }
-
-        // STEP 4: Create a JWT token with the user's ID inside
-
-
+    // STEP 4: Create a JWT token with the user's ID inside
     const token = generateToken(user._id);
 
     res.json({

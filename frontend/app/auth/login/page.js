@@ -23,7 +23,7 @@ export default function LoginPage() {
       const data = await authApi.login({ mobile, password });
 
       if (data.token) {
-        const { token, ...user } = data;
+        const { token, ...user } = data;    //*Rest destructuring —
         //  *login fun called to store -> userData, token in localStorage
         login(user, token);
         router.push("/"); //* Home page
