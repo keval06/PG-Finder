@@ -4,7 +4,7 @@ User.js
   name: String,
   mobile: Number,
   password: String,
-}```
+}
 
 API-> 
 POST /api/auth/register
@@ -12,8 +12,6 @@ POST /api/auth/register
 
 POST /api/auth/login
 
-
-```javascript
 
 pg schema
 {
@@ -69,15 +67,14 @@ GET /api/bookings/owner
 Update Booking Status
 PUT /api/bookings/:id
 
-```javasceipt```
-
+```javasceipt
 Review.js
 {
   studentId: ObjectId,
   pgId: ObjectId,
   rating: Number,
   comment: String
-}
+}```
 
 Add Review
 POST /api/reviews

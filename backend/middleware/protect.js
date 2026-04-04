@@ -28,7 +28,9 @@ exports.protect = async (req, res, next) => {
     // Attach the user's info to the request so the controller can use it
     req.user = user;
     next(); // Pass control to the actual controller
-  } catch (error) {
+  } 
+  
+  catch (error) {
     res.status(401).json({
       message: error.message,
     });
