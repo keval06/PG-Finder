@@ -72,9 +72,13 @@ export default function SignupPage() {
 
       // show backend error (e.g. "Mobile already registered") in UI
       setError(data.message || "Signup failed. Please try again.");
-    } catch {
+    } 
+
+    catch {
       setError("Something went wrong. Please try again.");
-    } finally {
+    } 
+    
+    finally {
       setLoading(false);
     }
   };

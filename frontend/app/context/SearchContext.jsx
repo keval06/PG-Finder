@@ -14,7 +14,10 @@ export function SearchProvider({ children }) {
   const isFirst = useRef(true);
 
   useEffect(()=>{
-     if (isFirst.current) { isFirst.current = false; return; } // skip mount
+     if (isFirst.current) { 
+      isFirst.current = false; 
+      return; 
+    } // skip mount
     setQuery("");                                               // only on actual nav
 
   },[pathname]);
