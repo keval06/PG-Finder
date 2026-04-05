@@ -5,7 +5,6 @@ import { useAuth } from "../context/AuthContext";
 import { useRouter } from "next/navigation";
 import { SlidersHorizontal, Plus, Home as HomeIcon, Bed } from "lucide-react";
 import ListingCard from "./components/ListingCard";
-import PGForm from "./components/PGForm";
 import FilterPanel from "../../components/FilterPanel";
 import SortBtn from "../../components/SortBtn";
 import ConfirmModal from "../../components/ConfirmModal";
@@ -18,6 +17,10 @@ import { imageApi } from "../../lib/api/image";
 import Button from "../atoms/Button";
 import EmptyState from "../atoms/EmptyState";
 import Badge from "../atoms/Badge";
+import { useSearch } from "../context/SearchContext";
+import dynamic from "next/dynamic";
+const PGForm = dynamic(() => import("./components/PGForm"), { ssr: false });
+
 
 export default function MyListingsClient() {
   const { user, ready } = useAuth();
@@ -31,6 +34,8 @@ export default function MyListingsClient() {
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [pendingData, setPendingData] = useState(null);
 
+  const { query } = useSearch();
+
   const {
     sorted,
     fp,
@@ -42,7 +47,7 @@ export default function MyListingsClient() {
     setDrawerOpen,
     hasFilters,
     clearFilters,
-  } = usePGFilters(pgs);
+  } = usePGFilters(pgs, query);
 
   useEffect(() => {
     if (!ready) return;
@@ -154,12 +159,12 @@ export default function MyListingsClient() {
   return (
     <>
       {drawerOpen && (
-        <div className="fixed inset-0 z-[200] flex lg:hidden">
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
           <div
-            className="absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity"
+            className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity"
             onClick={() => setDrawerOpen(false)}
           />
-          <div className="relative w-80 bg-white h-full shadow-2xl flex flex-col">
+          <div className="relative w-full max-w-sm max-h-[90vh] bg-white shadow-2xl rounded-2xl flex flex-col overflow-hidden animate-[fadeIn_0.15s_ease-out]">
             <FilterPanel {...fp} onClose={() => setDrawerOpen(false)} />
           </div>
         </div>
@@ -178,7 +183,7 @@ export default function MyListingsClient() {
               <Button
                 variant="outline"
                 onClick={() => setDrawerOpen(true)}
-                className="lg:hidden"
+                className="flex"
                 icon={SlidersHorizontal}
               >
                 Filters

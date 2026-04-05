@@ -1,10 +1,49 @@
 "use client";
-
-import { useState, useCallback } from "react";
+// TODO: Add map using google maps
+// NEW MAP
+import { useState, useCallback, useEffect } from "react";
 import { XCircle, Plus, Trash2, MapPin } from "lucide-react";
 import Button from "../../atoms/Button";
 import Badge from "../../atoms/Badge";
-import { Map, Marker } from "@vis.gl/react-google-maps";
+import {
+  MapContainer,
+  TileLayer,
+  Marker,
+  useMapEvents,
+  useMap,
+} from "react-leaflet";
+import L from "leaflet";
+import "leaflet/dist/leaflet.css";
+
+// Fix broken Leaflet default icons in Next.js/Webpack
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl:
+    "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
+  iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
+  shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+});
+
+// Component to handle map clicks inside MapContainer
+function ClickHandler({ onClick }) {
+  useMapEvents({
+    click(e) {
+      onClick(e);
+    },
+  });
+  return null;
+}
+
+// Pans map when coordinates change (e.g. from autocomplete selection)
+function PanToCoordinate({ coordinate }) {
+  const map = useMap();
+  useEffect(() => {
+    if (coordinate?.length === 2) {
+      map.setView([coordinate[1], coordinate[0]], 15, { animate: true });
+    }
+  }, [map, coordinate?.[0], coordinate?.[1]]);
+  return null;
+}
 
 const AMENITIES_LIST = [
   "AC",
@@ -28,7 +67,13 @@ const BLANK_RT = {
   price: "",
 };
 
-export default function PGForm({ initial, onSubmit, onCancel, saving , onRemoveRT}) {
+export default function PGForm({
+  initial,
+  onSubmit,
+  onCancel,
+  saving,
+  onRemoveRT,
+}) {
   const blank = {
     name: "",
     price: "",
@@ -51,9 +96,12 @@ export default function PGForm({ initial, onSubmit, onCancel, saving , onRemoveR
           room: initial.room ?? "",
           bathroom: initial.bathroom ?? "",
           toilet: initial.toilet ?? "",
-          coordinate: initial.coordinate?.coordinates?.length === 2 
-            ? initial.coordinate.coordinates 
-            : (initial.coordinate?.length === 2 ? initial.coordinate : []),
+          coordinate:
+            initial.coordinate?.coordinates?.length === 2
+              ? initial.coordinate.coordinates
+              : initial.coordinate?.length === 2
+                ? initial.coordinate
+                : [],
         }
       : blank,
   );
@@ -69,6 +117,28 @@ export default function PGForm({ initial, onSubmit, onCancel, saving , onRemoveR
       : [],
   );
 
+  const [suggestions, setSuggestions] = useState([]);
+  const [searchText, setSearchText] = useState("");
+
+  // Debounced search
+  useEffect(() => {
+    if (searchText.length < 3) {
+      setSuggestions([]);
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      const res = await fetch(
+        `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(searchText)}&format=json&limit=5&countrycodes=in`,
+        { headers: { "User-Agent": "PGFinder/1.0" } },
+      );
+      const data = await res.json();
+      setSuggestions(data);
+    }, 400); // 400ms debounce
+
+    return () => clearTimeout(timer);
+  }, [searchText]);
+
   // track _ids of existing room types that were removed
   const [removedIds, setRemovedIds] = useState([]);
   const [err, setErr] = useState("");
@@ -81,12 +151,33 @@ export default function PGForm({ initial, onSubmit, onCancel, saving , onRemoveR
         ? form.amenities.filter((x) => x !== a)
         : [...form.amenities, a],
     );
-
+  //new map
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
   const handleMapClick = useCallback((e) => {
-    if (e.detail.latLng) {
-      set("coordinate", [e.detail.latLng.lng, e.detail.latLng.lat]);
-    }
+    const lng = e.latlng.lng;
+    const lat = e.latlng.lat;
+    set("coordinate", [lng, lat]);
+
+    // Reverse geocode: get address from coordinates AND update form fields
+    fetch(
+      `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&addressdetails=1`,
+      { headers: { "User-Agent": "PGFinder/1.0" } }
+    )
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.display_name) {
+          setSearchText(data.display_name);
+          set("address", data.display_name);
+          // Extract city from address details
+          const city = data.address?.city || data.address?.town || data.address?.village || data.address?.state_district || "";
+          if (city) set("city", city);
+        }
+      })
+      .catch(() => {}); // silently fail if reverse geocode fails
   }, []);
+
+  //
 
   const addRT = () => setRoomTypes((p) => [...p, { ...BLANK_RT }]);
   const setRT = (i, k, v) =>
@@ -94,16 +185,19 @@ export default function PGForm({ initial, onSubmit, onCancel, saving , onRemoveR
       p.map((rt, idx) => (idx === i ? { ...rt, [k]: v } : rt)),
     );
   const removeRT = (i) => {
-  if (onRemoveRT) { onRemoveRT(i, () => {
+    if (onRemoveRT) {
+      onRemoveRT(i, () => {
+        const rt = roomTypes[i];
+        if (rt._id) setRemovedIds((p) => [...p, rt._id]);
+        setRoomTypes((p) => p.filter((_, idx) => idx !== i));
+      });
+      return;
+    }
+    // fallback if no prop
     const rt = roomTypes[i];
     if (rt._id) setRemovedIds((p) => [...p, rt._id]);
     setRoomTypes((p) => p.filter((_, idx) => idx !== i));
-  }); return; }
-  // fallback if no prop
-  const rt = roomTypes[i];
-  if (rt._id) setRemovedIds((p) => [...p, rt._id]);
-  setRoomTypes((p) => p.filter((_, idx) => idx !== i));
-};
+  };
 
   // live allocation check
   const totalRoom = Number(form.room) || 0;
@@ -224,22 +318,84 @@ export default function PGForm({ initial, onSubmit, onCancel, saving , onRemoveR
 
         {/* ── Map Coordinate Selection ── */}
         <div className="col-span-2">
-          <label className={lab}>Pin Location on Map <span className="text-slate-400 font-normal">(Click map to set exactly)</span></label>
+          <label className={lab}>
+            Pin Location on Map{" "}
+            <span className="text-slate-400 font-normal">
+              (Search or click map to set)
+            </span>
+          </label>
+
+          {/* Location search autocomplete */}
+          <div className="relative mb-2">
+            <input
+              className={inp}
+              value={searchText}
+              onChange={(e) => setSearchText(e.target.value)}
+              placeholder="Search location... e.g. Koramangala, Bangalore"
+            />
+            {suggestions.length > 0 && (
+              <ul className="absolute left-0 right-0 top-full bg-white border border-slate-200 rounded-xl shadow-lg z-[50] max-h-48 overflow-y-auto mt-1">
+                {suggestions.map((s) => (
+                  <li
+                    key={s.place_id}
+                    onClick={() => {
+                      set("coordinate", [parseFloat(s.lon), parseFloat(s.lat)]);
+                      // Also update address & city in form so they save to DB
+                      const parts = s.display_name.split(", ");
+                      set("address", s.display_name);
+                      // Try to extract city from Nominatim (usually 3rd-last part)
+                      if (parts.length >= 3) set("city", parts[parts.length - 3]);
+                      setSearchText(s.display_name);
+                      setSuggestions([]);
+                    }}
+                    className="px-3 py-2.5 hover:bg-blue-50 cursor-pointer text-sm text-slate-700 border-b border-slate-100 last:border-0 transition-colors"
+                  >
+                    {s.display_name}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+
+          {/* new map */}
           <div className="h-64 w-full rounded-xl overflow-hidden border border-slate-200 shadow-sm relative">
-            <Map
-              defaultZoom={11}
-              defaultCenter={form.coordinate.length === 2 ? { lat: form.coordinate[1], lng: form.coordinate[0] } : { lat: 23.0225, lng: 72.5714 }}
-              disableDefaultUI={true}
-              gestureHandling={"cooperative"}
-              onClick={handleMapClick}
+            {mounted && (
+              <MapContainer
+                center={
+                  form.coordinate.length === 2
+                    ? [form.coordinate[1], form.coordinate[0]]
+                    : [23.0225, 72.5714]
+                }
+                zoom={11}
+                style={{ width: "100%", height: "100%" }}
+                zoomControl={false}
+              >
+                <TileLayer
+                  attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/">CARTO</a>'
+                  url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
+                />
+                <ClickHandler onClick={handleMapClick} />
+                <PanToCoordinate coordinate={form.coordinate} />
+
+                {form.coordinate.length === 2 && (
+                  <Marker position={[form.coordinate[1], form.coordinate[0]]} />
+                )}
+              </MapContainer>
+            )}
+            <div
+              className={`absolute top-3 left-3 bg-white/90 backdrop-blur-sm px-3 py-1.5 rounded-lg shadow border text-xs font-medium flex items-center gap-1.5 z-10 ${form.coordinate.length === 2 ? "border-blue-200 text-slate-700" : "border-red-200 text-red-600"}`}
             >
-              {form.coordinate.length === 2 && (
-                 <Marker position={{ lat: form.coordinate[1], lng: form.coordinate[0] }} />
-              )}
-            </Map>
-            <div className={`absolute top-3 left-3 bg-white/90 backdrop-blur-sm px-3 py-1.5 rounded-lg shadow border text-xs font-medium flex items-center gap-1.5 z-10 ${form.coordinate.length === 2 ? 'border-blue-200 text-slate-700' : 'border-red-200 text-red-600'}`}>
-               <MapPin size={14} className={form.coordinate.length === 2 ? "text-blue-600" : "text-red-500"} />
-               {form.coordinate.length === 2 ? "Location Saved" : "Click map to set location"}
+              <MapPin
+                size={14}
+                className={
+                  form.coordinate.length === 2
+                    ? "text-blue-600"
+                    : "text-red-500"
+                }
+              />
+              {form.coordinate.length === 2
+                ? "Location Saved"
+                : "Click map to set location"}
             </div>
           </div>
         </div>
@@ -351,7 +507,8 @@ export default function PGForm({ initial, onSubmit, onCancel, saving , onRemoveR
 
         {roomTypes.length === 0 && (
           <p className="text-xs text-slate-400 text-center py-4 border border-dashed border-slate-200 rounded-xl">
-            No room types added yet. Click `&quot;`Add Room Type`&quot;` to begin.
+            No room types added yet. Click `&quot;`Add Room Type`&quot;` to
+            begin.
           </p>
         )}
 
@@ -389,7 +546,7 @@ export default function PGForm({ initial, onSubmit, onCancel, saving , onRemoveR
                   >
                     {ROOM_TYPE_NAMES.map((n) => (
                       <option key={n} value={n} className="capitalize">
-                         {n.charAt(0).toUpperCase() + n.slice(1)}
+                        {n.charAt(0).toUpperCase() + n.slice(1)}
                       </option>
                     ))}
                   </select>

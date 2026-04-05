@@ -19,12 +19,12 @@ export default function HomeHeader({
 }) {
   return (
     <div className="flex flex-col gap-3 mb-5">
-      {/* Row 1: Filters + Count + Near Me */}
+      {/* Single row: Filters + Count + Near Me + Radius + Sort (wraps on mobile) */}
       <div className="flex items-center gap-2 flex-wrap">
         <Button
           onClick={() => setDrawerOpen(true)}
           variant="outline"
-          className="lg:hidden"
+          className="lg:hidden flex"
           icon={SlidersHorizontal}
         >
           Filters
@@ -63,25 +63,28 @@ export default function HomeHeader({
             <option value={30}>30 km</option>
           </select>
         )}
-      </div>
 
-      {/* Row 2: Sort buttons */}
-      <div className="flex gap-2 flex-wrap">
-        <SortBtn
-          label="Price"
-          field="price"
-          {...{ sortField, sortOrder, onToggle: toggleSort }}
-        />
-        <SortBtn
-          label="Rating"
-          field="rating"
-          {...{ sortField, sortOrder, onToggle: toggleSort }}
-        />
-        <SortBtn
-          label="Reviews"
-          field="reviews"
-          {...{ sortField, sortOrder, onToggle: toggleSort }}
-        />
+        {/* Separator pushes sort to right on desktop */}
+        <div className="hidden sm:block flex-1" />
+
+        {/* Sort buttons — inline on desktop, wraps below on mobile */}
+        <div className="flex items-center gap-2">
+          <SortBtn
+            label="Price"
+            field="price"
+            {...{ sortField, sortOrder, onToggle: toggleSort }}
+          />
+          <SortBtn
+            label="Rating"
+            field="rating"
+            {...{ sortField, sortOrder, onToggle: toggleSort }}
+          />
+          <SortBtn
+            label="Reviews"
+            field="reviews"
+            {...{ sortField, sortOrder, onToggle: toggleSort }}
+          />
+        </div>
       </div>
     </div>
   );

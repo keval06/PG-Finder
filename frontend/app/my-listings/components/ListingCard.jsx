@@ -100,14 +100,17 @@ export default function ListingCard({ pg }) {
         <div className="flex-1 p-4 sm:p-5 min-w-0 flex flex-col justify-between">
           <div>
             <h2 className="text-base font-semibold text-slate-900 truncate mb-0.5">{pg.name}</h2>
-            <p className="text-xs text-yellow-600 font-medium mb-1">
+            <div className="flex items-center gap-1.5 mb-1">
+              <MapPin size={11} className="text-blue-500 flex-shrink-0" />
+              <span className="text-sm font-semibold text-slate-700 capitalize">{pg.city}</span>
+              {pg.address && (
+                <span className="text-xs text-slate-400 truncate">· {pg.address}</span>
+              )}
+            </div>
+            <p className="text-xs text-yellow-600 font-medium mb-2">
               {avg}
               {count > 0 && <span className="text-slate-400 font-normal ml-1">({count} reviews)</span>}
             </p>
-            <div className="flex items-center gap-1 text-xs text-slate-400 mb-3">
-              <MapPin size={10} />
-              <span className="truncate">{pg.address}, {pg.city}</span>
-            </div>
             <div className="flex flex-wrap gap-2">
               <Badge variant="blue" className="normal-case">{genderLabel[pg.gender]}</Badge>
               <Badge variant="slate" className="normal-case font-medium">{pg.food}</Badge>

@@ -7,10 +7,11 @@ import { pgApi } from "../../../lib/api/pg";
 import { imageApi } from "../../../lib/api/image";
 import { roomTypeApi } from "../../../lib/api/roomType";
 import PGGallery from "../../components/PGGallery";
-import PGForm from "../components/PGForm";
 import ConfirmModal from "../../../components/ConfirmModal";
 import Button from "../../atoms/Button";
 import Badge from "../../atoms/Badge";
+import dynamic from "next/dynamic";
+const PGForm = dynamic(() => import("../components/PGForm"), { ssr: false });
 
 import {
   ArrowLeft,

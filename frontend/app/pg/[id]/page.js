@@ -3,7 +3,8 @@ import { pgApi } from "../../../lib/api/pg";
 import { imageApi } from "../../../lib/api/image";
 import { reviewApi } from "../../../lib/api/review";
 import { roomTypeApi } from "../../../lib/api/roomType";
-import PGLocationMap from "./components/PGLocationMap";
+//new map
+import PGLocationMapWrapper from "./components/PGLocationMapWrapper";
 import {
   Wifi,
   Car,
@@ -264,7 +265,7 @@ export default async function PGDetails({ params }) {
             />
 
             {/* Location Map */}
-            <PGLocationMap
+            <PGLocationMapWrapper
               coordinate={pg.coordinate}
               address={pg.address}
               city={pg.city}
