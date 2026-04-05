@@ -15,15 +15,14 @@ export const pgApi = {
   },
 
   // Radius PGs
-  getNearby: async (lat, lng, radius = 5, queryString = "") => {
-    const qs = queryString ? `${queryString}` : "";
-    const res = await fetch(
-      `${API_URL}/api/pg/nearby?lat=${lat}&lng=${lng}&radius=${radius}&${qs}`,
-      { cache: "no-store" },
-    );
+   getNearby: async (lat, lng, radius = 5, queryString = "") => {
+    const base = `${API_URL}/api/pg/nearby?lat=${lat}&lng=${lng}&radius=${radius}`;
+    const url = queryString ? `${base}&${queryString}` : base;
+    const res = await fetch(url, { cache: "no-store" });
     if (!res.ok) throw new Error(`getNearby failed: ${res.status}`);
     return res.json();
   },
+
 
   // Owner's Dashboard Listings (Verified: /api/pg/owner)
   getOwnerPgs: async (token) => {
