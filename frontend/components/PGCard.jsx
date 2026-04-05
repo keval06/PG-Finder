@@ -181,13 +181,23 @@ export default function PGCard({ pg }) {
           {/* ── CONTENT ── */}
           <div className="flex-1 p-4 sm:p-5 flex flex-col justify-between min-w-0">
             <div>
-              <h2 className="text-xl font-semibold text-slate-900 truncate group-hover:text-blue-600 transition-colors mb-1">
+              <h2 className="text-xl font-semibold text-slate-900 truncate group-hover:text-blue-600 transition-colors mb-0.5">
                 {pg.name}
               </h2>
 
+              <div className="flex items-center gap-1.5 mb-1">
+                <MapPin size={12} className="text-blue-500 flex-shrink-0" />
+                <span className="text-sm font-semibold text-slate-700 capitalize">{pg.city}</span>
+                {pg.address && (
+                  <span className="text-xs text-slate-400 truncate">
+                    · {pg.address}
+                  </span>
+                )}
+              </div>
+
               <div className="flex items-center gap-1.5 mb-2">
                 {avg ? (
-                  <span className="text-yellow-500">
+                  <span className="text-yellow-500 text-sm">
                     ★ {avg}/5
                     <span className="text-slate-400 font-normal ml-1">
                       ({count} {count === 1 ? "review" : "reviews"})
@@ -196,14 +206,6 @@ export default function PGCard({ pg }) {
                 ) : (
                   <span className="text-slate-400 text-xs">★ No reviews yet</span>
                 )}
-              </div>
-
-              <div className="flex items-center gap-1 text-xs text-slate-400 mb-3">
-                <MapPin size={11} className="flex-shrink-0" />
-                <span className="truncate">
-                  {pg.address ? `${pg.address}, ` : ""}
-                  {pg.city}
-                </span>
               </div>
 
               <div className="flex items-center gap-2 flex-wrap mb-3">
