@@ -15,7 +15,7 @@ export const pgApi = {
   },
 
   // Radius PGs
-   getNearby: async (lat, lng, radius = 5, queryString = "") => {
+  getNearby: async (lat, lng, radius = 5, queryString = "") => {
     const base = `${API_URL}/api/pg/nearby?lat=${lat}&lng=${lng}&radius=${radius}`;
     const url = queryString ? `${base}&${queryString}` : base;
     const res = await fetch(url, { cache: "no-store" });
