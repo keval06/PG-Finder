@@ -23,7 +23,7 @@ export default function RootLayout({ children }) {
         <MapProvider>
           <AuthProvider>
             <Suspense fallback={null}>
-              <SearchProvider>
+              <SearchProvider >
                 <Navbar />
                 {children}
               </SearchProvider>

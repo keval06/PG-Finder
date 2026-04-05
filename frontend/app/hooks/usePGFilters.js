@@ -3,6 +3,7 @@
 // ?const { sorted, fp, ... } = usePGFilters()
 
 import { useState } from "react";
+import { useSearch } from "../context/SearchContext";
 
 const EMPTY_DRAFT = {
   selectedPrice: null,  // *no price filter
@@ -13,13 +14,13 @@ const EMPTY_DRAFT = {
 };
 
 export function usePGFilters(data = [], query = "", mode = "local") {
+  const { drawerOpen, setDrawerOpen } = useSearch();
+
   const [draft, setDraft] = useState(EMPTY_DRAFT);    //? reset draft
   const [active, setActive] = useState(EMPTY_DRAFT);  //? reset active
 
   const [sortField, setSortField] = useState(null);  //?"price"|"rating"|"reviews"|null
   const [sortOrder, setSortOrder] = useState("asc");  //? "asc" | "desc"
-
-  const [drawerOpen, setDrawerOpen] = useState(false);  //? mobile filter panel open?
 
   const applyFilters = () => {
     setActive({ ...draft });  //?→ Spread creates a COPY — safe and independent ✅
