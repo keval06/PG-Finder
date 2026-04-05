@@ -7,6 +7,7 @@ import StatusBadge from "../../components/StatusBadge";
 import ConfirmModal from "../../components/ConfirmModal";
 import PaginationWrapper from "../../components/PaginationWrapper";
 import { bookingApi } from "../../lib/api/booking";
+import { useSearch } from "../context/SearchContext";
 
 import {
   MapPin,
@@ -153,6 +154,11 @@ export default function MyBookingsPage() {
     }
   };
 
+  // ─── filter hooks (moved here to comply with Rules of Hooks)
+  const { query } = useSearch();
+  const [statusTab, setStatusTab] = useState("all");
+  const [dateRange, setDateRange] = useState("all");
+
   // ─── loading
   if (!ready || loading) {
     return (
@@ -163,18 +169,71 @@ export default function MyBookingsPage() {
   }
 
   // ─── separate bookings
-  const active = bookings.filter((b) => b.status !== "cancelled");
-  const cancelled = bookings.filter((b) => b.status === "cancelled");
+
+  // Date range filter
+  const filterByDate = (list) => {
+    if (dateRange === "all") return list;
+    const now = new Date();
+    const daysMap = { "30d": 30, "90d": 90, "6m": 180, "1y": 365 };
+    const cutoff = new Date(now - daysMap[dateRange] * 86400000);
+    return list.filter((b) => new Date(b.checkInDate) >= cutoff);
+  };
+
+  // Client-side filter by PG name/city
+  const filterBySearch = (list) => {
+    if (!query.trim()) return list;
+    const q = query.toLowerCase();
+    return list.filter(
+      (b) =>
+        (b.pg?.name || "").toLowerCase().includes(q) ||
+        (b.pg?.city || "").toLowerCase().includes(q)
+    );
+  };
+
+  const searched = filterBySearch(filterByDate(bookings));
+  const pending = searched.filter((b) => b.status === "pending");
+  const confirmed = searched.filter((b) => b.status === "confirmed");
+  const cancelled = searched.filter((b) => b.status === "cancelled");
+
+  const tabCounts = {
+    all: searched.length,
+    pending: pending.length,
+    confirmed: confirmed.length,
+    cancelled: cancelled.length,
+  };
+
+  const displayList =
+    statusTab === "all" ? [...pending, ...confirmed, ...cancelled] :
+    statusTab === "pending" ? pending :
+    statusTab === "confirmed" ? confirmed :
+    cancelled;
+
+  const STATUS_TABS = [
+    { key: "all", label: "All" },
+    { key: "pending", label: "Pending" },
+    { key: "confirmed", label: "Confirmed" },
+    { key: "cancelled", label: "Cancelled" },
+  ];
+
+  const DATE_OPTIONS = [
+    { key: "all", label: "All Time" },
+    { key: "30d", label: "30 Days" },
+    { key: "90d", label: "90 Days" },
+    { key: "6m", label: "6 Months" },
+    { key: "1y", label: "1 Year" },
+  ];
 
   return (
     <div className="min-h-screen bg-[#f8fafc] px-4 py-8">
       <div className="max-w-3xl mx-auto">
         {/* ── header ── */}
-        <div className="flex items-end justify-between mb-6">
+        <div className="flex items-end justify-between mb-4">
           <div>
             <h1 className="text-2xl font-bold text-slate-900">My Bookings</h1>
             <p className="text-sm text-slate-400 mt-0.5">
-              {bookings.length} booking{bookings.length !== 1 ? "s" : ""}
+              {query.trim()
+                ? `${searched.length} of ${bookings.length} matching "${query}"`
+                : `${bookings.length} booking${bookings.length !== 1 ? "s" : ""}`}
             </p>
           </div>
           <button
@@ -183,6 +242,44 @@ export default function MyBookingsPage() {
           >
             Browse PGs <ChevronRight size={13} />
           </button>
+        </div>
+
+        {/* ── Status tabs + Date range ── */}
+        <div className="flex items-center gap-2 mb-5 flex-wrap">
+          <div className="flex items-center gap-1 bg-slate-100 rounded-xl p-0.5">
+            {STATUS_TABS.map((t) => (
+              <button
+                key={t.key}
+                onClick={() => setStatusTab(t.key)}
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                  statusTab === t.key
+                    ? "bg-white text-slate-900 shadow-sm"
+                    : "text-slate-500 hover:text-slate-700"
+                }`}
+              >
+                {t.label}
+                {tabCounts[t.key] > 0 && (
+                  <span className={`ml-1 text-[10px] px-1.5 py-0.5 rounded-full ${
+                    statusTab === t.key ? "bg-blue-100 text-blue-700" : "bg-slate-200 text-slate-500"
+                  }`}>
+                    {tabCounts[t.key]}
+                  </span>
+                )}
+              </button>
+            ))}
+          </div>
+
+          <div className="hidden sm:block flex-1" />
+
+          <select
+            value={dateRange}
+            onChange={(e) => setDateRange(e.target.value)}
+            className="bg-white border border-slate-200 text-slate-600 text-xs rounded-xl px-2.5 py-1.5 outline-none shadow-sm cursor-pointer hover:border-slate-300 transition-colors"
+          >
+            {DATE_OPTIONS.map((d) => (
+              <option key={d.key} value={d.key}>{d.label}</option>
+            ))}
+          </select>
         </div>
 
         {/* ── toast ── */}
@@ -222,42 +319,26 @@ export default function MyBookingsPage() {
               Browse PGs <ChevronRight size={15} />
             </button>
           </div>
+        ) : displayList.length === 0 ? (
+          <div className="text-center py-16 bg-white rounded-2xl border border-slate-200">
+            <p className="text-slate-500 text-sm">No bookings match filters</p>
+          </div>
         ) : (
-          <>
-            {/* ── active bookings ── */}
-            {active.length > 0 && (
-              <div className="mb-8">
-                <PaginationWrapper
-                  data={active}
-                  itemsPerPage={5}
-                  renderItem={(b) => (
-                    <BookingCard
-                      key={b._id}
-                      booking={b}
-                      onCancel={() => {
-                        setCancelTarget(b);
-                        setPopupError("");
-                      }}
-                    />
-                  )}
-                />
-              </div>
+          <PaginationWrapper
+            data={displayList}
+            itemsPerPage={5}
+            renderItem={(b) => (
+              <BookingCard
+                key={b._id}
+                booking={b}
+                onCancel={
+                  b.status !== "cancelled"
+                    ? () => { setCancelTarget(b); setPopupError(""); }
+                    : undefined
+                }
+              />
             )}
-
-            {/* ── cancelled bookings ── */}
-            {cancelled.length > 0 && (
-              <>
-                <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">
-                  Cancelled ({cancelled.length})
-                </p>
-                <PaginationWrapper
-                  data={cancelled}
-                  itemsPerPage={5}
-                  renderItem={(b) => <BookingCard key={b._id} booking={b} />}
-                />
-              </>
-            )}
-          </>
+          />
         )}
       </div>
 
