@@ -34,7 +34,8 @@ async function getPGs(searchParams) {
     return Array.isArray(result)
       ? { data: result, totalPages: 1, page: 1, totalCount: result.length }
       : result;
-  } catch {
+  } catch (err) {
+    console.error("[SSR] getPGs failed — backend may be unreachable:", err.message || err);
     return { data: [], totalPages: 1, page: 1, totalCount: 0 }; //?If the backend is off or broken, it catches the error and safely returns an empty array [] so the website doesn't crash.
   }
 }

@@ -221,17 +221,10 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto px-5 sm:px-8 h-16 flex items-center justify-between">
           {/* Logo */}
           <div
-            className="flex items-center gap-2.5 cursor-pointer"
+            className="flex items-center flex-shrink-0 cursor-pointer"
             onClick={() => router.push("/")}
           >
-            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center shadow-md shadow-blue-200">
-              <span className="text-white text-[10px] font-bold tracking-tight">
-                PG
-              </span>
-            </div>
-            <span className="font-bold text-slate-900 tracking-tight text-[15px]">
-              Finder
-            </span>
+            <img src="/logo.png" alt="PGVista Logo" className="h-10 sm:h-11 w-auto object-contain" />
           </div>
 
           {/* Desktop nav */}
@@ -914,11 +907,8 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col sm:flex-row items-start justify-between gap-8 mb-10">
             <div>
-              <div className="flex items-center gap-2 mb-3">
-                <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center shadow-md shadow-blue-900/40">
-                  <span className="text-white text-[10px] font-black">PG</span>
-                </div>
-                <span className="text-white font-bold text-sm">Finder</span>
+              <div className="flex items-center mb-4">
+                <img src="/logo.png" alt="PGVista Logo" className="h-10 sm:h-11 w-auto object-contain bg-white px-2.5 py-1.5 rounded-xl shadow-sm" />
               </div>
               <p className="text-slate-500 text-xs max-w-xs leading-relaxed">
                 India&apos;s trusted PG platform. Zero brokerage, verified

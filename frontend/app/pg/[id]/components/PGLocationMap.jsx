@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { MapContainer, TileLayer, Marker } from "react-leaflet";
 import L from "leaflet";
+import { Loader2, Navigation } from "lucide-react";
 import "leaflet/dist/leaflet.css";
 
 delete L.Icon.Default.prototype._getIconUrl;
@@ -27,6 +28,7 @@ const pgPinIcon = L.divIcon({
 
 export default function PGLocationMap({ coordinate, address, city }) {
   const [mounted, setMounted] = useState(false);
+  const [loading, setLoading] = useState(false);
   useEffect(() => setMounted(true), []);
 
   let pos = null;
@@ -38,22 +40,47 @@ export default function PGLocationMap({ coordinate, address, city }) {
 
   if (!pos) return null;
 
-  // Get Directions: grab user's GPS, then open Google Maps with real origin
+  // Detect mobile for native map app opening
+  const isMobile = typeof navigator !== "undefined" && /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+  const isIOS = typeof navigator !== "undefined" && /iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+  // Build map URLs for different platforms
+  const getDirectionsUrl = (originLat, originLng) => {
+    if (isIOS) {
+      return originLat
+        ? `https://maps.apple.com/?saddr=${originLat},${originLng}&daddr=${pos[0]},${pos[1]}&dirflg=d`
+        : `https://maps.apple.com/?daddr=${pos[0]},${pos[1]}&dirflg=d`;
+    }
+    // Android + Desktop: Google Maps directions URL
+    // On Android, this auto-opens in the Google Maps app if installed
+    return originLat
+      ? `https://www.google.com/maps/dir/?api=1&origin=${originLat},${originLng}&destination=${pos[0]},${pos[1]}&travelmode=driving`
+      : `https://www.google.com/maps/dir/?api=1&destination=${pos[0]},${pos[1]}`;
+  };
+
+  // "Open in Maps" — opens the location (not directions) in native app
+  const viewOnMapUrl = isIOS
+    ? `https://maps.apple.com/?q=${pos[0]},${pos[1]}`
+    : `https://www.google.com/maps/search/?api=1&query=${pos[0]},${pos[1]}`;
+
+  // Get Directions: grab user's GPS, then open appropriate map app
   const handleGetDirections = () => {
     if ("geolocation" in navigator) {
+      setLoading(true);
       navigator.geolocation.getCurrentPosition(
         (p) => {
-          const url = `https://www.google.com/maps/dir/?api=1&origin=${p.coords.latitude},${p.coords.longitude}&destination=${pos[0]},${pos[1]}&travelmode=driving`;
+          setLoading(false);
+          const url = getDirectionsUrl(p.coords.latitude, p.coords.longitude);
           window.open(url, "_blank");
         },
         () => {
-          // Fallback: let Google auto-detect
-          window.open(`https://www.google.com/maps/dir/?api=1&destination=${pos[0]},${pos[1]}`, "_blank");
+          setLoading(false);
+          window.open(getDirectionsUrl(), "_blank");
         },
-        { timeout: 5000 }
+        { timeout: 7000, enableHighAccuracy: true }
       );
     } else {
-      window.open(`https://www.google.com/maps/dir/?api=1&destination=${pos[0]},${pos[1]}`, "_blank");
+      window.open(getDirectionsUrl(), "_blank");
     }
   };
 
@@ -63,20 +90,29 @@ export default function PGLocationMap({ coordinate, address, city }) {
         <h2 className="text-lg font-semibold">Where you'll be</h2>
         <div className="flex items-center gap-2">
           <a
-            href={`https://www.google.com/maps?q=${pos[0]},${pos[1]}`}
+            href={viewOnMapUrl}
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-1.5 text-xs font-medium text-blue-600 hover:text-blue-800 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-lg border border-blue-100 transition-all"
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg>
-            View on Map
+            {isMobile ? "Open in Maps" : "View on Map"}
           </a>
           <button
             onClick={handleGetDirections}
-            className="inline-flex items-center gap-1.5 text-xs font-medium text-emerald-600 hover:text-emerald-800 bg-emerald-50 hover:bg-emerald-100 px-3 py-1.5 rounded-lg border border-emerald-100 transition-all"
+            disabled={loading}
+            className={`inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg border transition-all ${
+              loading 
+                ? "bg-slate-50 text-slate-400 border-slate-200 cursor-not-allowed"
+                : "text-emerald-600 hover:text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border-emerald-100"
+            }`}
           >
-            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
-            Get Directions
+            {loading ? (
+              <Loader2 size={14} className="animate-spin" />
+            ) : (
+              <Navigation size={14} />
+            )}
+            {loading ? "Locating..." : "Get Directions"}
           </button>
         </div>
       </div>

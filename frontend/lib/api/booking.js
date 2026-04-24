@@ -1,28 +1,49 @@
 // frontend/lib/api/booking.js
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
+const API_URL = require("./apiUrl");
+
+// Shared helper: makes authenticated fetch with timeout + error handling
+async function authFetch(url, options = {}) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 10000);
+  try {
+    const res = await fetch(url, { ...options, signal: controller.signal });
+    clearTimeout(timeout);
+    const data = await res.json();
+    if (!res.ok) {
+      const err = new Error(data.message || `Request failed (${res.status})`);
+      err.status = res.status;
+      throw err;
+    }
+    return data;
+  } catch (err) {
+    clearTimeout(timeout);
+    if (err.name === "AbortError") {
+      throw new Error("Request timed out. Check your connection.");
+    }
+    throw err;
+  }
+}
 
 export const bookingApi = {
   // Guest History (Verified: /api/booking/my)
   getUserBookings: async (token) => {
-    const res = await fetch(`${API_URL}/api/booking/my`, {
+    return authFetch(`${API_URL}/api/booking/my`, {
       headers: { Authorization: `Bearer ${token}` },
       cache: "no-store",
     });
-    return res.json();
   },
 
   // Owner Dashboard (Verified: /api/booking/received)
   getOwnerBookings: async (token) => {
-    const res = await fetch(`${API_URL}/api/booking/received`, {
+    return authFetch(`${API_URL}/api/booking/received`, {
       headers: { Authorization: `Bearer ${token}` },
       cache: "no-store",
     });
-    return res.json();
   },
 
   // Update Status (Confirm/Cancel)
   updateStatus: async (id, status, token) => {
-    const res = await fetch(`${API_URL}/api/booking/${id}`, {
+    return authFetch(`${API_URL}/api/booking/${id}`, {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",
@@ -30,11 +51,10 @@ export const bookingApi = {
       },
       body: JSON.stringify({ status }),
     });
-    return res.json();
   },
 
   create: async (data, token) => {
-    const res = await fetch(`${API_URL}/api/booking`, {
+    return authFetch(`${API_URL}/api/booking`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -42,6 +62,5 @@ export const bookingApi = {
       },
       body: JSON.stringify(data),
     });
-    return res.json();
   },
 };

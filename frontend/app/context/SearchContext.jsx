@@ -10,6 +10,7 @@ export function SearchProvider({ children }) {
   // Create the state: 'query' holds the text, 'setQuery' is the remote control to change it
   const [query, setQuery] = useState("");
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [filterCount, setFilterCount] = useState(0);
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
@@ -23,7 +24,16 @@ export function SearchProvider({ children }) {
   return (
     // We wrap all children inside the Provider.
     // We pass the query and setQuery tools into the folder so anyone wrapped can use them.
-    <SearchContext.Provider value={{ query, setQuery, drawerOpen, setDrawerOpen }}>
+    <SearchContext.Provider
+      value={{
+        query,
+        setQuery,
+        drawerOpen,
+        setDrawerOpen,
+        filterCount,
+        setFilterCount,
+      }}
+    >
       {children}
     </SearchContext.Provider>
   );

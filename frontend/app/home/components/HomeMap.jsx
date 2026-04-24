@@ -1,10 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { MapContainer, TileLayer, Marker, useMap } from "react-leaflet";
-import { Maximize, Minimize } from "lucide-react";
+import { Maximize, X } from "lucide-react";
 import InfoCard from "../../components/InfoCard";
-import Button from "../../atoms/Button";
 import L from "leaflet";
 import MarkerClusterGroup from "react-leaflet-cluster";
 import "leaflet/dist/leaflet.css";
@@ -38,26 +37,31 @@ const getLatLng = (coordinate) => {
   return null;
 };
 
-// Pans the map when userLocation or defaultMapCenter changes
-// Also calls invalidateSize when isFullscreen changes (container resize)
-function MapEffect({ userLocation, defaultMapCenter, isFullscreen }) {
+// Handles map view changes ONLY for explicit user actions (location, fullscreen)
+// Does NOT auto-zoom/pan when data changes (sort, filter, page)
+function MapEffect({ userLocation, defaultMapCenter, isFullscreen, shouldFitBounds }) {
   const map = useMap();
+
+  // Handle fullscreen container resize
   useEffect(() => {
     if (!map) return;
-    // Give the DOM a moment to apply the new container size
     setTimeout(() => map.invalidateSize(), 200);
   }, [map, isFullscreen]);
 
+  // Only pan when userLocation toggles on/off
   useEffect(() => {
     if (!map) return;
     if (userLocation) {
-      map.setZoom(13);
-      map.panTo(userLocation);
-    } else if (defaultMapCenter) {
-      map.setZoom(11);
-      map.panTo(defaultMapCenter);
+      map.setView(userLocation, 13, { animate: true });
     }
-  }, [map, userLocation, defaultMapCenter]);
+  }, [map, userLocation]);
+
+  // Fit bounds when shouldFitBounds flag is set (initial load only)
+  useEffect(() => {
+    if (!map || !shouldFitBounds || !defaultMapCenter) return;
+    map.setView(defaultMapCenter, 11, { animate: false });
+  }, [map, shouldFitBounds, defaultMapCenter]);
+
   return null;
 }
 
@@ -72,26 +76,37 @@ export default function HomeMap({
 }) {
   // Leaflet needs window/DOM → only render after client mount
   const [mounted, setMounted] = useState(false);
+  const isInitialMount = useRef(true);
   useEffect(() => setMounted(true), []);
+
+  // Only fit bounds on first load, not on sort/filter/page changes
+  const [shouldFitBounds] = useState(true);
 
   const center = userLocation ??
     defaultMapCenter ?? { lat: 20.5937, lng: 78.9629 };
   const zoom = userLocation ? 13 : 11;
 
+  // Track if this is the initial mount → prevent auto-zoom on data change
+  useEffect(() => {
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+    }
+  }, [pgs]);
+
   return (
     <div
       className={
         isFullscreen
-          ? "relative h-full w-full rounded-2xl overflow-hidden border border-slate-200 shadow-2xl bg-white"
-          : "relative h-full rounded-2xl overflow-hidden border border-slate-200 shadow-sm bg-white"
+          ? "relative h-full w-full rounded-3xl overflow-hidden border border-slate-200 shadow-2xl bg-white "
+          : "relative h-full rounded-2xl md:rounded-3xl overflow-hidden border border-slate-200 shadow-sm bg-white"
       }
     >
       <button
         onClick={() => setIsFullscreen(!isFullscreen)}
-        className="absolute top-3 right-3 z-[1000] flex items-center gap-1.5 px-2.5 py-1.5 bg-white/95 backdrop-blur-md border border-slate-200 rounded-xl text-slate-700 text-[11px] font-semibold shadow-md hover:bg-white active:scale-95 transition-all"
+        className={`absolute ${isFullscreen ? 'top-5 right-5 w-10 h-10 rounded-full flex items-center justify-center' : 'top-4 right-4 px-4 py-2 rounded-xl flex items-center gap-2 text-[12px] md:text-sm'} z-[500] bg-white/95 backdrop-blur-md border border-slate-200 text-slate-700 font-bold shadow-xl hover:bg-white active:scale-95 transition-all`}
       >
-        {isFullscreen ? <Minimize size={14} /> : <Maximize size={14} />}
-        {isFullscreen ? "Collapse" : "Expand"}
+        {isFullscreen ? <X size={20} /> : <Maximize size={18} />}
+        {!isFullscreen && "Expand Map"}
       </button>
 
       {mounted && (
@@ -100,6 +115,7 @@ export default function HomeMap({
           zoom={zoom}
           style={{ width: "100%", height: "100%" }}
           zoomControl={false}
+          scrollWheelZoom={true}
         >
           <TileLayer
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/">CARTO</a>'
@@ -110,6 +126,7 @@ export default function HomeMap({
             userLocation={userLocation}
             defaultMapCenter={defaultMapCenter}
             isFullscreen={isFullscreen}
+            shouldFitBounds={isInitialMount.current}
           />
 
           {userLocation && (
@@ -120,7 +137,7 @@ export default function HomeMap({
             />
           )}
 
-          {/* After (with clustering): */}
+          {/* Clustered PG markers */}
           <MarkerClusterGroup chunkedLoading>
             {pgs.map((pg) => {
               const pos = getLatLng(pg.coordinate);

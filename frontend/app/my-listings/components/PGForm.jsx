@@ -4,7 +4,6 @@
 import { useState, useCallback, useEffect } from "react";
 import { XCircle, Plus, Trash2, MapPin } from "lucide-react";
 import Button from "../../atoms/Button";
-import Badge from "../../atoms/Badge";
 import {
   MapContainer,
   TileLayer,
@@ -45,21 +44,13 @@ function PanToCoordinate({ coordinate }) {
   return null;
 }
 
-const AMENITIES_LIST = [
-  "AC",
-  "WiFi",
-  "Parking",
-  "Laundry",
-  "Gym",
-  "CCTV",
-  "RO",
-  "TV",
-  "Lift",
-  "Refrigerator",
-  "Garden",
-  "Library",
-];
-const ROOM_TYPE_NAMES = ["regular", "deluxe", "luxurious", "premium", "suite"];
+import {
+  AMENITIES_LIST,
+  ROOM_TYPE_NAMES,
+  GENDER_LABELS,
+  FOOD_LABELS,
+} from "../../../lib/constants";
+
 const BLANK_RT = {
   name: "regular",
   sharingCount: "",
@@ -407,9 +398,11 @@ export default function PGForm({
             value={form.gender}
             onChange={(e) => set("gender", e.target.value)}
           >
-            <option value="male">Male</option>
-            <option value="female">Female</option>
-            <option value="mix">Co-ed</option>
+            {Object.entries(GENDER_LABELS).map(([k, v]) => (
+              <option key={k} value={k}>
+                {v}
+              </option>
+            ))}
           </select>
         </div>
         <div>
@@ -419,9 +412,11 @@ export default function PGForm({
             value={form.food}
             onChange={(e) => set("food", e.target.value)}
           >
-            <option value="with food">With Food</option>
-            <option value="without food">Without Food</option>
-            <option value="flexible">Flexible</option>
+            {Object.entries(FOOD_LABELS).map(([k, v]) => (
+              <option key={k} value={k}>
+                {v}
+              </option>
+            ))}
           </select>
         </div>
         <div>
