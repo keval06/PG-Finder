@@ -93,17 +93,17 @@ exports.getAllPg = async (req, res) => {
     const filter = buildPGQuery(req.query);
     filter.isActive = { $ne: false };
 
-    const { sortField, sortOrder } = req.query;
+    const { sortField, sortOrder, minRating } = req.query;
     const sortDir = sortOrder === "desc" ? -1 : 1;
+    const minRatingNum = Number(minRating) || 0;
 
     // FIX: always paginate — remove the old unpaginated fallback
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * limit;
 
-    // rating/reviews require an aggregation pipeline (join with reviews collection)
-    // price/default use a simple find + sort
-    const needsAggregation = sortField === "rating" || sortField === "reviews";
+    // rating/reviews sort OR minRating filter require aggregation (join with reviews)
+    const needsAggregation = sortField === "rating" || sortField === "reviews" || minRatingNum > 0;
 
     // ── aggregation path ─────────────────────────────────────────────────
     if (needsAggregation) {
@@ -123,20 +123,31 @@ exports.getAllPg = async (req, res) => {
             reviewCount: { $size: "$_reviews" },
           },
         },
-        {
-          $sort:
-            sortField === "rating"
-              ? { avgRating: sortDir, _id: -1 }
-              : { reviewCount: sortDir, _id: -1 },
-        },
-        {
-          // run totalCount and paginated slice in a single DB round-trip
-          $facet: {
-            metadata: [{ $count: "totalCount" }],
-            data: [{ $skip: skip }, { $limit: limit }],
-          },
-        },
       ];
+
+      // Apply minRating filter AFTER computing avgRating
+      if (minRatingNum > 0) {
+        pipeline.push({ $match: { avgRating: { $gte: minRatingNum } } });
+      }
+
+      // Sort
+      if (sortField === "rating") {
+        pipeline.push({ $sort: { avgRating: sortDir, _id: -1 } });
+      } else if (sortField === "reviews") {
+        pipeline.push({ $sort: { reviewCount: sortDir, _id: -1 } });
+      } else if (sortField === "price") {
+        pipeline.push({ $sort: { price: sortDir, _id: -1 } });
+      } else {
+        pipeline.push({ $sort: { _id: -1 } }); // default: newest first
+      }
+
+      pipeline.push({
+        // run totalCount and paginated slice in a single DB round-trip
+        $facet: {
+          metadata: [{ $count: "totalCount" }],
+          data: [{ $skip: skip }, { $limit: limit }],
+        },
+      });
 
       const [result] = await PG.aggregate(pipeline);
       const totalCount = result.metadata[0]?.totalCount || 0;
@@ -152,7 +163,7 @@ exports.getAllPg = async (req, res) => {
       });
     }
 
-    // ── simple path (price or default sort) ─────────────────────────────
+    // ── simple path (price or default sort, no minRating) ────────────────
     let sort = { _id: -1 }; // default: newest first
     if (sortField === "price") {
       sort = { price: sortDir, _id: -1 };
@@ -181,6 +192,7 @@ exports.getNearbyPGs = async (req, res) => {
       radius = 5,
       sortField,
       sortOrder,
+      minRating,
       page = 1,
       limit = 10,
     } = req.query;
@@ -194,10 +206,11 @@ exports.getNearbyPGs = async (req, res) => {
     const radiusInMeters = Number(radius) * 1000;
     const filter = buildPGQuery(req.query);
     filter.isActive = { $ne: false };
+    const minRatingNum = Number(minRating) || 0;
 
     const sortDir = sortOrder === "desc" ? -1 : 1;
     const skip = (Number(page) - 1) * Number(limit);
-    const needsAggregation = sortField === "rating" || sortField === "reviews";
+    const needsAggregation = sortField === "rating" || sortField === "reviews" || minRatingNum > 0;
 
     if (needsAggregation) {
       const pipeline = [
@@ -223,19 +236,29 @@ exports.getNearbyPGs = async (req, res) => {
             reviewCount: { $size: "$_reviews" },
           },
         },
-        {
-          $sort:
-            sortField === "rating"
-              ? { avgRating: sortDir, _id: -1 }
-              : { reviewCount: sortDir, _id: -1 },
-        },
-        {
-          $facet: {
-            metadata: [{ $count: "totalCount" }],
-            data: [{ $skip: skip }, { $limit: Number(limit) }],
-          },
-        },
       ];
+
+      // Apply minRating filter AFTER computing avgRating
+      if (minRatingNum > 0) {
+        pipeline.push({ $match: { avgRating: { $gte: minRatingNum } } });
+      }
+
+      // Sort
+      if (sortField === "rating") {
+        pipeline.push({ $sort: { avgRating: sortDir, _id: -1 } });
+      } else if (sortField === "reviews") {
+        pipeline.push({ $sort: { reviewCount: sortDir, _id: -1 } });
+      } else if (sortField === "price") {
+        pipeline.push({ $sort: { price: sortDir, _id: -1 } });
+      }
+      // else: default distance order from $geoNear
+
+      pipeline.push({
+        $facet: {
+          metadata: [{ $count: "totalCount" }],
+          data: [{ $skip: skip }, { $limit: Number(limit) }],
+        },
+      });
 
       const [result] = await PG.aggregate(pipeline);
       const totalCount = result.metadata[0]?.totalCount || 0;
@@ -249,7 +272,7 @@ exports.getNearbyPGs = async (req, res) => {
       });
     }
 
-    // ── Simple sort / Distance path ────────────────
+    // ── Simple sort / Distance path (no minRating) ────────────────
     const pipeline = [
       {
         $geoNear: {
