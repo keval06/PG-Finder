@@ -21,20 +21,6 @@ export default function HomeHeader({
     <div className="flex flex-col gap-3 mb-5">
       {/* Single row: Filters + Count + Near Me + Radius + Sort (wraps on mobile) */}
       <div className="flex items-center gap-2 flex-wrap">
-        <Button
-          onClick={() => setDrawerOpen(true)}
-          variant="outline"
-          className="lg:hidden flex"
-          icon={SlidersHorizontal}
-        >
-          Filters
-          {filterCount > 0 && (
-            <span className="bg-blue-600 text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-bold">
-              {filterCount}
-            </span>
-          )}
-        </Button>
-
         <p className="text-sm text-slate-500">
           <span className="font-semibold text-slate-900">{displayCount}</span>{" "}
           PGs found
@@ -61,6 +47,7 @@ export default function HomeHeader({
             <option value={10}>10 km</option>
             <option value={20}>20 km</option>
             <option value={30}>30 km</option>
+            <option value={300}>300 km</option>
           </select>
         )}
 
