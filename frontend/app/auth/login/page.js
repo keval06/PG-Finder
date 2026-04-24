@@ -32,9 +32,18 @@ export default function LoginPage() {
         // Backend returned 400 { message: "Invalid credentials" }
         setError(data.message || "Login failed. Please try again.");
       }
-    } catch {
-      // Network error or backend down
-      setError("Cannot reach server. Make sure the backend is running.");
+    } catch (err) {
+      // authApi.login now throws typed errors:
+      // - AbortError → "Connection timed out..."
+      // - HTTP error → "Login failed (400)" or "Invalid credentials"
+      // - Network error → TypeError with generic message
+      if (err.message?.includes("timed out")) {
+        setError("Server is not responding. Make sure the backend is running on the correct port.");
+      } else if (err.message?.includes("Failed to fetch") || err.message?.includes("NetworkError")) {
+        setError("Cannot reach server. Check your internet connection and backend URL.");
+      } else {
+        setError(err.message || "Login failed. Please try again.");
+      }
     } finally {
       setLoading(false);
     }

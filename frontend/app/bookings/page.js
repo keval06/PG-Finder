@@ -2,12 +2,12 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import { useSearch } from "../context/SearchContext";
 import { useAuth } from "../context/AuthContext";
 import StatusBadge from "../../components/StatusBadge";
 import ConfirmModal from "../../components/ConfirmModal";
 import PaginationWrapper from "../../components/PaginationWrapper";
 import { bookingApi } from "../../lib/api/booking";
-import { useSearch } from "../context/SearchContext";
 
 import {
   MapPin,

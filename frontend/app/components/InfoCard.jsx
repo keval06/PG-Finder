@@ -2,7 +2,6 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { imageApi } from "../../lib/api/image";
-const API = process.env.NEXT_PUBLIC_API_URL;
 
 
 export default function InfoCard({ activePin, avg, count, setActivePin }) {
