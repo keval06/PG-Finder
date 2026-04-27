@@ -138,10 +138,22 @@ exports.updateBooking = async (req, res) => {
 
   try {
     // if booking is not found
-    const existing = await Booking.findById(req.params.id).session(session);
+    const existing = await Booking.findById(req.params.id)
+      .populate("pg", "owner")
+      .session(session);
+
     if (!existing) {
       await session.abortTransaction();
       return res.status(404).json({ message: "Booking not found" });
+    }
+
+    // SECURITY: Only Guest who booked OR PG Owner can update
+    const isGuest = existing.user.toString() === req.user._id.toString();
+    const isOwner = existing.pg.owner.toString() === req.user._id.toString();
+
+    if (!isGuest && !isOwner) {
+      await session.abortTransaction();
+      return res.status(403).json({ message: "Not authorized to update this booking" });
     }
 
     // if booking is updated
