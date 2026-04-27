@@ -7,6 +7,7 @@ const userSchema = new mongoose.Schema(
       required: true,
       minLength: [3, "Name must be at least 3 characters"],
       maxLength: [32, "Name cannot exceed 32 characters"],
+      match: [/^[a-zA-Z\s]+$/, "Name can only contain letters and spaces"],
     },
 
     mobile: {

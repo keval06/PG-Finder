@@ -30,7 +30,7 @@ import {
 import ReviewsSection from "./components/ReviewsSection";
 import BookNowButton from "./components/BookNowButton";
 import OwnerEditButton from "./OwnerEditButton";
-import BackButton from "./components/BackButton";
+import BackButton from "../../../components/BackButton";
 
 // async function getPG(id) {
 //   const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/pg/${id}`, {

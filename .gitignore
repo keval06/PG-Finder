@@ -8,6 +8,7 @@ frontend/.next/
 frontend/out/
 data
 skills 
+cypress
 
 # Environment
 .env
@@ -26,6 +27,7 @@ bill.pdf
 roadmap_gaps_final.txt
 roadmap_gaps.txt
 new_bill.pdf
+all_files.txt
 
 
 # Logs

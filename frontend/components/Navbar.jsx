@@ -215,8 +215,9 @@ export default function Navbar() {
               <>
                 <span className="hidden sm:block text-sm text-slate-500">
                   Hey,{" "}
-                  <span className="text-slate-900 font-medium">
-                    {user.name?.split(" ")[0]}
+                  <span className="text-slate-900 font-medium truncate max-w-[100px]">
+                    {user.name?.split(" ")[0]?.slice(0, 10)}
+                    {(user.name?.split(" ")[0]?.length || 0) > 10 ? "..." : ""}
                   </span>
                 </span>
 
