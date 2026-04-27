@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import StepperBar from "./components/StepperBar";
 import RoomCard from "./components/RoomCard";
+import BackButton from "../../../../components/BackButton";
 import { roomTypeApi } from "../../../../lib/api/roomType";
 import { bookingApi } from "../../../../lib/api/booking";
 
@@ -37,7 +38,7 @@ export default function BookingPage() {
   // auth guard
   useEffect(() => {
     if (!ready) return;
-    if (!user) router.push("/auth/login");
+    if (!user) router.replace("/auth/login");
   }, [ready, user]);
 
   // fetch room types
@@ -172,12 +173,7 @@ export default function BookingPage() {
     <div className="min-h-screen bg-[#f8fafc] px-4 pt-20 sm:pt-24 pb-24 sm:pb-8">
       <div className="max-w-lg mx-auto">
         {/* back */}
-        <button
-          onClick={() => router.push(`/pg/${pgId}`)}
-          className="flex items-center gap-1.5 text-xs sm:text-sm text-slate-500 hover:text-slate-800 mb-4 sm:mb-6 transition-colors"
-        >
-          <ArrowLeft size={14} /> Back to PG
-        </button>
+        <BackButton className="mb-4 sm:mb-6" />
 
         {/* stepper */}
         <StepperBar steps={STEPS} currentStep={step} />

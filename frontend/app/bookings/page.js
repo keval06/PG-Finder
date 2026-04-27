@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useSearch } from "../context/SearchContext";
 import { useAuth } from "../context/AuthContext";
+import BackButton from "../../components/BackButton";
 import StatusBadge from "../../components/StatusBadge";
 import ConfirmModal from "../../components/ConfirmModal";
 import PaginationWrapper from "../../components/PaginationWrapper";
@@ -84,7 +85,7 @@ export default function MyBookingsPage() {
   useEffect(() => {
     if (!ready) return;
 
-    if (!user) router.push("/auth/login");
+    if (!user) router.replace("/auth/login");
     
   }, [ready, user]);
 
@@ -225,9 +226,10 @@ export default function MyBookingsPage() {
 
   return (
     <div className="min-h-screen bg-[#f8fafc] px-4 py-8">
-      <div className="max-w-3xl mx-auto">
+      <div className="max-w-3xl mx-auto flex flex-col gap-6">
+        <BackButton />
         {/* ── header ── */}
-        <div className="flex items-end justify-between mb-4">
+        <div className="flex items-end justify-between">
           <div>
             <h1 className="text-2xl font-bold text-slate-900">My Bookings</h1>
             <p className="text-sm text-slate-400 mt-0.5">

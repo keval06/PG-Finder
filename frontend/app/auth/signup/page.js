@@ -117,7 +117,10 @@ export default function SignupPage() {
               type="text"
               placeholder="Full Name"
               value={name}
-              onChange={(e) => setName(e.target.value.trim())}
+              onChange={(e) => {
+                const val = e.target.value.replace(/[^a-zA-Z\s]/g, "");
+                setName(val);
+              }}
               className={inputClass}
               required
             />

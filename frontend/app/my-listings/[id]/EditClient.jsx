@@ -12,6 +12,7 @@ import Button from "../../atoms/Button";
 import Badge from "../../atoms/Badge";
 import dynamic from "next/dynamic";
 const PGForm = dynamic(() => import("../components/PGForm"), { ssr: false });
+import BackButton from "../../../components/BackButton";
 
 import {
   ArrowLeft,
@@ -86,6 +87,12 @@ export default function EditListingClient({ pgId }) {
       setPg(pgData);
       setImages(Array.isArray(imgData) ? imgData : []);
       setRoomTypes(Array.isArray(rtData) ? rtData : []);
+
+      // Ownership verify
+      const ownerId = pgData.owner?._id || pgData.owner;
+      if (ownerId && ownerId !== user._id) {
+        router.replace("/my-listings");
+      }
     } finally {
       setLoading(false);
     }
@@ -321,14 +328,7 @@ export default function EditListingClient({ pgId }) {
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6">
         {/* back + toast */}
         <div className="flex items-center justify-between mb-5">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => router.push("/my-listings")}
-            icon={ArrowLeft}
-          >
-            Back to listings
-          </Button>
+          <BackButton />
           {inactive && (
             <Badge variant="slate" className="px-3 py-1 font-semibold">
               Inactive — hidden from guests

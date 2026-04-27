@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../context/AuthContext";
+import BackButton from "../../components/BackButton";
 import StatusBadge from "../../components/StatusBadge";
 import ConfirmModal from "../../components/ConfirmModal";
 import PaginationWrapper from "../../components/PaginationWrapper";
@@ -42,7 +43,7 @@ export default function ReceivedBookingsPage() {
 
   useEffect(() => {
     if (!ready) return;
-    if (!user) router.push("/auth/login");
+    if (!user) router.replace("/auth/login");
   }, [ready, user]);
 
   const fetchBookings = useCallback(async () => {
@@ -165,9 +166,10 @@ export default function ReceivedBookingsPage() {
 
   return (
     <div className="min-h-screen bg-[#f8fafc] px-4 py-8">
-      <div className="max-w-3xl mx-auto">
-        {/* header */}
-        <div className="flex items-end justify-between mb-4">
+      <div className="max-w-3xl mx-auto flex flex-col gap-6">
+        <BackButton />
+        {/* ── header ── */}
+        <div className="flex items-end justify-between">
           <div>
             <h1 className="text-2xl font-bold text-slate-900">
               Received Bookings
