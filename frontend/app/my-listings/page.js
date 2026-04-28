@@ -1,7 +1,7 @@
 // app/my-listings/page.js
 
 import MyListingsClient from "./MyListingClient";
-import BackButton from "../components/BackButton";
+import BackButton from "../../components/BackButton";
 
 export default function MyListingsPage() {
   return (
