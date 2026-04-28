@@ -17,12 +17,13 @@ app.use(
 
       const allowed = [
         process.env.FRONTEND_URL,
+        "https://quickpg.in",
+        "https://www.quickpg.in",
         "http://localhost:3000",
         "http://127.0.0.1:3000",
         "http://localhost:3001",
         "http://127.0.0.1:3001",
-      ].filter(Boolean);
-
+      ].filter(Boolean);  
       // Allow any LAN IP (192.168.x.x) for development/mobile testing
       if (allowed.includes(origin) || /^http:\/\/192\.168\.\d+\.\d+:\d+$/.test(origin)) {
         return callback(null, true);
