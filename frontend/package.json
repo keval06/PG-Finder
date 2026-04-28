@@ -5,13 +5,14 @@
   "scripts": {
     "dev": "cross-env NODE_OPTIONS=--max-old-space-size=4096 next dev",
     "dev:webpack": "cross-env NODE_OPTIONS=--max-old-space-size=4096 next dev --turbopack=false",
-    "build": "cross-env NODE_OPTIONS=--max-old-space-size=2048 next build",
+    "build": "NODE_OPTIONS=--max-old-space-size=2048 next build",
     "start": "next start",
     "lint": "eslint",
     "lint:fix": "eslint --fix",
     "test": "cypress run"
   },
   "dependencies": {
+    "cross-env": "^10.1.0",
     "leaflet": "^1.9.4",
     "lucide-react": "^0.577.0",
     "next": "16.1.6",
@@ -24,7 +25,7 @@
     "@tailwindcss/postcss": "^4.1.18",
     "autoprefixer": "^10.4.24",
     "babel-plugin-react-compiler": "1.0.0",
-    "cross-env": "^10.1.0",
+
     "cypress": "^14.5.4",
     "cypress-mochawesome-reporter": "^4.0.2",
     "eslint": "^9",
