@@ -67,13 +67,12 @@ exports.updateUser = async (req, res) => {
 
     const updatedUser = await User.findByIdAndUpdate(
       userId, 
-      mobile,
-      password,
+      req.body,
       {
         new: true,
         runValidators: true,
       }
-  ).select("-password");
+    ).select("-password");
 
     if (!updatedUser) {
       return res.status(404).json(

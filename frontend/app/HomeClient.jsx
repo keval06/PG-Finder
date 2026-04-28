@@ -7,11 +7,14 @@ import PGCard from "../components/PGCard";
 import FilterPanel from "../components/FilterPanel";
 import { usePGFilters } from "./hooks/usePGFilters";
 import PaginationWrapper from "../components/PaginationWrapper";
-import HomeMap from "./home/components/HomeMap";
 import HomeHeader from "./home/components/HomeHeader";
 import EmptyState from "./atoms/EmptyState";
 import Button from "./atoms/Button";
 import { Home as HomeIcon, AlertCircle, X, Map as MapIcon } from "lucide-react";
+import dynamic from "next/dynamic";
+const HomeMap = dynamic(() => import("./home/components/HomeMap"), {
+  ssr: false,
+});
 
 // Helper for initial map center — handles BOTH GeoJSON and flat array
 const getLatLng = (coordinate) => {
@@ -29,8 +32,7 @@ export default function HomeClient({
   data,
   pagination = { currentPage: 1, totalPages: 1, totalCount: 0 },
 }) {
-  const search = useSearch();
-  const query = search?.query || "";
+  const { query, setFilterCount } = useSearch();
   const router = useRouter();
   const pathname = usePathname();
 
@@ -56,6 +58,21 @@ export default function HomeClient({
   const [activePin, setActivePin] = useState(null);
   const [isMapFullscreen, setIsMapFullscreen] = useState(false);
   const isFirstRender = useRef(true);
+
+  // Sync global filter count
+  useEffect(() => {
+    setFilterCount(filterCount);
+  }, [filterCount, setFilterCount]);
+
+  // Lock body scroll when filter drawer is open (mobile fix)
+  useEffect(() => {
+    if (drawerOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => { document.body.style.overflow = ""; };
+  }, [drawerOpen]);
 
   const [userLocation, setUserLocation] = useState(
     latParam && lngParam
@@ -134,6 +151,28 @@ export default function HomeClient({
     radius,
   ]);
 
+  // Fallback to IP matching if Windows returns 0,0 or strict HTTP mobile block
+  const handleNearMeFallback = async () => {
+    try {
+      const res = await fetch("https://ipinfo.io/json");
+      const data = await res.json();
+      if (data && data.loc) {
+        const [latStr, lngStr] = data.loc.split(",");
+        setIsLocationLoading(false);
+        setUserLocation({ lat: Number(latStr), lng: Number(lngStr) });
+        // IP-based is always city-level (~10-50km) — warn user and widen radius
+        setLocationError(
+          "Using approximate IP-based location. Results may cover a wider area. " +
+          "Use the search bar for precise results."
+        );
+        setRadius((prev) => Math.max(prev, 15));
+        return true;
+      }
+    } catch {
+      return false;
+    }
+  };
+
   const handleNearMe = () => {
     // Toggle off if already active
     if (userLocation) {
@@ -142,10 +181,13 @@ export default function HomeClient({
       return;
     }
 
-    // No pre-flight guards — just let the browser handle it.
-    // getCurrentPosition will trigger the native permission prompt automatically.
     if (!("geolocation" in navigator)) {
-      setLocationError("Your browser doesn't support location. Try Chrome, Firefox, or Edge.");
+      handleNearMeFallback().then((success) => {
+        if (!success) {
+          setIsLocationLoading(false);
+          setLocationError("Your browser doesn't support location. IP fallback failed.");
+        }
+      });
       return;
     }
 
@@ -154,22 +196,57 @@ export default function HomeClient({
 
     navigator.geolocation.getCurrentPosition(
       (pos) => {
+        if (pos.coords.latitude === 0 && pos.coords.longitude === 0) {
+          handleNearMeFallback().then((success) => {
+            if (!success) {
+              setIsLocationLoading(false);
+              setLocationError("Your device returned (0, 0) and IP location failed.");
+            }
+          });
+          return;
+        }
+
+        const accuracyMeters = pos.coords.accuracy;
         setIsLocationLoading(false);
         setUserLocation({
           lat: pos.coords.latitude,
           lng: pos.coords.longitude,
         });
+
+        // Accuracy > 50km → WiFi/cell triangulation pointing at ISP hub city
+        // This is the "sitting in Bhavnagar, showing Ahmedabad" problem
+        if (accuracyMeters > 50000) {
+          setLocationError(
+            `Location accuracy is ~${Math.round(accuracyMeters / 1000)}km (WiFi/network-based). ` +
+            `This may point to your ISP's city, not your actual location. ` +
+            `Use the search bar to find PGs in your city instead.`
+          );
+          // Auto-widen radius to cover the inaccuracy
+          setRadius((prev) => Math.max(prev, Math.round(accuracyMeters / 1000)));
+        } else if (accuracyMeters > 10000) {
+          // 10-50km → moderately imprecise, still usable with wider radius
+          setLocationError(
+            `Location is approximate (~${Math.round(accuracyMeters / 1000)}km accuracy). ` +
+            `Search radius has been widened automatically.`
+          );
+          setRadius((prev) => Math.max(prev, Math.round(accuracyMeters / 1000)));
+        }
+        // accuracyMeters <= 10km → good enough, no warning needed
       },
       (err) => {
-        setIsLocationLoading(false);
-        const errorMessages = {
-          1: "Location permission denied. Click the 🔒 icon in your address bar → Allow location → try again.",
-          2: "Location unavailable. Check your device's location settings or move to an open area.",
-          3: "Location request timed out. Please try again.",
-        };
-        setLocationError(errorMessages[err.code] || "Could not get your location. Please try again.");
+        handleNearMeFallback().then((success) => {
+          if (!success) {
+            setIsLocationLoading(false);
+            const errorMessages = {
+              1: "Location permission denied. Click the 🔒 icon in your browser's address bar.",
+              2: "Location unavailable. Check your device's location settings (Windows Settings → Privacy → Location).",
+              3: "Location request timed out. Please try again.",
+            };
+            setLocationError(errorMessages[err.code] || "Could not get your location.");
+          }
+        });
       },
-      { timeout: 10000, maximumAge: 60000, enableHighAccuracy: false },
+      { timeout: 15000, maximumAge: 0, enableHighAccuracy: true },
     );
   };
 
@@ -184,29 +261,34 @@ export default function HomeClient({
   return (
     <>
       {drawerOpen && (
-        <div className="fixed inset-0 z-[200] flex lg:hidden">
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
           <div
-            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+            className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity"
             onClick={() => setDrawerOpen(false)}
           />
-          <div className="relative w-80 bg-white h-full shadow-2xl flex flex-col">
+          <div className="relative w-full max-w-sm max-h-[90vh] bg-white shadow-2xl rounded-2xl flex flex-col overflow-hidden animate-[fadeIn_0.15s_ease-out]">
             <FilterPanel {...fp} onClose={() => setDrawerOpen(false)} />
           </div>
         </div>
       )}
 
       {/* ── MOBILE / TABLET LAYOUT (below xl) ── */}
-      {/* Fixed map top half + scrollable PG cards bottom half */}
-      <div className="xl:hidden flex flex-col min-h-screen">
-        {/* Map — sticky at top, 45vh tall, rounded with side margins */}
+      <div className="xl:hidden block min-h-screen bg-[#f8fafc]">
+        {/* Map — sticky at top, taller when InfoCard is showing */}
         <div
           className={
             isMapFullscreen
-              ? "fixed inset-0 z-[150] bg-white"
-              : "sticky top-[60px] z-20 h-[45vh] px-3 pt-3 pb-1"
+              ? "fixed inset-0 z-[40] bg-[#f8fafc] pt-28 md:pt-20 px-3 pb-4"
+              : `sticky top-14 z-0 ${activePin ? 'h-[55vh]' : 'h-[40vh]'} px-3 pt-3 pb-1 transition-all duration-300`
           }
         >
-          <div className={isMapFullscreen ? "w-full h-full" : "w-full h-full rounded-2xl overflow-hidden border border-slate-200 shadow-sm"}>
+          <div
+            className={
+              isMapFullscreen
+                ? "w-full h-full"
+                : "w-full h-full rounded-2xl overflow-hidden border border-slate-200 shadow-sm"
+            }
+          >
             <HomeMap
               pgs={sorted}
               userLocation={userLocation}
@@ -219,14 +301,18 @@ export default function HomeClient({
           </div>
         </div>
 
-        {/* PG listings — scrollable below map */}
-        <div className={`flex-1 px-4 sm:px-5 py-4 ${isMapFullscreen ? "hidden" : ""}`}>
-          {/* Location error toast */}
+        {/* PG listings — scrolls over the map because of z-index and background */}
+        <div
+          className={`relative z-10 bg-[#f8fafc] flex-1 px-4 sm:px-5 py-4 min-h-[65vh] ${isMapFullscreen ? "hidden" : "block"}`}
+        >
           {locationError && (
             <div className="mb-3 flex items-start gap-2.5 text-sm text-amber-800 bg-amber-50 border border-amber-200 rounded-xl px-3.5 py-2.5">
               <AlertCircle size={16} className="flex-shrink-0 mt-0.5" />
               <span className="flex-1">{locationError}</span>
-              <button onClick={() => setLocationError(null)} className="flex-shrink-0 text-amber-600 hover:text-amber-900 transition-colors">
+              <button
+                onClick={() => setLocationError(null)}
+                className="flex-shrink-0 text-amber-600 hover:text-amber-900 transition-colors"
+              >
                 <X size={15} />
               </button>
             </div>
@@ -270,29 +356,44 @@ export default function HomeClient({
             />
           )}
         </div>
+
+        {/* Footer — mobile only, after listings, above sticky map */}
+        <footer className="relative z-20 bg-slate-900 py-10 px-5 sm:px-8">
+          <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="flex items-center">
+              <img src="/logo.png" alt="PGVista Logo" className="h-10 sm:h-11 w-auto object-contain bg-white px-2.5 py-1.5 rounded-xl shadow-sm" />
+            </div>
+            <p className="text-slate-500 text-xs">
+              © 2026 PGFinder. All rights reserved.
+            </p>
+            <div className="flex gap-6">
+              {["Privacy", "Terms", "Contact"].map((l) => (
+                <a
+                  key={l}
+                  href="#"
+                  className="text-slate-500 hover:text-blue-400 text-xs uppercase tracking-wider transition-colors"
+                >
+                  {l}
+                </a>
+              ))}
+            </div>
+          </div>
+        </footer>
       </div>
 
       {/* ── DESKTOP LAYOUT (xl and above) ── */}
-      <div className="hidden xl:flex py-6 min-h-screen">
-        <aside
-          className={`${
-            isMapFullscreen ? "hidden" : "flex"
-          } flex-col flex-shrink-0 w-60 pl-4 sm:pl-6`}
-        >
-          <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm flex flex-col sticky top-24 h-[calc(100vh-120px)]">
-            <FilterPanel {...fp} />
-          </div>
-        </aside>
-
+      <div className="hidden xl:flex h-[calc(100vh-56px)] sticky top-14 p-6 gap-6">
         <div
-          className={`flex-1 min-w-0 px-4 sm:px-5 ${isMapFullscreen ? "hidden" : "block"}`}
+          className={`w-1/2 flex flex-col min-w-0 overflow-y-auto custom-scrollbar ${isMapFullscreen ? "hidden" : "block"}`}
         >
-          {/* Location error toast */}
           {locationError && (
             <div className="mb-3 flex items-start gap-2.5 text-sm text-amber-800 bg-amber-50 border border-amber-200 rounded-xl px-3.5 py-2.5">
               <AlertCircle size={16} className="flex-shrink-0 mt-0.5" />
               <span className="flex-1">{locationError}</span>
-              <button onClick={() => setLocationError(null)} className="flex-shrink-0 text-amber-600 hover:text-amber-900 transition-colors">
+              <button
+                onClick={() => setLocationError(null)}
+                className="flex-shrink-0 text-amber-600 hover:text-amber-900 transition-colors"
+              >
                 <X size={15} />
               </button>
             </div>
@@ -310,6 +411,7 @@ export default function HomeClient({
             sortField={sortField}
             sortOrder={sortOrder}
             toggleSort={toggleSort}
+            showFilterIcon={true}
           />
 
           {sorted.length === 0 ? (
@@ -337,12 +439,12 @@ export default function HomeClient({
           )}
         </div>
 
-        {/* Desktop Map sidebar */}
+        {/* Desktop Map - Fixed on right side, no scroll */}
         <div
           className={
             isMapFullscreen
-              ? "hidden"
-              : "w-[40%] flex-shrink-0 pl-3 pr-4 sticky top-24 h-[calc(100vh-120px)]"
+              ? "fixed inset-0 z-[40] bg-[#f8fafc] pt-20 p-6"
+              : "w-1/2 flex-shrink-0 flex flex-col h-full rounded-3xl overflow-hidden border border-slate-200 shadow-sm"
           }
         >
           <HomeMap
@@ -357,30 +459,7 @@ export default function HomeClient({
         </div>
       </div>
 
-      <footer className="bg-slate-900 py-10 px-5 sm:px-8 mt-4">
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-blue-600 flex items-center justify-center">
-              <span className="text-white text-[10px] font-bold">PG</span>
-            </div>
-            <span className="text-white font-semibold text-sm">Finder</span>
-          </div>
-          <p className="text-slate-500 text-xs">
-            © 2026 PGFinder. All rights reserved.
-          </p>
-          <div className="flex gap-6">
-            {["Privacy", "Terms", "Contact"].map((l) => (
-              <a
-                key={l}
-                href="#"
-                className="text-slate-500 hover:text-blue-400 text-xs uppercase tracking-wider transition-colors"
-              >
-                {l}
-              </a>
-            ))}
-          </div>
-        </div>
-      </footer>
+      {/* No footer on desktop — map+list layout fills viewport (Airbnb pattern) */}
     </>
   );
 }

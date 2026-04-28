@@ -28,16 +28,22 @@ const pgSchema = new mongoose.Schema(
     },
 
     coordinate: {
+      //? GeoJSON
       type: {
         type: String,
         enum: ["Point"],
         default: "Point",
       },
       coordinates: {
-        type: [Number], //long, lat
+        type: [Number], //[long, lat]
         required: true,
       },
     },
+
+    /*{
+      "type": "Point",
+      "coordinates": [72.8777, 19.0760]
+    } */
 
     city: {
       type: String,
@@ -95,18 +101,18 @@ const pgSchema = new mongoose.Schema(
       required: true,
     },
 
-    isActive: { 
-      type: Boolean, 
-      default: true 
-    }, // ← NEW: false = hidden from home page
+    isActive: {
+      type: Boolean,
+      default: true,
+    }, // ← NEW: false = hidden from home page, SOFT Deletion
   },
-    { timestamps: true },
+  { timestamps: true }
 );
 
 // Indexes for scalable filtering
 pgSchema.index({ city: 1, gender: 1, price: 1, isActive: 1 });
 pgSchema.index({ amenities: 1 });
 pgSchema.index({ owner: 1 });
-pgSchema.index({ coordinate: "2dsphere" });
+pgSchema.index({ coordinate: "2dsphere" }); //? Near Me / radius search
 
 module.exports = mongoose.model("PG", pgSchema);

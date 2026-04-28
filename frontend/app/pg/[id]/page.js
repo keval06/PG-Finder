@@ -3,38 +3,34 @@ import { pgApi } from "../../../lib/api/pg";
 import { imageApi } from "../../../lib/api/image";
 import { reviewApi } from "../../../lib/api/review";
 import { roomTypeApi } from "../../../lib/api/roomType";
-import PGLocationMap from "./components/PGLocationMap";
+//new map
+import PGLocationMapWrapper from "./components/PGLocationMapWrapper";
 import {
-  Wifi,
-  Car,
-  Snowflake,
-  Tv,
-  Camera,
-  Dumbbell,
-  Book,
-  Trees,
-  Refrigerator,
-  WashingMachine,
-  ArrowUpDown,
-  Bed,
-  User,
-  Utensils,
-  Clock,
-  Ban,
-  PartyPopper,
-  PawPrint,
-  Users,
-  Toilet,
-  CreditCard,
+  AMENITY_ICONS,
+  GENDER_LABELS,
+  FOOD_LABELS,
+  POLICY_ICONS,
+  ROOM_DETAIL_ICONS,
+} from "../../../lib/constants";
+import {
+  ArrowLeft,
+  Pencil,
+  Eye,
+  EyeOff,
+  Check,
+  X,
   MapPin,
-  Bath,
-  BedDouble,
-  BedSingle,
+  Trash2,
+  CheckCircle2,
+  XCircle,
+  Star,
+  IndianRupee,
+  Users,
 } from "lucide-react";
 import ReviewsSection from "./components/ReviewsSection";
 import BookNowButton from "./components/BookNowButton";
 import OwnerEditButton from "./OwnerEditButton";
-import BackButton from "./components/BackButton";
+import BackButton from "../../../components/BackButton";
 
 // async function getPG(id) {
 //   const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/pg/${id}`, {
@@ -61,21 +57,6 @@ async function getRoomTypes(pgId) {
   return await roomTypeApi.getByPgId(pgId);
 }
 
-const amenityIcons = {
-  Parking: Car,
-  WiFi: Wifi,
-  AC: Snowflake,
-  Laundry: WashingMachine,
-  Lift: ArrowUpDown,
-  CCTV: Camera,
-  RO: Refrigerator,
-  TV: Tv,
-  Refrigerator: Refrigerator,
-  Gym: Dumbbell,
-  Garden: Trees,
-  Library: Book,
-};
-
 export default async function PGDetails({ params }) {
   const { id } = await params;
 
@@ -89,20 +70,6 @@ export default async function PGDetails({ params }) {
   const avgRating = reviews.length
     ? (reviews.reduce((sum, r) => sum + r.star, 0) / reviews.length).toFixed(1)
     : null;
-
-  // const bathroomRatio =
-  //   pg.bathroom && pg.room
-  //     ? pg.bathroom >= pg.room
-  //       ? "Attached"
-  //       : `Shared (1:${Math.round(pg.room / pg.bathroom)})`
-  //     : "—";
-
-  // const toiletRatio =
-  //   pg.toilet && pg.room
-  //     ? pg.toilet >= pg.room
-  //       ? "Attached"
-  //       : `Shared (1:${Math.round(pg.room / pg.toilet)})`
-  //     : "—";
 
   const bathroomRatio =
     pg.bathroom && pg.room
@@ -176,13 +143,13 @@ export default async function PGDetails({ params }) {
               <h2 className="text-lg font-semibold mb-4">Room Details</h2>
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
                 {[
-                  { icon: Bed, label: "Rooms", value: pg.room },
-                  { icon: User, label: "Gender", value: pg.gender },
-                  { icon: Utensils, label: "Food", value: pg.food },
-                  { icon: Bath, label: "Bathroom", value: bathroomRatio },
-                  { icon: Toilet, label: "Toilet", value: toiletRatio },
-                  { icon: BedDouble, label: "Total Beds", value: totalBeds },
-                  { icon: BedSingle, label: "Free Beds", value: freeBeds },
+                  { icon: ROOM_DETAIL_ICONS.Rooms, label: "Rooms", value: pg.room },
+                  { icon: ROOM_DETAIL_ICONS.Gender, label: "Gender", value: GENDER_LABELS[pg.gender] || pg.gender },
+                  { icon: ROOM_DETAIL_ICONS.Food, label: "Food", value: FOOD_LABELS[pg.food] || pg.food },
+                  { icon: ROOM_DETAIL_ICONS.Bathroom, label: "Bathroom", value: bathroomRatio },
+                  { icon: ROOM_DETAIL_ICONS.Toilet, label: "Toilet", value: toiletRatio },
+                  { icon: ROOM_DETAIL_ICONS["Total Beds"], label: "Total Beds", value: totalBeds },
+                  { icon: ROOM_DETAIL_ICONS["Free Beds"], label: "Free Beds", value: freeBeds },
                 ].map(({ icon: Icon, label, value }) => (
                   <div
                     key={label}
@@ -203,7 +170,7 @@ export default async function PGDetails({ params }) {
               <h2 className="text-lg font-semibold mb-4">Amenities</h2>
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
                 {(pg.amenities || []).map((item) => {
-                  const Icon = amenityIcons[item];
+                  const Icon = AMENITY_ICONS[item];
                   return (
                     <div
                       key={item}
@@ -228,17 +195,17 @@ export default async function PGDetails({ params }) {
               <ul className="flex flex-col gap-3">
                 {[
                   {
-                    icon: Clock,
+                    icon: POLICY_ICONS.CheckIn,
                     text: "Check-in: 10:00 AM — Check-out: 9:00 AM",
                   },
-                  { icon: Ban, text: "No smoking inside the premises" },
+                  { icon: POLICY_ICONS.NoSmoking, text: "No smoking inside the premises" },
                   {
-                    icon: PartyPopper,
+                    icon: POLICY_ICONS.NoParties,
                     text: "No parties or loud music after 10 PM",
                   },
-                  { icon: PawPrint, text: "Pets not allowed" },
+                  { icon: POLICY_ICONS.NoPets, text: "Pets not allowed" },
                   {
-                    icon: CreditCard,
+                    icon: POLICY_ICONS.SecurityDeposit,
                     text: "1 month security deposit required at check-in",
                   },
                 ].map(({ icon: Icon, text }) => (
@@ -248,7 +215,7 @@ export default async function PGDetails({ params }) {
                   >
                     <Icon
                       size={16}
-                      className="text-gray-600 mt-0.5 flex-shrink-0"
+                      className="text-slate-400 mt-0.5 flex-shrink-0"
                     />
                     {text}
                   </li>
@@ -264,7 +231,7 @@ export default async function PGDetails({ params }) {
             />
 
             {/* Location Map */}
-            <PGLocationMap
+            <PGLocationMapWrapper
               coordinate={pg.coordinate}
               address={pg.address}
               city={pg.city}

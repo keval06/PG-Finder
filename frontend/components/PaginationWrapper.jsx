@@ -82,9 +82,9 @@ export default function PaginationWrapper({
       </div>
 
       {totalPages > 1 && (
-        <div className="flex items-center justify-between mt-6 mb-8 pt-4 border-t border-slate-100 flex-wrap gap-3">
+        <div className="flex items-center justify-between mt-6 mb-8 pt-4 border-t border-slate-100 flex-col sm:flex-row gap-4">
           {/* Showing X–Y of Z PGs */}
-          <p className="text-xs text-slate-400 hidden sm:block">
+          <p className="text-xs text-slate-400 text-center sm:text-left">
             Showing{" "}
             <span className="font-medium text-slate-600">
               {startItem}–{endItem}

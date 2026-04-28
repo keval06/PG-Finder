@@ -42,7 +42,7 @@ export default function EditProfilePage() {
     if (!ready) return; // ?← guard #1: wait for localStorage to load
 
     if (!user) {
-      router.push("/auth/login"); //? ← guard #2: not logged in → redirect
+      router.replace("/auth/login"); //? ← guard #2: not logged in → replace history
       return;
     }
 

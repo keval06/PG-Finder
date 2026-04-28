@@ -1,62 +1,67 @@
 "use client";
 
-import { useEffect } from "react";
-import { Marker, Map, useMap } from "@vis.gl/react-google-maps";
-import { MarkerClusterer } from "@googlemaps/markerclusterer";
-import { Maximize, Minimize } from "lucide-react";
+import { useEffect, useState, useRef } from "react";
+import { MapContainer, TileLayer, Marker, useMap } from "react-leaflet";
+import { Maximize, X } from "lucide-react";
 import InfoCard from "../../components/InfoCard";
-import Button from "../../atoms/Button";
+import L from "leaflet";
+import MarkerClusterGroup from "react-leaflet-cluster";
+import "leaflet/dist/leaflet.css";
 
-// Helper for GeoJSON or flat array coordinates
+// Fix broken Leaflet default icons in Next.js/Webpack
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl:
+    "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
+  iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
+  shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+});
+
+// Blue dot icon for user's current location
+const userDotIcon = L.divIcon({
+  className: "",
+  html: `<div style="width:16px;height:16px;border-radius:50%;background:#2563EB;border:3px solid white;box-shadow:0 0 0 2px #2563EB;"></div>`,
+  iconSize: [16, 16],
+  iconAnchor: [8, 8],
+});
+
+// Helper: convert GeoJSON {coordinates:[lng,lat]} OR flat [lng,lat] → [lat,lng] for Leaflet
 const getLatLng = (coordinate) => {
   if (!coordinate) return null;
   if (coordinate.coordinates?.length === 2) {
-    return { lat: coordinate.coordinates[1], lng: coordinate.coordinates[0] };
+    return [coordinate.coordinates[1], coordinate.coordinates[0]];
   }
   if (Array.isArray(coordinate) && coordinate.length === 2) {
-    return { lat: coordinate[1], lng: coordinate[0] };
+    return [coordinate[1], coordinate[0]];
   }
   return null;
 };
 
-function MapEffect({ userLocation, defaultMapCenter }) {
+// Handles map view changes ONLY for explicit user actions (location, fullscreen)
+// Does NOT auto-zoom/pan when data changes (sort, filter, page)
+function MapEffect({ userLocation, defaultMapCenter, isFullscreen, shouldFitBounds }) {
   const map = useMap();
+
+  // Handle fullscreen container resize
+  useEffect(() => {
+    if (!map) return;
+    setTimeout(() => map.invalidateSize(), 200);
+  }, [map, isFullscreen]);
+
+  // Only pan when userLocation toggles on/off
   useEffect(() => {
     if (!map) return;
     if (userLocation) {
-      map.setZoom(13);
-      map.panTo(userLocation);
-    } else if (defaultMapCenter) {
-      map.setZoom(11);
-      map.panTo(defaultMapCenter);
+      map.setView(userLocation, 13, { animate: true });
     }
-  }, [map, userLocation, defaultMapCenter?.lat, defaultMapCenter?.lng]);
-  return null;
-}
+  }, [map, userLocation]);
 
-function ClusteredMarkers({ pgs, setActivePin }) {
-  const map = useMap();
+  // Fit bounds when shouldFitBounds flag is set (initial load only)
   useEffect(() => {
-    if (!map) return;
-    const markers = pgs
-      .map((pg) => {
-        const pos = getLatLng(pg.coordinate);
-        if (!pos) return null;
-        const marker = new google.maps.Marker({
-          position: pos,
-          title: pg.name,
-        });
-        marker.addListener("click", () => setActivePin(pg));
-        return marker;
-      })
-      .filter(Boolean);
+    if (!map || !shouldFitBounds || !defaultMapCenter) return;
+    map.setView(defaultMapCenter, 11, { animate: false });
+  }, [map, shouldFitBounds, defaultMapCenter]);
 
-    const clusterer = new MarkerClusterer({ markers, map });
-    return () => {
-      clusterer.clearMarkers();
-      markers.forEach((m) => google.maps.event.clearInstanceListeners(m));
-    };
-  }, [map, pgs]);
   return null;
 }
 
@@ -69,56 +74,85 @@ export default function HomeMap({
   isFullscreen,
   setIsFullscreen,
 }) {
+  // Leaflet needs window/DOM → only render after client mount
+  const [mounted, setMounted] = useState(false);
+  const isInitialMount = useRef(true);
+  useEffect(() => setMounted(true), []);
+
+  // Only fit bounds on first load, not on sort/filter/page changes
+  const [shouldFitBounds] = useState(true);
+
+  const center = userLocation ??
+    defaultMapCenter ?? { lat: 20.5937, lng: 78.9629 };
+  const zoom = userLocation ? 13 : 11;
+
+  // Track if this is the initial mount → prevent auto-zoom on data change
+  useEffect(() => {
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+    }
+  }, [pgs]);
+
   return (
     <div
       className={
         isFullscreen
-          ? "relative h-full w-full rounded-2xl overflow-hidden border border-slate-200 shadow-2xl bg-white"
-          : "relative h-full rounded-2xl overflow-hidden border border-slate-200 shadow-sm bg-white"
+          ? "relative h-full w-full rounded-3xl overflow-hidden border border-slate-200 shadow-2xl bg-white "
+          : "relative h-full rounded-2xl md:rounded-3xl overflow-hidden border border-slate-200 shadow-sm bg-white"
       }
     >
-      <Button
+      <button
         onClick={() => setIsFullscreen(!isFullscreen)}
-        variant="outline"
-        size="md"
-        className="absolute top-4 right-4 z-10 bg-white shadow-lg border-slate-200"
-        icon={isFullscreen ? Minimize : Maximize}
+        className={`absolute ${isFullscreen ? 'top-5 right-5 w-10 h-10 rounded-full flex items-center justify-center' : 'top-4 right-4 px-4 py-2 rounded-xl flex items-center gap-2 text-[12px] md:text-sm'} z-[500] bg-white/95 backdrop-blur-md border border-slate-200 text-slate-700 font-bold shadow-xl hover:bg-white active:scale-95 transition-all`}
       >
-        {isFullscreen ? "Collapse" : "Expand"}
-      </Button>
+        {isFullscreen ? <X size={20} /> : <Maximize size={18} />}
+        {!isFullscreen && "Expand Map"}
+      </button>
 
-      <Map
-        defaultZoom={userLocation ? 13 : 11}
-        defaultCenter={
-          userLocation ?? defaultMapCenter ?? { lat: 20.5937, lng: 78.9629 }
-        }
-        disableDefaultUI={true}
-        gestureHandling="cooperative"
-        style={{ width: "100%", height: "100%" }}
-      >
-        <MapEffect
-          userLocation={userLocation}
-          defaultMapCenter={defaultMapCenter}
-        />
-
-        {userLocation && (
-          <Marker
-            position={userLocation}
-            icon={{
-              path: "M-10,0a10,10 0 1,0 20,0a10,10 0 1,0 -20,0",
-              fillColor: "#2563EB",
-              fillOpacity: 1,
-              strokeWeight: 3,
-              strokeColor: "#ffffff",
-              scale: 0.7,
-              anchor: { x: 0, y: 0 },
-            }}
-            zIndex={100}
+      {mounted && (
+        <MapContainer
+          center={center}
+          zoom={zoom}
+          style={{ width: "100%", height: "100%" }}
+          zoomControl={false}
+          scrollWheelZoom={true}
+        >
+          <TileLayer
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/">CARTO</a>'
+            url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
           />
-        )}
 
-        <ClusteredMarkers pgs={pgs} setActivePin={setActivePin} />
-      </Map>
+          <MapEffect
+            userLocation={userLocation}
+            defaultMapCenter={defaultMapCenter}
+            isFullscreen={isFullscreen}
+            shouldFitBounds={isInitialMount.current}
+          />
+
+          {userLocation && (
+            <Marker
+              position={userLocation}
+              icon={userDotIcon}
+              zIndexOffset={100}
+            />
+          )}
+
+          {/* Clustered PG markers */}
+          <MarkerClusterGroup chunkedLoading>
+            {pgs.map((pg) => {
+              const pos = getLatLng(pg.coordinate);
+              if (!pos) return null;
+              return (
+                <Marker
+                  key={pg._id}
+                  position={pos}
+                  eventHandlers={{ click: () => setActivePin(pg) }}
+                />
+              );
+            })}
+          </MarkerClusterGroup>
+        </MapContainer>
+      )}
 
       {activePin && (
         <div

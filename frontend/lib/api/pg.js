@@ -1,5 +1,28 @@
 // frontend/lib/api/pg.js
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
+const API_URL = require("./apiUrl");
+
+// Shared helper: makes authenticated fetch with timeout + error handling
+async function authFetch(url, options = {}) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 10000);
+  try {
+    const res = await fetch(url, { ...options, signal: controller.signal });
+    clearTimeout(timeout);
+    const data = await res.json();
+    if (!res.ok) {
+      const err = new Error(data.message || `Request failed (${res.status})`);
+      err.status = res.status;
+      throw err;
+    }
+    return data;
+  } catch (err) {
+    clearTimeout(timeout);
+    if (err.name === "AbortError") {
+      throw new Error("Request timed out. Check your connection.");
+    }
+    throw err;
+  }
+}
 
 export const pgApi = {
   // Home Page Listings
@@ -16,22 +39,20 @@ export const pgApi = {
 
   // Radius PGs
   getNearby: async (lat, lng, radius = 5, queryString = "") => {
-    const qs = queryString ? `${queryString}` : "";
-    const res = await fetch(
-      `${API_URL}/api/pg/nearby?lat=${lat}&lng=${lng}&radius=${radius}&${qs}`,
-      { cache: "no-store" },
-    );
+    const base = `${API_URL}/api/pg/nearby?lat=${lat}&lng=${lng}&radius=${radius}`;
+    const url = queryString ? `${base}&${queryString}` : base;
+    const res = await fetch(url, { cache: "no-store" });
     if (!res.ok) throw new Error(`getNearby failed: ${res.status}`);
     return res.json();
   },
 
+
   // Owner's Dashboard Listings (Verified: /api/pg/owner)
   getOwnerPgs: async (token) => {
-    const res = await fetch(`${API_URL}/api/pg/owner`, {
+    return authFetch(`${API_URL}/api/pg/owner`, {
       headers: { Authorization: `Bearer ${token}` },
       cache: "no-store",
     });
-    return res.json();
   },
 
   // PG Details (Verified: /api/pg/:id)
@@ -39,12 +60,13 @@ export const pgApi = {
     const res = await fetch(`${API_URL}/api/pg/${id}`, 
       { cache: "no-store" },
     );
+    if (!res.ok) throw new Error(`PG not found (${res.status})`);
     return res.json();
   },
 
   // Create & Update
   create: async (data, token) => {
-    const res = await fetch(`${API_URL}/api/pg`, {
+    return authFetch(`${API_URL}/api/pg`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -52,11 +74,10 @@ export const pgApi = {
       },
       body: JSON.stringify(data),
     });
-    return res.json();
   },
 
   update: async (id, data, token) => {
-    const res = await fetch(`${API_URL}/api/pg/${id}`, {
+    return authFetch(`${API_URL}/api/pg/${id}`, {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",
@@ -64,6 +85,5 @@ export const pgApi = {
       },
       body: JSON.stringify(data),
     });
-    return res.json();
   },
 };

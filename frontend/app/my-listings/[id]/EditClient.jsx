@@ -7,10 +7,12 @@ import { pgApi } from "../../../lib/api/pg";
 import { imageApi } from "../../../lib/api/image";
 import { roomTypeApi } from "../../../lib/api/roomType";
 import PGGallery from "../../components/PGGallery";
-import PGForm from "../components/PGForm";
 import ConfirmModal from "../../../components/ConfirmModal";
 import Button from "../../atoms/Button";
 import Badge from "../../atoms/Badge";
+import dynamic from "next/dynamic";
+const PGForm = dynamic(() => import("../components/PGForm"), { ssr: false });
+import BackButton from "../../../components/BackButton";
 
 import {
   ArrowLeft,
@@ -19,53 +21,27 @@ import {
   EyeOff,
   Check,
   X,
-  Wifi,
-  Car,
-  Snowflake,
-  Tv,
-  Camera,
-  Dumbbell,
-  Book,
-  Trees,
-  Refrigerator,
-  WashingMachine,
-  ArrowUpDown,
-  Utensils,
-  User,
   MapPin,
-  Bed,
-  BathIcon,
-  Home,
-  Star,
   Trash2,
-  Users,
-  IndianRupee,
   CheckCircle2,
   XCircle,
+  Users,
+  Star,
+  IndianRupee,
+  Home,
+  User,
+  Utensils,
+  Bath as BathIcon,
   Toilet,
   BedDouble,
+  Bed,
 } from "lucide-react";
+import {
+  AMENITY_ICONS,
+  GENDER_LABELS,
+  FOOD_LABELS,
+} from "../../../lib/constants";
 
-const amenityIcons = {
-  WiFi: Wifi,
-  Parking: Car,
-  AC: Snowflake,
-  Laundry: WashingMachine,
-  Lift: ArrowUpDown,
-  CCTV: Camera,
-  RO: Refrigerator,
-  TV: Tv,
-  Refrigerator: Refrigerator,
-  Gym: Dumbbell,
-  Garden: Trees,
-  Library: Book,
-};
-const genderLabel = { male: "Male", female: "Female", mix: "Co-ed" };
-const foodLabel = {
-  "with food": "With Food",
-  "without food": "No Food",
-  flexible: "Flexible",
-};
 export default function EditListingClient({ pgId }) {
   const { user, ready } = useAuth();
   const router = useRouter();
@@ -111,6 +87,12 @@ export default function EditListingClient({ pgId }) {
       setPg(pgData);
       setImages(Array.isArray(imgData) ? imgData : []);
       setRoomTypes(Array.isArray(rtData) ? rtData : []);
+
+      // Ownership verify
+      const ownerId = pgData.owner?._id || pgData.owner;
+      if (ownerId && ownerId !== user._id) {
+        router.replace("/my-listings");
+      }
     } finally {
       setLoading(false);
     }
@@ -234,8 +216,9 @@ export default function EditListingClient({ pgId }) {
   const confirmDelete = async () => {
     setDeleting(true);
     try {
+      const apiBase = `${window.location.protocol}//${window.location.hostname}:5000`;
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/pg/${pgId}`,
+        `${apiBase}/api/pg/${pgId}`,
         {
           method: "DELETE",
           headers: { Authorization: `Bearer ${token()}` },
@@ -345,14 +328,7 @@ export default function EditListingClient({ pgId }) {
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6">
         {/* back + toast */}
         <div className="flex items-center justify-between mb-5">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => router.push("/my-listings")}
-            icon={ArrowLeft}
-          >
-            Back to listings
-          </Button>
+          <BackButton />
           {inactive && (
             <Badge variant="slate" className="px-3 py-1 font-semibold">
               Inactive — hidden from guests
@@ -435,12 +411,12 @@ export default function EditListingClient({ pgId }) {
                   {
                     icon: User,
                     label: "Gender",
-                    value: genderLabel[pg.gender] || pg.gender,
+                    value: GENDER_LABELS[pg.gender] || pg.gender,
                   },
                   {
                     icon: Utensils,
                     label: "Food",
-                    value: foodLabel[pg.food] || pg.food,
+                    value: FOOD_LABELS[pg.food] || pg.food,
                   },
                   { icon: BathIcon, label: "Bathroom", value: bathroomRatio },
                   { icon: Toilet, label: "Toilet", value: toiletRatio },
@@ -532,7 +508,7 @@ export default function EditListingClient({ pgId }) {
                 </h2>
                 <div className="flex flex-wrap gap-2">
                   {pg.amenities.map((a) => {
-                    const Icon = amenityIcons[a];
+                    const Icon = AMENITY_ICONS[a];
                     return (
                       <Badge
                         variant="slate"

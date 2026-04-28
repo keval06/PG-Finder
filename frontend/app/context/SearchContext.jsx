@@ -9,20 +9,31 @@ const SearchContext = createContext();
 export function SearchProvider({ children }) {
   // Create the state: 'query' holds the text, 'setQuery' is the remote control to change it
   const [query, setQuery] = useState("");
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [filterCount, setFilterCount] = useState(0);
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
-  // Sync the search bar with the URL's ?q= parameter on every navigation.
-  // This makes the search bar reflect the active search term at all times.
+  // Derive a primitive string so the useEffect dependency works reliably
+  const qParam = searchParams.get("q") ?? "";
+
   useEffect(() => {
-    const urlQuery = searchParams.get("q") ?? "";
-    setQuery(urlQuery);
-  }, [pathname, searchParams]);
+    setQuery(qParam);
+  }, [pathname, qParam]);
 
   return (
     // We wrap all children inside the Provider.
     // We pass the query and setQuery tools into the folder so anyone wrapped can use them.
-    <SearchContext.Provider value={{ query, setQuery }}>
+    <SearchContext.Provider
+      value={{
+        query,
+        setQuery,
+        drawerOpen,
+        setDrawerOpen,
+        filterCount,
+        setFilterCount,
+      }}
+    >
       {children}
     </SearchContext.Provider>
   );

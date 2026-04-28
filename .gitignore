@@ -19,15 +19,29 @@ backend_roadmap_content.txt
 frontend_roadmap_content.txt
 roadmap_gaps_final.txt
 roadmap_gaps.txt
-data/test.pgs.json
-data/test.reviews.json
-data/test.user.json
+data
+skills 
+cypress
 
 # Environment
 .env
 .env.local
 frontend/.env.local
 backend/.env
+frontend/learning_roadmap
+backend/learning_roadmap
+all_files.txt
+all_project_files.txt
+backend_files.txt
+frontend_files.txt
+backend_roadmap_content.txt
+frontend_roadmap_content.txt
+bill.pdf
+roadmap_gaps_final.txt
+roadmap_gaps.txt
+new_bill.pdf
+all_files.txt
+
 
 # Logs
 *.log
