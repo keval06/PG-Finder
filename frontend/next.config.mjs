@@ -2,6 +2,12 @@
 const nextConfig = {
   /* config options here */
   reactCompiler: true,
+  // Disable Turbopack for production builds (crashes on Windows with React Compiler)
+  experimental: {
+    turbo: {
+      rules: {},
+    },
+  },
   images:{
     remotePatterns:[
       {
