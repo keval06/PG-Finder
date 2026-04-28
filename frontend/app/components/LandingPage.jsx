@@ -31,32 +31,32 @@ const CITIES = [
   {
     name: "Mumbai",
     count: "340 PGs",
-    img: "https://images.unsplash.com/photo-1595658658481-d53d3f999875?w=600&q=80",
+    img: "/images/cities/mumbai.jpg",
   },
   {
     name: "Bangalore",
     count: "520 PGs",
-    img: "https://images.unsplash.com/photo-1580674684081-7617fbf3d745?w=600&q=80",
+    img: "/images/cities/banglore.jpg",
   },
   {
     name: "Delhi",
     count: "410 PGs",
-    img: "https://images.unsplash.com/photo-1587474260584-136574528ed5?w=600&q=80",
+    img: "/images/cities/delhi.jpg",
   },
   {
     name: "Pune",
     count: "280 PGs",
-    img: "https://images.unsplash.com/photo-1612810806695-30f7a8258391?w=600&q=80",
+    img: "/images/cities/pune.jpg",
   },
   {
-    name: "Hyderabad",
-    count: "310 PGs",
-    img: "https://images.unsplash.com/photo-1621873495884-845a939892d4?w=600&q=80",
+    name: "Ahmedabad",
+    count: "260 PGs",
+    img: "/images/cities/ahmedabad.jpg",
   },
   {
     name: "Chennai",
     count: "190 PGs",
-    img: "https://images.unsplash.com/photo-1582510003544-4d00b7f74220?w=600&q=80",
+    img: "/images/cities/chennai.jpg",
   },
 ];
 
@@ -528,7 +528,7 @@ export default function LandingPage() {
             {/* Main image */}
             <div className="relative rounded-3xl overflow-hidden shadow-2xl shadow-blue-100/60 aspect-[4/5] max-h-[580px] ring-1 ring-slate-200/60">
               <img
-                src="https://images.unsplash.com/photo-1555854877-bab0e564b8d5?w=800&q=85"
+                src="/images/hero-room.jpg"
                 alt="PG room"
                 className="w-full h-full object-cover"
               />
