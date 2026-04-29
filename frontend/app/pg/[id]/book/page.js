@@ -98,8 +98,8 @@ export default function BookingPage() {
       } else {
         setError(data.message || "Booking failed. Please try again.");
       }
-    } catch {
-      setError("Something went wrong. Please try again.");
+    } catch (err) {
+      setError(err.message || "Something went wrong. Please try again.");
     } finally {
       setSubmitting(false);
     }
@@ -109,7 +109,7 @@ export default function BookingPage() {
   if (!ready) {
     return (
       <div className="min-h-screen bg-[#f8fafc] flex items-center justify-center">
-        <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+        <div className="w-6 h-6 border-2 border-rose-500 border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -154,7 +154,7 @@ export default function BookingPage() {
           </div>
           <button
             onClick={() => router.push("/bookings")}
-            className="w-full bg-blue-600 text-white py-2.5 rounded-xl text-sm font-semibold hover:bg-blue-700 transition-colors"
+            className="w-full bg-[#FF385C] text-white py-2.5 rounded-xl text-sm font-semibold hover:bg-[#E31C5F] transition-colors"
           >
             View My Bookings
           </button>
@@ -170,7 +170,7 @@ export default function BookingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] px-4 pt-20 sm:pt-24 pb-24 sm:pb-8">
+    <div className="min-h-screen bg-white px-4 pt-20 sm:pt-24 pb-24 sm:pb-8">
       <div className="max-w-lg mx-auto">
         {/* back */}
         <BackButton className="mb-4 sm:mb-6" />
@@ -234,7 +234,7 @@ export default function BookingPage() {
                   <label className="text-xs font-medium text-slate-500 mb-1.5 block">
                     Check-in Date
                   </label>
-                  <div className="relative flex items-center border border-slate-200 rounded-xl bg-slate-50 focus-within:bg-white focus-within:border-blue-400 focus-within:ring-2 focus-within:ring-blue-50 transition-all">
+                  <div className="relative flex items-center border border-slate-200 rounded-xl bg-slate-50 focus-within:bg-white focus-within:border-rose-400 focus-within:ring-2 focus-within:ring-rose-50 transition-all">
                     <Calendar
                       size={15}
                       className="absolute left-3 text-slate-400 pointer-events-none"
@@ -258,7 +258,7 @@ export default function BookingPage() {
                   <label className="text-xs font-medium text-slate-500 mb-1.5 block">
                     Check-out Date
                   </label>
-                  <div className="relative flex items-center border border-slate-200 rounded-xl bg-slate-50 focus-within:bg-white focus-within:border-blue-400 focus-within:ring-2 focus-within:ring-blue-50 transition-all">
+                  <div className="relative flex items-center border border-slate-200 rounded-xl bg-slate-50 focus-within:bg-white focus-within:border-rose-400 focus-within:ring-2 focus-within:ring-rose-50 transition-all">
                     <Calendar
                       size={15}
                       className="absolute left-3 text-slate-400 pointer-events-none"
@@ -275,7 +275,7 @@ export default function BookingPage() {
 
                 {/* summary */}
                 {months > 0 && (
-                  <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 flex flex-col gap-2 text-sm">
+                  <div className="bg-rose-50 border border-rose-100 rounded-xl p-4 flex flex-col gap-2 text-sm">
                     <div className="flex justify-between text-slate-600">
                       <span>Duration</span>
                       <span className="font-medium text-slate-900">
@@ -369,7 +369,7 @@ export default function BookingPage() {
               <button
                 disabled={step === 0 ? !step1Valid : !step2Valid}
                 onClick={() => setStep((s) => s + 1)}
-                className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-[#FF385C] text-white text-sm font-semibold hover:bg-[#E31C5F] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 Next <ChevronRight size={15} />
               </button>
@@ -377,7 +377,7 @@ export default function BookingPage() {
               <button
                 disabled={submitting}
                 onClick={handleSubmit}
-                className="flex-1 py-2.5 rounded-xl bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 py-2.5 rounded-xl bg-[#FF385C] text-white text-sm font-semibold hover:bg-[#E31C5F] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {submitting ? "Booking…" : "Confirm Booking"}
               </button>
@@ -402,7 +402,7 @@ export default function BookingPage() {
             <button
               disabled={step === 0 ? !step1Valid : !step2Valid}
               onClick={() => setStep((s) => s + 1)}
-              className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed shadow-sm shadow-blue-600/20"
+              className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-[#FF385C] text-white text-sm font-semibold hover:bg-[#E31C5F] transition-colors disabled:opacity-40 disabled:cursor-not-allowed shadow-sm shadow-rose-500/20"
             >
               Next <ChevronRight size={15} />
             </button>
@@ -410,7 +410,7 @@ export default function BookingPage() {
             <button
               disabled={submitting}
               onClick={handleSubmit}
-              className="flex-1 py-2.5 rounded-xl bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-sm shadow-blue-600/20"
+              className="flex-1 py-2.5 rounded-xl bg-[#FF385C] text-white text-sm font-semibold hover:bg-[#E31C5F] transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-sm shadow-rose-500/20"
             >
               {submitting ? "Booking…" : "Confirm Booking"}
             </button>

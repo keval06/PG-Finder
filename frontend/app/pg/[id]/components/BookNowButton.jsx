@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useAuth } from "../../../context/AuthContext";
 
-export default function BookNowButton({ pgId }) {
+export default function BookNowButton({ pgId, className = "" }) {
   const { user, ready } = useAuth();
   const router = useRouter();
 
@@ -19,9 +19,9 @@ export default function BookNowButton({ pgId }) {
   return (
     <button
       onClick={handleClick}
-      className="w-full mt-5 bg-blue-600 text-white py-3 rounded-xl font-semibold hover:bg-blue-700 transition-colors text-sm"
+      className={`bg-gradient-to-r from-[#FF385C] to-[#E31C5F] text-white font-bold hover:opacity-90 transition-all duration-200 shadow-sm ${className || "w-full py-3.5 rounded-xl text-lg"}`}
     >
-      Book Now
+      Reserve
     </button>
-  );                                                                                                                                                        
+  );
 }
