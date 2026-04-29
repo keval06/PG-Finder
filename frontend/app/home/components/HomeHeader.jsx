@@ -47,7 +47,8 @@ export default function HomeHeader({
             <option value={10}>10 km</option>
             <option value={20}>20 km</option>
             <option value={30}>30 km</option>
-            <option value={300}>300 km</option>
+            <option value={40}>40 km</option>
+            <option value={50}>50 km</option>
           </select>
         )}
 
