@@ -1,3 +1,4 @@
+import { notFound } from "next/navigation";
 import PGGallery from "../../components/PGGallery";
 import { pgApi } from "../../../lib/api/pg";
 import { imageApi } from "../../../lib/api/image";
@@ -61,11 +62,13 @@ export default async function PGDetails({ params }) {
   const { id } = await params;
 
   const [pg, images, reviews, roomTypes] = await Promise.all([
-    getPG(id),
-    getImages(id),
-    getReviews(id),
-    getRoomTypes(id),
+    getPG(id).catch(() => null),
+    getImages(id).catch(() => []),
+    getReviews(id).catch(() => []),
+    getRoomTypes(id).catch(() => []),
   ]);
+
+  if (!pg || !pg._id) notFound();
 
   const avgRating = reviews.length
     ? (reviews.reduce((sum, r) => sum + r.star, 0) / reviews.length).toFixed(1)

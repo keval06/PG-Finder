@@ -37,7 +37,7 @@ export default function Navbar() {
     const timer = setTimeout(async () => {
       setIsSearching(true);
       try {
-        const API = `${window.location.protocol}//${window.location.hostname}:5000`;
+        const API = ""; // relative URL → proxied by Next.js rewrites
 
         // Fire both requests in parallel
         const [dbRes, nominatimRes] = await Promise.allSettled([
