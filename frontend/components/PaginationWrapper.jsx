@@ -84,12 +84,12 @@ export default function PaginationWrapper({
       {totalPages > 1 && (
         <div className="flex items-center justify-between mt-6 mb-8 pt-4 border-t border-slate-100 flex-col sm:flex-row gap-4">
           {/* Showing X–Y of Z PGs */}
-          <p className="text-xs text-slate-400 text-center sm:text-left">
+          <p className="text-xs text-[#717171] text-center sm:text-left">
             Showing{" "}
-            <span className="font-medium text-slate-600">
+            <span className="font-semibold text-[#222222]">
               {startItem}–{endItem}
             </span>{" "}
-            of <span className="font-medium text-slate-600">{totalCount}</span>{" "}
+            of <span className="font-semibold text-[#222222]">{totalCount}</span>{" "}
             PGs
           </p>
 
@@ -98,7 +98,7 @@ export default function PaginationWrapper({
             <button
               onClick={() => setPage(Math.max(page - 1, 1))}
               disabled={page === 1}
-              className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium border border-slate-200 text-slate-500 hover:border-blue-300 hover:text-blue-600 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium border border-slate-200 text-slate-500 hover:border-rose-300 hover:text-rose-500 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
             >
               ← Prev
             </button>
@@ -118,7 +118,7 @@ export default function PaginationWrapper({
                     onClick={() => setPage(num)}
                     className={`w-8 h-8 rounded-lg text-xs font-medium transition-all ${
                       page === num
-                        ? "bg-blue-600 text-white shadow-sm"
+                        ? "bg-[#FF385C] text-white shadow-sm"
                         : "text-slate-500 hover:bg-slate-100 hover:text-slate-800"
                     }`}
                   >
@@ -131,7 +131,7 @@ export default function PaginationWrapper({
             <button
               onClick={() => setPage(Math.min(page + 1, totalPages))}
               disabled={page === totalPages}
-              className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium border border-slate-200 text-slate-500 hover:border-blue-300 hover:text-blue-600 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium border border-slate-200 text-slate-500 hover:border-rose-300 hover:text-rose-500 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
             >
               Next →
             </button>

@@ -51,9 +51,9 @@ export default function FilterPanel({
 
   //? CSS Variables — Reused Class Strings
   const sl =
-    "text-[11px] font-semibold text-slate-500 uppercase tracking-widest mb-3 block";
+    "text-[13px] font-bold text-[#717171] uppercase tracking-widest mb-3 block";
   const row =
-    "flex items-center gap-2.5 cursor-pointer text-sm text-slate-600 hover:text-slate-900 transition-colors py-0.5";
+    "flex items-center gap-2.5 cursor-pointer text-[15px] text-[#484848] hover:text-[#222222] transition-colors py-1";
 
     // ?This one function handles ALL checkbox toggles (gender, food, amenities).
   const toggleArr = (key, val) =>
@@ -77,14 +77,14 @@ export default function FilterPanel({
       
         {/* header */}
         <div className="flex items-center justify-between">
-          <p className="font-semibold text-slate-900">Filters</p>
+          <p className="font-semibold text-[#222222]">Filters</p>
 
           <div className="flex items-center gap-3">
             {/* Clear All */}
             {hasFilters && (
               <button
                 onClick={onClear}
-                className="text-xs text-blue-600 hover:text-blue-800 font-medium"
+                className="text-xs text-rose-500 hover:text-rose-600 font-medium"
               >
                 Clear all
               </button>
@@ -111,7 +111,7 @@ export default function FilterPanel({
               >
                 <input
                   type="radio"
-                  className="w-3.5 h-3.5 flex-shrink-0 accent-blue-600"
+                  className="w-3.5 h-3.5 flex-shrink-0 accent-rose-500"
                   checked={draft.selectedPrice?.label === r.label}
                   onChange={() =>
                     setDraft((p) => ({
@@ -141,7 +141,7 @@ export default function FilterPanel({
               <label key={v} className={row}>
                 <input
                   type="checkbox"
-                  className="w-3.5 h-3.5 flex-shrink-0 accent-blue-600"
+                  className="w-3.5 h-3.5 flex-shrink-0 accent-rose-500"
                   checked={draft.genderFilter.includes(v)}
                   onChange={() => toggleArr("genderFilter", v)}
                 />
@@ -166,7 +166,7 @@ export default function FilterPanel({
               >
                 <input
                   type="checkbox"
-                  className="w-3.5 h-3.5 flex-shrink-0 accent-blue-600"
+                  className="w-3.5 h-3.5 flex-shrink-0 accent-rose-500"
                   checked={draft.foodFilter.includes(v)}
                   onChange={() => toggleArr("foodFilter", v)}
                 />
@@ -187,7 +187,7 @@ export default function FilterPanel({
               >
                 <input
                   type="radio"
-                  className="w-3.5 h-3.5 flex-shrink-0 accent-blue-600"
+                  className="w-3.5 h-3.5 flex-shrink-0 accent-rose-500"
                   checked={draft.minRating === r}
                   onChange={ () =>
                     setDraft((p) => ({
@@ -196,7 +196,7 @@ export default function FilterPanel({
                     }))
                   }
                 />
-                <span className="text-yellow-500">{"★".repeat(r)}</span>
+                <span className="text-rose-500">{"★".repeat(r)}</span>
                 <span className="text-slate-400">& up</span>
               </label>
             ))}
@@ -211,7 +211,7 @@ export default function FilterPanel({
               <label key={a} className={row}>
                 <input
                   type="checkbox"
-                  className="w-3.5 h-3.5 flex-shrink-0 accent-blue-600"
+                  className="w-3.5 h-3.5 flex-shrink-0 accent-rose-500"
                   checked={draft.selectedAmenities.includes(a)}
                   onChange={() => toggleArr("selectedAmenities", a)}
                 />
@@ -229,7 +229,7 @@ export default function FilterPanel({
             onApply();
             if (onClose) onClose();
           }}
-          className="w-full bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold py-2.5 rounded-xl transition-colors shadow-sm"
+          className="w-full bg-[#FF385C] hover:bg-[#E31C5F] text-white text-sm font-semibold py-2.5 rounded-xl transition-colors shadow-sm"
         >
           Apply Filters
         </button>

@@ -19,7 +19,7 @@ export function SearchProvider({ children }) {
 
   useEffect(() => {
     setQuery(qParam);
-  }, [pathname, qParam]);
+  }, [pathname]); // Only sync when the page actually changes (e.g. Navigating to /home)
 
   return (
     // We wrap all children inside the Provider.
