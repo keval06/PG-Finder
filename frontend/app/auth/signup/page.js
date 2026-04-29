@@ -74,8 +74,8 @@ export default function SignupPage() {
       setError(data.message || "Signup failed. Please try again.");
     } 
 
-    catch {
-      setError("Something went wrong. Please try again.");
+    catch (err) {
+      setError(err.message || "Something went wrong. Please try again.");
     } 
     
     finally {
@@ -89,7 +89,7 @@ export default function SignupPage() {
     "w-full bg-transparent pl-9 pr-10 py-2.5 text-sm outline-none placeholder:text-slate-400 text-slate-900";
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-[#f8fafc] px-4">
+    <div className="flex items-center justify-center min-h-screen bg-white px-4">
       <div className="bg-white w-full max-w-sm rounded-2xl shadow-sm border border-slate-200 p-8 flex flex-col gap-5">
 
       {/* */}
@@ -110,7 +110,7 @@ export default function SignupPage() {
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
 
           {/* Name */}
-          <div className="relative flex items-center border border-slate-200 rounded-xl bg-slate-50 focus-within:bg-white focus-within:border-blue-400 focus-within:ring-2 focus-within:ring-blue-50 transition-all">
+          <div className="relative flex items-center border border-slate-200 rounded-xl bg-slate-50 focus-within:bg-white focus-within:border-rose-400 focus-within:ring-2 focus-within:ring-rose-50 transition-all">
           {/* The input doesn't store its own value — React's state does. They stay in sync.*/}
             <User size={15} className={iconClass} />
             <input
@@ -119,15 +119,22 @@ export default function SignupPage() {
               value={name}
               onChange={(e) => {
                 const val = e.target.value.replace(/[^a-zA-Z\s]/g, "");
+                // Prevent user from adding space at the beginning
+                if (val.startsWith(" ")) return; 
                 setName(val);
               }}
               className={inputClass}
               required
             />
           </div>
+          {name.length > 0 && name.trim().length < 3 && (
+            <p className="text-xs text-red-500 px-1 flex items-center gap-1 mt-1">
+              <XCircle size={13} /> Name must be at least 3 characters
+            </p>
+          )}
 
           {/* Mobile */}
-          <div className="relative flex items-center border border-slate-200 rounded-xl bg-slate-50 focus-within:bg-white focus-within:border-blue-400 focus-within:ring-2 focus-within:ring-blue-50 transition-all">
+          <div className="relative flex items-center border border-slate-200 rounded-xl bg-slate-50 focus-within:bg-white focus-within:border-rose-400 focus-within:ring-2 focus-within:ring-rose-50 transition-all">
             
             {/* Letters are automatically stripped as you type! */}
             <Phone size={15} className={iconClass} />
@@ -147,7 +154,7 @@ export default function SignupPage() {
           {/* Password */}
           <div className="flex flex-col gap-1">
             {/* password input field */}
-            <div className="relative flex items-center border border-slate-200 rounded-xl bg-slate-50 focus-within:bg-white focus-within:border-blue-400 focus-within:ring-2 focus-within:ring-blue-50 transition-all">
+            <div className="relative flex items-center border border-slate-200 rounded-xl bg-slate-50 focus-within:bg-white focus-within:border-rose-400 focus-within:ring-2 focus-within:ring-rose-50 transition-all">
               <Lock size={15} className={iconClass} />
 
               {/* showPassword used here */}
@@ -180,7 +187,7 @@ export default function SignupPage() {
 
           {/* Confirm password */}
           <div className="flex flex-col gap-1">
-            <div className="relative flex items-center border border-slate-200 rounded-xl bg-slate-50 focus-within:bg-white focus-within:border-blue-400 focus-within:ring-2 focus-within:ring-blue-50 transition-all">
+            <div className="relative flex items-center border border-slate-200 rounded-xl bg-slate-50 focus-within:bg-white focus-within:border-rose-400 focus-within:ring-2 focus-within:ring-rose-50 transition-all">
               <Lock size={15} className={iconClass} />
               <input
                 type={showConfirm ? "text" : "password"}
@@ -225,10 +232,12 @@ export default function SignupPage() {
             type="submit"
             disabled={
               loading ||
-              password.trim().length < 8 || name.trim().length <3 || 
+              name.trim().length < 3 ||
+              mobile.length < 10 ||
+              password.trim().length < 8 ||
               (showMatchIndicator && !passwordsMatch)
             }
-            className="bg-blue-600 text-white py-2.5 rounded-xl font-semibold text-sm hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed mt-1"
+            className="bg-[#FF385C] text-white py-2.5 rounded-xl font-semibold text-sm hover:bg-[#E31C5F] transition-colors disabled:opacity-50 disabled:cursor-not-allowed mt-1"
           >
             {loading ? "Creating account…" : "Sign Up"}
           </button>
@@ -240,7 +249,7 @@ export default function SignupPage() {
           Already a member?{" "}
           <Link
             href="/auth/login"
-            className="text-blue-600 hover:underline font-medium"
+            className="text-rose-500 hover:underline font-medium"
           >
             Login
           </Link>

@@ -157,8 +157,8 @@ export default function EditProfilePage() {
   // show spinner while AuthContext is hydrating — prevents flash redirect
   if (!ready) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-        <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="w-6 h-6 border-2 border-rose-500 border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -166,7 +166,7 @@ export default function EditProfilePage() {
   if (!user) return null; // redirect already fired in useEffect
 
   return (
-    <div className="min-h-screen bg-slate-50 px-4 py-8">
+    <div className="min-h-screen bg-white px-4 py-8 mt-6">
       <div className="max-w-sm mx-auto">
         <button
           onClick={() => router.back()}
@@ -178,11 +178,11 @@ export default function EditProfilePage() {
         <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-8 flex flex-col gap-5">
           {/* header */}
           <div className="text-center">
-            <div className="bg-blue-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-3 border border-blue-100">
-              <User size={28} className="text-blue-600" />
+            <div className="bg-rose-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 border border-rose-100">
+              <User size={30} className="text-rose-500" />
             </div>
-            <h1 className="text-2xl font-bold text-slate-900">Edit Profile</h1>
-            <p className="text-sm text-slate-400 mt-1">
+            <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-[#222222]">Edit Profile</h1>
+            <p className="text-base text-[#717171] mt-1.5">
               Update your account details
             </p>
           </div>
@@ -212,7 +212,7 @@ export default function EditProfilePage() {
               <label className="text-xs font-medium text-slate-500 mb-1.5 block">
                 Full Name
               </label>
-              <div className="relative flex items-center border border-slate-200 rounded-xl bg-slate-50 focus-within:bg-white focus-within:border-blue-400 focus-within:ring-2 focus-within:ring-blue-50 transition-all">
+              <div className="relative flex items-center border border-slate-200 rounded-xl bg-slate-50 focus-within:bg-white focus-within:border-rose-400 focus-within:ring-2 focus-within:ring-rose-50 transition-all">
                 <User size={15} className={iconClass} />
                 <input
                   type="text"
@@ -235,7 +235,7 @@ export default function EditProfilePage() {
               <label className="text-xs font-medium text-slate-500 mb-1.5 block">
                 Mobile Number
               </label>
-              <div className="relative flex items-center border border-slate-200 rounded-xl bg-slate-50 focus-within:bg-white focus-within:border-blue-400 focus-within:ring-2 focus-within:ring-blue-50 transition-all">
+              <div className="relative flex items-center border border-slate-200 rounded-xl bg-slate-50 focus-within:bg-white focus-within:border-rose-400 focus-within:ring-2 focus-within:ring-rose-50 transition-all">
                 <Phone size={15} className={iconClass} />
                 <input
                   type="tel"
@@ -262,7 +262,7 @@ export default function EditProfilePage() {
                 <label className="text-xs font-medium text-slate-500 mb-1.5 block">
                   New Password
                 </label>
-                <div className="relative flex items-center border border-slate-200 rounded-xl bg-slate-50 focus-within:bg-white focus-within:border-blue-400 focus-within:ring-2 focus-within:ring-blue-50 transition-all">
+                <div className="relative flex items-center border border-slate-200 rounded-xl bg-slate-50 focus-within:bg-white focus-within:border-rose-400 focus-within:ring-2 focus-within:ring-rose-50 transition-all">
                   <Lock size={15} className={iconClass} />
                   <input
                     type={showPassword ? "text" : "password"}
@@ -292,7 +292,7 @@ export default function EditProfilePage() {
                 <label className="text-xs font-medium text-slate-500 mb-1.5 block">
                   Confirm New Password
                 </label>
-                <div className="relative flex items-center border border-slate-200 rounded-xl bg-slate-50 focus-within:bg-white focus-within:border-blue-400 focus-within:ring-2 focus-within:ring-blue-50 transition-all">
+                <div className="relative flex items-center border border-slate-200 rounded-xl bg-slate-50 focus-within:bg-white focus-within:border-rose-400 focus-within:ring-2 focus-within:ring-rose-50 transition-all">
                   <Lock size={15} className={iconClass} />
                   <input
                     type={showConfirm ? "text" : "password"}
