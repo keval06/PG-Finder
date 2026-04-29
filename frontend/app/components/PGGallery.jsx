@@ -18,6 +18,12 @@ export default function PGGallery({ images, onDelete, onUpload }) {
   const [activeCategory, setActiveCategory] = useState("room");
 
   const filtered = images.filter((img) => img.category === activeCategory);
+
+  // Safety: If an image is deleted and activeImage is now out of bounds
+  if (activeImage >= filtered.length && filtered.length > 0) {
+    setActiveImage(filtered.length - 1);
+  }
+
   const {
     isOpen: lbOpen,
     index: lbIdx,
@@ -50,12 +56,12 @@ export default function PGGallery({ images, onDelete, onUpload }) {
                 key={cat}
                 onClick={() => handleCategoryChange(cat)}
                 className={`
-                  flex items-center gap-1.5 px-4 py-2 rounded-xl capitalize text-xs font-semibold 
+                  flex items-center gap-1.5 px-4 py-2 rounded-xl capitalize text-sm font-medium 
                   border flex-shrink-0 transition-all duration-200
                   ${
                     activeCategory === cat
-                      ? "bg-blue-600 text-white border-blue-600 shadow-md shadow-blue-100"
-                      : "text-slate-500 border-slate-200 hover:border-blue-300 hover:text-blue-600 bg-white"
+                      ? "bg-[#FF385C] text-white border-[#FF385C] shadow-sm"
+                      : "text-[#222222] border-gray-300 hover:border-[#FF385C] hover:text-[#FF385C] bg-white"
                   }
                 `}
               >
@@ -85,7 +91,7 @@ export default function PGGallery({ images, onDelete, onUpload }) {
             >
               <img
                 src={filtered[activeImage]?.url}
-                className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                className="absolute inset-0 w-full h-full object-cover transition-transform duration-700"
                 alt={activeCategory}
               />
               {!onDelete && (
@@ -118,7 +124,7 @@ export default function PGGallery({ images, onDelete, onUpload }) {
                       e.stopPropagation();
                       setActiveImage((i) => (i - 1 + filtered.length) % filtered.length);
                     }}
-                    className="absolute left-3 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white text-slate-700 rounded-full w-9 h-9 flex items-center justify-center shadow-lg opacity-0 group-hover:opacity-100 transition-all duration-200 hover:scale-110"
+                    className="absolute left-3 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white text-slate-700 rounded-full w-9 h-9 flex items-center justify-center shadow-lg opacity-0 group-hover:opacity-100 transition-all duration-200"
                   >
                     <ChevronLeft size={18} />
                   </button>
@@ -127,7 +133,7 @@ export default function PGGallery({ images, onDelete, onUpload }) {
                       e.stopPropagation();
                       setActiveImage((i) => (i + 1) % filtered.length);
                     }}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white text-slate-700 rounded-full w-9 h-9 flex items-center justify-center shadow-lg opacity-0 group-hover:opacity-100 transition-all duration-200 hover:scale-110"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white text-slate-700 rounded-full w-9 h-9 flex items-center justify-center shadow-lg opacity-0 group-hover:opacity-100 transition-all duration-200"
                   >
                     <ChevronRight size={18} />
                   </button>
@@ -145,8 +151,8 @@ export default function PGGallery({ images, onDelete, onUpload }) {
                       relative flex-shrink-0 w-[88px] h-[60px] rounded-xl overflow-hidden border-2 transition-all duration-200
                       ${
                         activeImage === i
-                          ? "border-blue-500 ring-2 ring-blue-100 scale-105"
-                          : "border-transparent opacity-55 hover:opacity-90 hover:scale-[1.03]"
+                          ? "border-[#FF385C] ring-2 ring-rose-50"
+                          : "border-transparent opacity-60 hover:opacity-100"
                       }
                     `}
                   >
@@ -155,7 +161,7 @@ export default function PGGallery({ images, onDelete, onUpload }) {
                 ))}
 
                 {onUpload && (
-                  <label className="w-[88px] h-[60px] flex-shrink-0 rounded-xl border-2 border-dashed border-slate-300 flex items-center justify-center cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition-colors">
+                  <label className="w-[88px] h-[60px] flex-shrink-0 rounded-xl border-2 border-dashed border-slate-300 flex items-center justify-center cursor-pointer hover:border-slate-400 hover:bg-slate-50 transition-colors">
                     <ImagePlus size={18} className="text-slate-400" />
                     <input type="file" accept="image/*" className="sr-only" onChange={(e) => { if (e.target.files[0]) onUpload(e.target.files[0], activeCategory); e.target.value = ''; }} />
                   </label>
@@ -166,9 +172,9 @@ export default function PGGallery({ images, onDelete, onUpload }) {
         ) : (
           /* Empty State */
           onUpload ? (
-            <label className="w-full h-[300px] sm:h-[450px] bg-slate-50 border-2 border-dashed border-slate-200 rounded-3xl flex flex-col items-center justify-center gap-2 text-slate-400 group hover:border-blue-400 hover:bg-blue-50/30 transition-all cursor-pointer">
-              <div className="w-14 h-14 bg-white rounded-2xl shadow-sm flex items-center justify-center mb-1 group-hover:scale-110 transition-transform">
-                <ImagePlus size={28} className="text-blue-500/50" />
+            <label className="w-full h-[300px] sm:h-[450px] bg-slate-50 border-2 border-dashed border-slate-200 rounded-3xl flex flex-col items-center justify-center gap-2 text-slate-400 group hover:border-slate-400 hover:bg-slate-50/30 transition-all cursor-pointer">
+              <div className="w-14 h-14 bg-white rounded-2xl shadow-sm flex items-center justify-center mb-1 transition-transform">
+                <ImagePlus size={28} className="text-slate-400" />
               </div>
               <p className="text-sm font-semibold text-slate-600">No {CATEGORY_LABELS[activeCategory]} images yet</p>
               <p className="text-xs text-slate-400">Click to upload</p>
@@ -199,10 +205,10 @@ export default function PGGallery({ images, onDelete, onUpload }) {
           </div>
           {filtered.length > 1 && (
             <>
-              <button className="absolute left-4 top-1/2 -translate-y-1/2 text-white bg-white/10 hover:bg-white/25 rounded-full w-11 h-11 flex items-center justify-center transition-all hover:scale-110" onClick={(e) => { e.stopPropagation(); lbPrev(); }}>
+              <button className="absolute left-4 top-1/2 -translate-y-1/2 text-white bg-white/10 hover:bg-white/25 rounded-full w-11 h-11 flex items-center justify-center transition-all" onClick={(e) => { e.stopPropagation(); lbPrev(); }}>
                 <ChevronLeft size={22} />
               </button>
-              <button className="absolute right-4 top-1/2 -translate-y-1/2 text-white bg-white/10 hover:bg-white/25 rounded-full w-11 h-11 flex items-center justify-center transition-all hover:scale-110" onClick={(e) => { e.stopPropagation(); lbNext(); }}>
+              <button className="absolute right-4 top-1/2 -translate-y-1/2 text-white bg-white/10 hover:bg-white/25 rounded-full w-11 h-11 flex items-center justify-center transition-all" onClick={(e) => { e.stopPropagation(); lbNext(); }}>
                 <ChevronRight size={22} />
               </button>
             </>
@@ -210,7 +216,7 @@ export default function PGGallery({ images, onDelete, onUpload }) {
           {filtered.length > 1 && (
             <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 overflow-x-auto max-w-[90vw] px-2 pb-1 scrollbar-hide">
               {filtered.map((img, i) => (
-                <button key={img._id} onClick={(e) => { e.stopPropagation(); setLbIdx(i); }} className={`flex-shrink-0 w-14 h-10 rounded-md overflow-hidden border-2 transition-all duration-150 ${lbIdx === i ? "border-white scale-110" : "border-transparent opacity-40 hover:opacity-75"}`}>
+                <button key={img._id} onClick={(e) => { e.stopPropagation(); setLbIdx(i); }} className={`flex-shrink-0 w-14 h-10 rounded-md overflow-hidden border-2 transition-all duration-150 ${lbIdx === i ? "border-white" : "border-transparent opacity-40 hover:opacity-75"}`}>
                   <img src={img?.url} alt="" className="w-full h-full object-cover" />
                 </button>
               ))}

@@ -120,7 +120,7 @@ export default function PGForm({
 
     const timer = setTimeout(async () => {
       const res = await fetch(
-        `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(searchText)}&format=json&limit=5&countrycodes=in`,
+        `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(searchText)}&format=json&limit=5&countrycodes=in&addressdetails=1`,
         { headers: { "User-Agent": "PGFinder/1.0" } },
       );
       const data = await res.json();
@@ -249,7 +249,7 @@ export default function PGForm({
   };
 
   const inp =
-    "w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm bg-slate-50 focus:bg-white focus:border-blue-400 focus:ring-2 focus:ring-blue-50 outline-none transition-all text-slate-900";
+    "w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm bg-slate-50 focus:bg-white focus:border-rose-400 focus:ring-2 focus:ring-rose-50 outline-none transition-all text-slate-900";
   const lab = "text-xs font-medium text-slate-500 mb-1.5 block";
 
   return (
@@ -331,15 +331,14 @@ export default function PGForm({
                     key={s.place_id}
                     onClick={() => {
                       set("coordinate", [parseFloat(s.lon), parseFloat(s.lat)]);
-                      // Also update address & city in form so they save to DB
-                      const parts = s.display_name.split(", ");
                       set("address", s.display_name);
-                      // Try to extract city from Nominatim (usually 3rd-last part)
-                      if (parts.length >= 3) set("city", parts[parts.length - 3]);
+                      // Extract city from structured address object
+                      const city = s.address?.city || s.address?.town || s.address?.village || s.address?.state_district || "";
+                      if (city) set("city", city);
                       setSearchText(s.display_name);
                       setSuggestions([]);
                     }}
-                    className="px-3 py-2.5 hover:bg-blue-50 cursor-pointer text-sm text-slate-700 border-b border-slate-100 last:border-0 transition-colors"
+                    className="px-3 py-2.5 hover:bg-rose-50 cursor-pointer text-sm text-slate-700 border-b border-slate-100 last:border-0 transition-colors"
                   >
                     {s.display_name}
                   </li>
@@ -374,13 +373,13 @@ export default function PGForm({
               </MapContainer>
             )}
             <div
-              className={`absolute top-3 left-3 bg-white/90 backdrop-blur-sm px-3 py-1.5 rounded-lg shadow border text-xs font-medium flex items-center gap-1.5 z-10 ${form.coordinate.length === 2 ? "border-blue-200 text-slate-700" : "border-red-200 text-red-600"}`}
+              className={`absolute top-3 left-3 bg-white/90 backdrop-blur-sm px-3 py-1.5 rounded-lg shadow border text-xs font-medium flex items-center gap-1.5 z-10 ${form.coordinate.length === 2 ? "border-rose-200 text-slate-700" : "border-red-200 text-red-600"}`}
             >
               <MapPin
                 size={14}
                 className={
                   form.coordinate.length === 2
-                    ? "text-blue-600"
+                    ? "text-rose-500"
                     : "text-red-500"
                 }
               />
@@ -466,8 +465,8 @@ export default function PGForm({
               onClick={() => toggleA(a)}
               className={`text-xs px-3 py-1.5 rounded-full border transition-all ${
                 form.amenities.includes(a)
-                  ? "bg-blue-600 text-white border-blue-600"
-                  : "bg-slate-50 text-slate-600 border-slate-200 hover:border-blue-300"
+                  ? "bg-[#FF385C] text-white border-[#FF385C]"
+                  : "bg-slate-50 text-slate-600 border-slate-200 hover:border-rose-300"
               }`}
             >
               {a}
@@ -517,7 +516,7 @@ export default function PGForm({
                 <span className="text-xs font-semibold text-slate-600">
                   Room Type {i + 1}
                   {rt._id && (
-                    <span className="ml-2 text-[10px] text-blue-500 border border-blue-100 bg-blue-50 px-1.5 py-0.5 rounded-full">
+                    <span className="ml-2 text-[10px] text-rose-500 border border-rose-100 bg-rose-50 px-1.5 py-0.5 rounded-full">
                       existing
                     </span>
                   )}
