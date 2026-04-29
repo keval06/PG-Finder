@@ -6,7 +6,7 @@ export default function Badge({
   className = "" 
 }) {
   const variants = {
-    blue: "bg-blue-50 text-blue-700 border-blue-100",
+    blue: "bg-rose-50 text-rose-600 border-rose-100",
     green: "bg-green-50 text-green-700 border-green-100",
     yellow: "bg-yellow-50 text-yellow-700 border-yellow-100",
     red: "bg-red-50 text-red-700 border-red-100",

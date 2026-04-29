@@ -56,11 +56,11 @@ export const FOOD_LABELS = {
 
 export const GALLERY_CATEGORIES = [
   "room",
+  "building",
+  "amenities",
   "kitchen",
   "bathroom",
   "toilet",
-  "building",
-  "amenities",
 ];
 
 export const CATEGORY_LABELS = {

@@ -12,14 +12,14 @@ export default function Button({
   icon: Icon,
 }) {
   const baseStyles =
-    "inline-flex items-center justify-center gap-2 font-semibold transition-all rounded-xl active:scale-[0.98] disabled:opacity-50 disabled:active:scale-100 disabled:cursor-not-allowed";
+    "inline-flex items-center justify-center gap-2 font-semibold transition-all rounded-xl disabled:opacity-50 disabled:cursor-not-allowed";
 
   const variants = {
     primary:
-      "bg-blue-600 text-white hover:bg-blue-700 shadow-sm shadow-blue-200",
+      "bg-[#FF385C] text-white hover:bg-[#E31C5F] shadow-sm shadow-rose-200",
     secondary: "bg-slate-100 text-slate-700 hover:bg-slate-200",
     outline:
-      "bg-transparent border border-slate-200 text-slate-600 hover:border-blue-300 hover:text-blue-600",
+      "bg-transparent border border-slate-200 text-slate-600 hover:border-rose-300 hover:text-rose-500",
     danger:
       "bg-red-50 text-red-600 hover:bg-red-600 hover:text-white border border-red-100",
   };

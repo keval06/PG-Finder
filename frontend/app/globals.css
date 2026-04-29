@@ -5,22 +5,22 @@
 → Makes all browsers start from the same baseline */
 @tailwind base;
 @tailwind components;
-/* → Injects ALL utility classes (bg-blue-600, flex, px-4, etc.)
+/* → Injects ALL utility classes (bg-rose-500, flex, px-4, etc.)
 → This is the main Tailwind stylesheet
 → Only includes classes found in your content files (purged) */
 @tailwind utilities;
 
 
 :root {
-  --blue: #3b82f6;
-  --blue-dark: #2563eb;
-  --blue-light: #60a5fa;
-  --blue-50: #eff6ff;
-  --blue-100: #dbeafe;
+  --rose: #FF385C;
+  --rose-dark: #E31C5F;
+  --rose-light: #FF6B81;
+  --rose-50: #fff1f2;
+  --rose-100: #ffe4e6;
   --ink: #0f172a;
   --slate-800: #1e293b;
   --muted: #64748b;
-  --paper: #f8fafc;
+  --paper: #ffffff;
   --card: #ffffff;
   --border: #e2e8f0;
 }
@@ -33,7 +33,7 @@
 
 body {
   font-family: "Inter", sans-serif;
-  background: #fafafa;
+  background: #ffffff;
   color: #0f172a;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -43,7 +43,7 @@ body {
   width: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #f8fafc;
+  background: #ffffff;
 }
 ::-webkit-scrollbar-thumb {
   background: #cbd5e1;
@@ -81,13 +81,13 @@ input[type="radio"] {
 .marker-cluster-small,
 .marker-cluster-medium,
 .marker-cluster-large {
-  background: rgba(59, 130, 246, 0.25) !important;
+  background: rgba(255, 56, 92, 0.2) !important;
   border-radius: 50%;
 }
 .marker-cluster-small div,
 .marker-cluster-medium div,
 .marker-cluster-large div {
-  background: #3b82f6 !important;
+  background: #FF385C !important;
   color: #fff !important;
   border-radius: 50%;
   font-size: 13px;
@@ -114,4 +114,13 @@ input[type="radio"] {
 }
 .leaflet-container {
   z-index: 0 !important;
+}
+@layer utilities {
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
 }
