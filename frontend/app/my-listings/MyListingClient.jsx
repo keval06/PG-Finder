@@ -19,6 +19,7 @@ import EmptyState from "../atoms/EmptyState";
 import Badge from "../atoms/Badge";
 import { useSearch } from "../context/SearchContext";
 import dynamic from "next/dynamic";
+import BackButton from "../../components/BackButton";
 const PGForm = dynamic(() => import("./components/PGForm"), { ssr: false });
 
 
@@ -48,6 +49,24 @@ export default function MyListingsClient() {
     hasFilters,
     clearFilters,
   } = usePGFilters(pgs, query);
+
+  const { setFilterCount: setGlobalFilterCount } = useSearch();
+
+  useEffect(() => {
+    setGlobalFilterCount(filterCount);
+  }, [filterCount, setGlobalFilterCount]);
+
+  // Lock body scroll when filter drawer is open
+  useEffect(() => {
+    if (drawerOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [drawerOpen]);
 
   useEffect(() => {
     if (!ready) return;
@@ -151,8 +170,8 @@ export default function MyListingsClient() {
 
   if (!ready || loading)
     return (
-      <div className="min-h-screen bg-[#f8fafc] flex items-center justify-center">
-        <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="w-8 h-8 border-[3px] border-rose-500 border-t-transparent rounded-full animate-spin" />
       </div>
     );
 
@@ -170,107 +189,71 @@ export default function MyListingsClient() {
         </div>
       )}
 
-      <div className="flex gap-6">
-        <aside className="hidden lg:block w-60 flex-shrink-0">
-          <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm flex flex-col sticky top-24 h-[calc(100vh-120px)]">
-            <FilterPanel {...fp} />
-          </div>
-        </aside>
-
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center justify-between mb-5 gap-3 flex-wrap">
-            <div className="flex items-center gap-3">
-              <Button
-                variant="outline"
-                onClick={() => setDrawerOpen(true)}
-                className="flex"
-                icon={SlidersHorizontal}
-              >
-                Filters
-                {filterCount > 0 && (
-                  <Badge
-                    variant="blue"
-                    className="ml-1 px-1 min-w-[16px] h-4 flex items-center justify-center"
-                  >
-                    {filterCount}
-                  </Badge>
-                )}
-              </Button>
-              <p className="text-sm text-slate-500 font-medium">
-                {sorted.length} PGs found
+    <div className="bg-white min-h-screen pb-20 selection:bg-rose-100">
+      <div className="max-w-[1280px] mx-auto px-6 md:px-10 lg:px-20 py-6">
+        <div className="flex flex-col gap-8">
+          <div className="flex items-center justify-between py-4">
+            <div className="flex flex-col gap-2">
+              <BackButton />
+              <h1 className="text-2xl md:text-3xl font-semibold tracking-tight text-[#222222]">
+                My Listings
+              </h1>
+              <p className="text-base text-[#717171]">
+                Manage your {sorted.length} properties
               </p>
             </div>
-
-            <div className="flex items-center gap-2 flex-wrap">
-              <SortBtn
-                label="Price"
-                field="price"
-                {...{ sortField, sortOrder, onToggle: toggleSort }}
-              />
-              <SortBtn
-                label="Rating"
-                field="rating"
-                {...{ sortField, sortOrder, onToggle: toggleSort }}
-              />
-              <SortBtn
-                label="Reviews"
-                field="reviews"
-                {...{ sortField, sortOrder, onToggle: toggleSort }}
-              />
+            
+            <div className="flex items-center gap-3">
+              <div className="hidden sm:flex items-center gap-2">
+                <SortBtn label="Price" field="price" {...{ sortField, sortOrder, onToggle: toggleSort }} />
+                <SortBtn label="Rating" field="rating" {...{ sortField, sortOrder, onToggle: toggleSort }} />
+                <SortBtn label="Reviews" field="reviews" {...{ sortField, sortOrder, onToggle: toggleSort }} />
+              </div>
               <Button
                 variant={createOpen ? "primary" : "outline"}
                 onClick={() => setCreateOpen(!createOpen)}
                 icon={Plus}
+                className="!rounded-xl h-11 text-sm font-semibold border-[#DDDDDD] hover:shadow-sm"
               >
-                Add PG
+                Add New PG
               </Button>
             </div>
           </div>
 
-          {createOpen && (
-            <div className="bg-white border border-slate-200 rounded-2xl p-5 mb-4">
-              <h3 className="font-semibold text-slate-900 mb-0.5">
-                New PG Listing
-              </h3>
-              <p className="text-xs text-slate-400 mb-1">
-                Fill in the details to list your PG
-              </p>
-              <PGForm
-                onSubmit={handleCreate}
-                onCancel={() => setCreateOpen(false)}
-                saving={creating}
-              />
+        {createOpen && (
+          <div className="bg-white border border-[#DDDDDD] rounded-3xl p-8 mb-10 shadow-[0_6px_16px_rgba(0,0,0,0.12)]">
+            <div className="mb-6">
+              <h3 className="text-[22px] font-semibold text-[#222222]">New PG Listing</h3>
+              <p className="text-[#717171] text-sm">List your property with clear details.</p>
             </div>
-          )}
+            <PGForm
+              onSubmit={handleCreate}
+              onCancel={() => setCreateOpen(false)}
+              saving={creating}
+            />
+          </div>
+        )}
 
-          {sorted.length === 0 ? (
+        {sorted.length === 0 ? (
+          <div className="bg-white border border-[#DDDDDD] rounded-3xl p-16 text-center shadow-sm">
             <EmptyState
               icon={HomeIcon}
-              title={
-                pgs.length === 0 ? "No listings yet" : "No PGs match filters"
-              }
-              description={
-                pgs.length === 0
-                  ? 'Click "Add PG" to post your first listing.'
-                  : "Try adjusting your filters to find your listings."
-              }
-              action={
-                hasFilters && (
-                  <Button variant="outline" size="sm" onClick={clearFilters}>
-                    Clear all filters
-                  </Button>
-                )
-              }
+              title="No listings yet"
+              description='Click "Add New PG" to begin.'
             />
-          ) : (
+          </div>
+        ) : (
+          <div className="flex flex-col gap-6">
             <PaginationWrapper
               data={sorted}
               itemsPerPage={5}
               renderItem={(pg) => <ListingCard key={pg._id} pg={pg} />}
             />
-          )}
-        </div>
+          </div>
+        )}
       </div>
+    </div>
+  </div>
 
       <ConfirmModal
         isOpen={confirmOpen}
@@ -289,7 +272,7 @@ export default function MyListingsClient() {
             </p>
             <div className="flex flex-col gap-1.5 text-left">
               <p className="text-sm text-slate-700 leading-tight flex items-start gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-blue-400 mt-1.5 shrink-0" />
+                <span className="w-1.5 h-1.5 rounded-full bg-rose-400 mt-1.5 shrink-0" />
                 <span>
                   Name:{" "}
                   <span className="font-semibold text-slate-900">
@@ -298,7 +281,7 @@ export default function MyListingsClient() {
                 </span>
               </p>
               <p className="text-sm text-slate-700 leading-tight flex items-start gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-blue-400 mt-1.5 shrink-0" />
+                <span className="w-1.5 h-1.5 rounded-full bg-rose-400 mt-1.5 shrink-0" />
                 <span>
                   City:{" "}
                   <span className="font-semibold text-slate-900">
@@ -310,15 +293,15 @@ export default function MyListingsClient() {
           </div>
 
           {pendingData?.roomTypes?.length > 0 && (
-            <div className="bg-blue-50/50 rounded-xl p-4 border border-blue-100/50">
-              <p className="text-xs font-semibold text-blue-600 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+            <div className="bg-rose-50/50 rounded-xl p-4 border border-rose-100/50">
+              <p className="text-xs font-semibold text-rose-500 uppercase tracking-widest mb-2 flex items-center gap-1.5">
                 <Bed size={12} /> Room Types
               </p>
               <div className="flex flex-col gap-2">
                 {pendingData.roomTypes.map((rt, i) => (
                   <div
                     key={i}
-                    className="bg-white/80 rounded-lg p-2.5 border border-blue-100 flex justify-between items-center text-xs"
+                    className="bg-white/80 rounded-lg p-2.5 border border-rose-100 flex justify-between items-center text-xs"
                   >
                     <div className="text-left">
                       <p className="font-bold text-slate-900 capitalize">
@@ -328,7 +311,7 @@ export default function MyListingsClient() {
                         {rt.availableRooms} rooms
                       </p>
                     </div>
-                    <p className="font-bold text-blue-600">₹{rt.price}</p>
+                    <p className="font-bold text-rose-500">₹{rt.price}</p>
                   </div>
                 ))}
               </div>
