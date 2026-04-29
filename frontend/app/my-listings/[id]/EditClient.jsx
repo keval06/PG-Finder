@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, notFound } from "next/navigation";
 import { useAuth } from "../../context/AuthContext";
 import { pgApi } from "../../../lib/api/pg";
 import { imageApi } from "../../../lib/api/image";
@@ -216,7 +216,7 @@ export default function EditListingClient({ pgId }) {
   const confirmDelete = async () => {
     setDeleting(true);
     try {
-      const apiBase = `${window.location.protocol}//${window.location.hostname}:5000`;
+      const apiBase = ""; // relative URL → proxied by Next.js rewrites
       const res = await fetch(
         `${apiBase}/api/pg/${pgId}`,
         {
@@ -283,12 +283,7 @@ export default function EditListingClient({ pgId }) {
       </div>
     );
 
-  if (!pg)
-    return (
-      <div className="min-h-screen bg-[#f8fafc] flex items-center justify-center">
-        <p className="text-slate-500">PG not found.</p>
-      </div>
-    );
+  if (!pg) notFound();
 
   const inactive = pg.isActive === false;
 
