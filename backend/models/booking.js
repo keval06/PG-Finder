@@ -53,4 +53,9 @@ const bookingSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+// 🚀 Indexing for fast dashboard loading
+bookingSchema.index({ user: 1, createdAt: -1 });
+bookingSchema.index({ pg: 1, createdAt: -1 });
+bookingSchema.index({ status: 1 });
+
 module.exports = mongoose.model("Booking", bookingSchema);

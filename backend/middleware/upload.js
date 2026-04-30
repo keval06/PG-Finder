@@ -18,9 +18,24 @@ const upload = multer({
     bucket: process.env.S3_BUCKET,
     contentType: multerS3.AUTO_CONTENT_TYPE,
     key: (req, file, cb) => {
-      cb(null, `images/${Date.now()}-${file.originalname.replace(/\s+/g, "-")}`);
+      cb(
+        null,
+        `images/${Date.now()}-${file.originalname.replace(/\s+/g, "-")}`,
+      );
     },
   }),
+  // SECURITY ADDITION: Enforce strict limits
+  limits: {
+    fileSize: 5 * 1024 * 1024, // 5MB Limit
+  },
+  fileFilter: (req, file, cb) => {
+    // Only accept image files
+    if (file.mimetype.startsWith("image/")) {
+      cb(null, true);
+    } else {
+      cb(new Error("Only image files are allowed!"), false);
+    }
+  },
 });
 
 module.exports = upload;
