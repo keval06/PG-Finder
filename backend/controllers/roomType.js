@@ -10,7 +10,7 @@ exports.createRoomType = async (req, res) => {
     if (!pg) {
       return res.status(404).json({ message: "PG not found" });
     }
-    
+
     //?2 check if owner, user is attached from protect middleware
     //* Always .toString() both sides when comparing ObjectIds
 
@@ -24,7 +24,10 @@ exports.createRoomType = async (req, res) => {
       isActive: true,
     });
 
-    const alreadyAllocated = existingRoomTypes.reduce( (sum, rt) => sum + rt.availableRooms, 0, );
+    const alreadyAllocated = existingRoomTypes.reduce(
+      (sum, rt) => sum + rt.availableRooms,
+      0,
+    );
 
     // check if room type already exists
     if (alreadyAllocated + req.body.availableRooms > pg.room) {
@@ -36,18 +39,36 @@ exports.createRoomType = async (req, res) => {
     }
 
     // ?If all checks pass — create the room type. req.body has all the fields (pg, name, price, sharingCount, availableRooms...). Mongoose schema validators run on create.
-    const roomType = await RoomType.create(req.body);
+    // 🛡️ SECURITY: Explicit fields for Room Type creation
+    const roomTypeData = {
+      pg: req.body.pg,
+      name: req.body.name,
+      sharingCount: req.body.sharingCount,
+      availableRooms: req.body.availableRooms,
+      price: req.body.price,
+    };
 
+    const roomType = await RoomType.create(roomTypeData);
+
+    // 1. Get all active room types for this PG
+    const allRoomTypes = await RoomType.find({
+      pg: req.body.pg,
+      isActive: true,
+    });
+
+    // 2. Find the actual minimum price
+    const minPrice = Math.min(...allRoomTypes.map((r) => r.price));
+
+    // 3. Update the PG
     await PG.findByIdAndUpdate(req.body.pg, {
       isActive: true,
-      ...(roomType.price < pg.price && { price: roomType.price }),
+      price: minPrice,
     });
 
     res.status(201).json(roomType);
-  } 
-  catch (error) {
-    res.status(500).json({ 
-      message: error.message 
+  } catch (error) {
+    res.status(500).json({
+      message: error.message,
     });
   }
 };
@@ -70,24 +91,34 @@ exports.getRoomTypesByPg = async (req, res) => {
     // get room types
     // new mongoose.Types.ObjectId(pgId) — converts string to ObjectId type for the query.
 
-    const roomTypes = await RoomType.find({
-      pg: new mongoose.Types.ObjectId(pgId),
-      isActive: true,
-    }).populate("pg", "name city room");
+    const pg = await PG.findById(pgId);
+
+    const isOwner =
+      req.user && pg?.owner
+        ? pg.owner.toString() === req.user._id.toString()
+        : false;
+
+    const query = { pg: new mongoose.Types.ObjectId(pgId) };
+    if (!isOwner) {
+      query.isActive = true; // Hide inactive rooms from public
+    }
+    const roomTypes = await RoomType.find(query).populate(
+      "pg",
+      "name city room",
+    );
 
     //* totalBeds and remainingBeds — Computed/Derived Fields:
     // calculate total beds and remaining beds
     const response = roomTypes.map((rt) => ({
       ...rt.toObject(),
-      totalBeds: (rt.availableRooms * rt.sharingCount),
-      remainingBeds: (rt.availableRooms * rt.sharingCount) - (rt.occupiedBeds),
+      totalBeds: rt.availableRooms * rt.sharingCount,
+      remainingBeds: rt.availableRooms * rt.sharingCount - rt.occupiedBeds,
     }));
 
     res.json(response);
-  } 
-  catch (error) {
-    res.status(500).json({ 
-      message: error.message 
+  } catch (error) {
+    res.status(500).json({
+      message: error.message,
     });
   }
 };
@@ -114,7 +145,6 @@ exports.updateRoomType = async (req, res) => {
 
     // check if availableRooms is provided
     if (req.body.availableRooms !== undefined) {
-
       // ?check if beds are available, if 8 bookings, 6 newBeds, where 2 guests stayed
       const newTotalBeds = req.body.availableRooms * roomType.sharingCount;
       if (newTotalBeds < roomType.occupiedBeds) {
@@ -123,7 +153,7 @@ exports.updateRoomType = async (req, res) => {
         });
       }
 
-      // check if beds are available, fetch all room type of pg, 
+      // check if beds are available, fetch all room type of pg,
       const existingRoomTypes = await RoomType.find({
         pg: roomType.pg._id,
         isActive: true,
@@ -145,10 +175,30 @@ exports.updateRoomType = async (req, res) => {
     }
 
     // ?update room type
-    const updated = await RoomType.findByIdAndUpdate(req.params.id, req.body, {
-      new: true,
-      runValidators: true,
+    // 🛡️ SECURITY: Prevent Mass Assignment on Update
+    const allowedFields = [
+      "name",
+      "sharingCount",
+      "availableRooms",
+      "price",
+      "isActive",
+    ];
+    const updateData = {};
+
+    Object.keys(req.body).forEach((key) => {
+      if (allowedFields.includes(key)) {
+        updateData[key] = req.body[key];
+      }
     });
+
+    const updated = await RoomType.findByIdAndUpdate(
+      req.params.id,
+      updateData,
+      {
+        new: true,
+        runValidators: true,
+      },
+    );
 
     // ?recalculate PG minimum price after update
     const allRoomTypes = await RoomType.find({
@@ -156,14 +206,13 @@ exports.updateRoomType = async (req, res) => {
       isActive: true,
     });
 
-    const minPrice = Math.min(...allRoomTypes.map( (r) => r.price) );
-    await PG.findByIdAndUpdate( roomType.pg._id, { price: minPrice });
+    const minPrice = Math.min(...allRoomTypes.map((r) => r.price));
+    await PG.findByIdAndUpdate(roomType.pg._id, { price: minPrice });
 
     res.json(updated);
-  } 
-  catch (error) {
-    res.status(500).json({ 
-      message: error.message 
+  } catch (error) {
+    res.status(500).json({
+      message: error.message,
     });
   }
 };
@@ -208,17 +257,15 @@ exports.deleteRoomType = async (req, res) => {
       const minPrice = Math.min(...allRoomTypes.map((r) => r.price));
 
       await PG.findByIdAndUpdate(roomType.pg._id, { price: minPrice });
-    } 
-    else {
+    } else {
       await PG.findByIdAndUpdate(roomType.pg._id, { isActive: false });
     }
     // if no room types left, PG.price stays as is — not reset to 0
 
     res.json({ message: "Room type deleted", roomType });
-  } 
-  catch (error) {
-    res.status(500).json({ 
-      message: error.message 
+  } catch (error) {
+    res.status(500).json({
+      message: error.message,
     });
   }
 };

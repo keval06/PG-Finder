@@ -6,12 +6,12 @@ const mongoose = require("mongoose");
 async function hasBookingOnPG(userId, pgId) {
   // Cast pgId to ObjectId — req.body sends a plain string,
   // Mongoose needs an ObjectId for the comparison to work reliably
-   if (!mongoose.Types.ObjectId.isValid(pgId)) {
+  if (!mongoose.Types.ObjectId.isValid(pgId)) {
     console.error("[hasBookingOnPG] Invalid pgId:", pgId);
     return false;
   }
   const pgObjectId = new mongoose.Types.ObjectId(pgId);
- 
+
   // Debug log — remove after confirming fix
   const booking = await Booking.findOne({ user: userId, pg: pgObjectId });
   // console.log("[hasBookingOnPG] userId:", userId, "pgId:", pgId, "found:", !!booking);
@@ -54,7 +54,7 @@ exports.registerReview = async (req, res) => {
 
     res.status(201).json(review);
   } catch (error) {
-    res.status(500).json(error.message);
+    res.status(500).json({ message: error.message });
   }
 };
 
@@ -93,7 +93,7 @@ exports.getReviewsByPg = async (req, res) => {
       totalPages: Math.ceil(total / limitNum),
     });
   } catch (error) {
-    res.status(500).json(error.message);
+    res.status(500).json({ message: error.message });
   }
 };
 
@@ -125,7 +125,7 @@ exports.canReview = async (req, res) => {
 
     res.json({ canReview: true });
   } catch (error) {
-    res.status(500).json(error.message);
+    res.status(500).json({ message: error.message });
   }
 };
 
@@ -143,15 +143,24 @@ exports.updateReview = async (req, res) => {
       return res.status(403).json({ message: "Not allowed" });
     }
 
+    // 🛡️ SECURITY: Prevent Mass Assignment (Allow ONLY star and comment)
+    const allowedFields = ["star", "comment"];
+    const updateData = {};
+    Object.keys(req.body).forEach((key) => {
+      if (allowedFields.includes(key)) {
+        updateData[key] = req.body[key];
+      }
+    });
+
     const updatedReview = await Review.findByIdAndUpdate(
       req.params.id,
-      req.body,
-      { new: true, runValidators: true }
+      updateData, // ← Securely filtered
+      { new: true, runValidators: true },
     );
 
     res.json(updatedReview);
   } catch (error) {
-    res.status(500).json(error.message);
+    res.status(500).json({ message: error.message });
   }
 };
 
@@ -173,6 +182,6 @@ exports.deleteReview = async (req, res) => {
 
     res.json({ message: "Review deleted" });
   } catch (error) {
-    res.status(500).json(error.message);
+    res.status(500).json({ message: error.message });
   }
 };

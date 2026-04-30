@@ -18,7 +18,23 @@ exports.registerBooking = async (req, res) => {
     } = req.body;
 
     // check if booking dates are valid
-    if (new Date(checkOutDate) <= new Date(checkInDate)) {
+    const checkIn = new Date(checkInDate);
+    const checkOut = new Date(checkOutDate);
+
+    // Normalize today's date to midnight for a fair comparison
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    // ADDED: 1. API Protection - Check if check-in is in the past
+    if (checkIn < today) {
+      await session.abortTransaction();
+      return res
+        .status(400)
+        .json({ message: "Check-in date cannot be in the past" });
+    }
+
+    // 2. Check if check-out is before or same as check-in
+    if (checkOut <= checkIn) {
       await session.abortTransaction();
       return res.status(400).json({ message: "Invalid booking dates" });
     }
@@ -55,6 +71,10 @@ exports.registerBooking = async (req, res) => {
       return res.status(400).json({ message: "Booking already exists" });
     }
 
+    // 🛡️ SECURITY: Calculate amount server-side to prevent price injection
+    // (Room Price * months) - for simplicity we use 1 month as per your frontend logic
+    const finalAmount = roomType.price;
+
     // create booking
     const booking = await Booking.create(
       [
@@ -64,18 +84,35 @@ exports.registerBooking = async (req, res) => {
           roomType: roomTypeId,
           checkInDate,
           checkOutDate,
-          amount,
+          amount: finalAmount, // ← Use server-calculated amount
         },
       ],
       { session },
     );
 
     // update room type
-    await RoomType.findByIdAndUpdate(
-      roomTypeId,
+    // REPLACE the blind update (Lines 94-98) with this atomic one:
+    const updatedRoomType = await RoomType.findOneAndUpdate(
+      {
+        _id: roomTypeId,
+        // 🛡️ ATOMIC CHECK: Only increment if there is actually a bed free
+        $expr: {
+          $lt: [
+            "$occupiedBeds",
+            { $multiply: ["$availableRooms", "$sharingCount"] },
+          ],
+        },
+      },
       { $inc: { occupiedBeds: 1 } },
-      { session },
+      { session, new: true },
     );
+
+    if (!updatedRoomType) {
+      await session.abortTransaction();
+      return res.status(400).json({
+        message: "Room just filled up! Please try another room type.",
+      });
+    }
 
     // commit transaction
     await session.commitTransaction();
@@ -83,7 +120,7 @@ exports.registerBooking = async (req, res) => {
   } catch (error) {
     // abort transaction
     await session.abortTransaction();
-    res.status(500).json(error);
+    res.status(500).json({ message: error.message || "Internal Server Error" });
   } finally {
     // end session
     session.endSession();
@@ -153,18 +190,28 @@ exports.updateBooking = async (req, res) => {
 
     if (!isGuest && !isOwner) {
       await session.abortTransaction();
-      return res.status(403).json({ message: "Not authorized to update this booking" });
+      return res
+        .status(403)
+        .json({ message: "Not authorized to update this booking" });
     }
 
     // if booking is updated
-    const booking = await Booking.findByIdAndUpdate(req.params.id, req.body, {
+    // 🛡️ SECURITY: Guests can only update status, Owners can update paymentStatus
+    const allowedFields = ["status", "paymentStatus"];
+    const updateData = {};
+    Object.keys(req.body).forEach((key) => {
+      if (allowedFields.includes(key)) updateData[key] = req.body[key];
+    });
+
+    // if booking is updated
+    const booking = await Booking.findByIdAndUpdate(req.params.id, updateData, {
       new: true,
       runValidators: true,
       session,
     });
 
     // if user cancels booking
-    if (req.body.status === "cancelled" && existing.status !== "cancelled") {
+    if (updateData.status === "cancelled" && existing.status !== "cancelled") {
       await RoomType.findByIdAndUpdate(
         existing.roomType,
         { $inc: { occupiedBeds: -1 } },
@@ -174,7 +221,7 @@ exports.updateBooking = async (req, res) => {
 
     // if booking is confirmed
     else if (
-      req.body.status === "confirmed" &&
+      updateData.status === "confirmed" &&
       existing.status === "cancelled"
     ) {
       // if room type is not found
@@ -209,7 +256,7 @@ exports.updateBooking = async (req, res) => {
     res.json(booking);
   } catch (error) {
     await session.abortTransaction();
-    res.status(500).json(error);
+    res.status(500).json({ message: error.message || "Internal Server Error" });
   } finally {
     session.endSession();
   }

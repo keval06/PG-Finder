@@ -3,11 +3,13 @@ const RoomType = require("../models/roomType.js");
 
 // *This is called Server-Side Filtering. Always filter at database level, not in JS.
 
-
 // helper: builds filter object from URL params
 //for pagination
 const buildPGQuery = (query) => {
   const filter = {};
+
+  // 🛡️ CENTRALIZED: Ensure we only show active PGs by default
+  filter.isActive = { $ne: false };
 
   if (query.q) {
     const searchRegex = { $regex: query.q, $options: "i" };
@@ -42,7 +44,6 @@ const buildPGQuery = (query) => {
   if (query.minprice || query.maxprice) {
     filter.price = {};
     if (query.minprice) filter.price.$gte = Number(query.minprice);
-    // FIX: ignore maxprice if it's "Infinity" (sent by "Above ₹15,000" filter)
     if (query.maxprice && query.maxprice !== "Infinity") {
       filter.price.$lte = Number(query.maxprice);
     }
@@ -64,26 +65,39 @@ exports.registerPG = async (req, res) => {
       });
     }
 
-
-// This is called: Server-side Trust — never trust client-sent identity fields.
-    const pgData = { 
-      ...req.body, 
-      owner: req.user._id 
+    // This is called: Server-side Trust — never trust client-sent identity fields.
+    const pgData = {
+      // 🛡️ SECURITY: Prevent Mass Assignment
+      name: req.body.name,
+      price: Number(req.body.price),
+      address: req.body.address,
+      city: req.body.city,
+      gender: req.body.gender,
+      room: req.body.room,
+      bathroom: req.body.bathroom,
+      toilet: req.body.toilet,
+      food: req.body.food,
+      amenities: req.body.amenities,
+      owner: req.user._id,
     };
 
-    if (Array.isArray(req.body.coordinate) &&
-      req.body.coordinate.length === 2 ) {
-      pgData.coordinate = {
-        type: "Point",
-        coordinates: req.body.coordinate,
-      };
+    // 🌍 Sync with Frontend: Handle both Array [lng, lat] and GeoJSON Object
+    if (req.body.coordinate) {
+      if (
+        Array.isArray(req.body.coordinate) &&
+        req.body.coordinate.length === 2
+      ) {
+        pgData.coordinate = { type: "Point", coordinates: req.body.coordinate };
+      } else if (req.body.coordinate.coordinates) {
+        pgData.coordinate = req.body.coordinate; // Already Object format
+      }
     }
 
     const pg = await PG.create(pgData);
 
     res.status(201).json(pg);
   } catch (error) {
-    res.status(500).json(error.message);
+    res.status(500).json({ message: error.message });
   }
 };
 
@@ -91,7 +105,6 @@ exports.registerPG = async (req, res) => {
 exports.getAllPg = async (req, res) => {
   try {
     const filter = buildPGQuery(req.query);
-    filter.isActive = { $ne: false };
 
     const { sortField, sortOrder, minRating } = req.query;
     const sortDir = sortOrder === "desc" ? -1 : 1;
@@ -103,7 +116,8 @@ exports.getAllPg = async (req, res) => {
     const skip = (page - 1) * limit;
 
     // rating/reviews sort OR minRating filter require aggregation (join with reviews)
-    const needsAggregation = sortField === "rating" || sortField === "reviews" || minRatingNum > 0;
+    const needsAggregation =
+      sortField === "rating" || sortField === "reviews" || minRatingNum > 0;
 
     // ── aggregation path ─────────────────────────────────────────────────
     if (needsAggregation) {
@@ -205,12 +219,12 @@ exports.getNearbyPGs = async (req, res) => {
 
     const radiusInMeters = Number(radius) * 1000;
     const filter = buildPGQuery(req.query);
-    filter.isActive = { $ne: false };
     const minRatingNum = Number(minRating) || 0;
 
     const sortDir = sortOrder === "desc" ? -1 : 1;
     const skip = (Number(page) - 1) * Number(limit);
-    const needsAggregation = sortField === "rating" || sortField === "reviews" || minRatingNum > 0;
+    const needsAggregation =
+      sortField === "rating" || sortField === "reviews" || minRatingNum > 0;
 
     if (needsAggregation) {
       const pipeline = [
@@ -340,7 +354,7 @@ exports.getPg = async (req, res) => {
       unallocatedRooms: pg.room - allocatedRooms,
     });
   } catch (error) {
-    res.status(500).json(error.message);
+    res.status(500).json({ message: error.message });
   }
 };
 
@@ -357,15 +371,41 @@ exports.updatePg = async (req, res) => {
       return res.status(403).json({ message: "Not allowed" });
     }
 
-    const updateData = { ...req.body };
-    if (
-      Array.isArray(req.body.coordinate) &&
-      req.body.coordinate.length === 2
-    ) {
-      updateData.coordinate = {
-        type: "Point",
-        coordinates: req.body.coordinate,
-      };
+    // 🛡️ SECURITY: Prevent Mass Assignment (Ignore un-allowed fields)
+    const allowedFields = [
+      "name",
+      "price",
+      "address",
+      "coordinate",
+      "city",
+      "gender",
+      "room",
+      "bathroom",
+      "toilet",
+      "food",
+      "amenities",
+      "isActive",
+    ];
+    const updateData = {};
+    Object.keys(req.body).forEach((key) => {
+      if (allowedFields.includes(key)) {
+        updateData[key] = req.body[key];
+      }
+    });
+
+    // 🌍 Sync with Frontend: Handle both Array [lng, lat] and GeoJSON Object
+    if (req.body.coordinate) {
+      if (
+        Array.isArray(req.body.coordinate) &&
+        req.body.coordinate.length === 2
+      ) {
+        updateData.coordinate = {
+          type: "Point",
+          coordinates: req.body.coordinate,
+        };
+      } else if (req.body.coordinate.coordinates) {
+        updateData.coordinate = req.body.coordinate; // Already Object format
+      }
     }
 
     const updatedPG = await PG.findByIdAndUpdate(req.params.id, updateData, {
@@ -375,7 +415,7 @@ exports.updatePg = async (req, res) => {
 
     res.json(updatedPG);
   } catch (error) {
-    res.status(500).json(error.message);
+    res.status(500).json({ message: error.message });
   }
 };
 
