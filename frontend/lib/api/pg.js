@@ -32,20 +32,17 @@ export const pgApi = {
     const url = queryString
       ? `${API_URL}/api/pg?${queryString}`
       : `${API_URL}/api/pg`;
-    const res = await fetch(url, { cache: "no-store" });
-    if (!res.ok) throw new Error(`getAll failed: ${res.status}`);
-    return res.json();
+    // 🛡️ REPLACED fetch with authFetch
+    return authFetch(url, { cache: "no-store" });
   },
 
   // Radius PGs
   getNearby: async (lat, lng, radius = 5, queryString = "") => {
     const base = `${API_URL}/api/pg/nearby?lat=${lat}&lng=${lng}&radius=${radius}`;
     const url = queryString ? `${base}&${queryString}` : base;
-    const res = await fetch(url, { cache: "no-store" });
-    if (!res.ok) throw new Error(`getNearby failed: ${res.status}`);
-    return res.json();
+    // 🛡️ REPLACED fetch with authFetch
+    return authFetch(url, { cache: "no-store" });
   },
-
 
   // Owner's Dashboard Listings (Verified: /api/pg/owner)
   getOwnerPgs: async (token) => {
@@ -57,11 +54,8 @@ export const pgApi = {
 
   // PG Details (Verified: /api/pg/:id)
   getById: async (id) => {
-    const res = await fetch(`${API_URL}/api/pg/${id}`, 
-      { cache: "no-store" },
-    );
-    if (!res.ok) throw new Error(`PG not found (${res.status})`);
-    return res.json();
+    // 🛡️ REPLACED fetch with authFetch
+    return authFetch(`${API_URL}/api/pg/${id}`, { cache: "no-store" });
   },
 
   // Create & Update

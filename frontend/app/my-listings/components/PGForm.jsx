@@ -51,12 +51,45 @@ import {
   FOOD_LABELS,
 } from "../../../lib/constants";
 
+import { memo } from "react";
+
 const BLANK_RT = {
   name: "regular",
   sharingCount: "",
   availableRooms: "",
   price: "",
 };
+
+// Memoized Map to prevent re-renders on every keystroke
+const MemoizedMap = memo(({ coordinate, mounted, onMapClick }) => {
+  if (!mounted) return <div className="h-64 w-full bg-slate-50" />;
+  
+  return (
+    <MapContainer
+      center={
+        coordinate.length === 2
+          ? [coordinate[1], coordinate[0]]
+          : [23.0225, 72.5714]
+      }
+      zoom={11}
+      style={{ width: "100%", height: "100%" }}
+      zoomControl={false}
+    >
+      <TileLayer
+        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/">CARTO</a>'
+        url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
+      />
+      <ClickHandler onClick={onMapClick} />
+      <PanToCoordinate coordinate={coordinate} />
+
+      {coordinate.length === 2 && (
+        <Marker position={[coordinate[1], coordinate[0]]} />
+      )}
+    </MapContainer>
+  );
+});
+
+MemoizedMap.displayName = "MemoizedMap";
 
 export default function PGForm({
   initial,
@@ -133,6 +166,12 @@ export default function PGForm({
   // track _ids of existing room types that were removed
   const [removedIds, setRemovedIds] = useState([]);
   const [err, setErr] = useState("");
+
+  // Room Type Pagination
+  const [rtPage, setRtPage] = useState(1);
+  const rtPerPage = 5;
+  const totalRtPages = Math.ceil(roomTypes.length / rtPerPage);
+  const paginatedRTs = roomTypes.slice((rtPage - 1) * rtPerPage, rtPage * rtPerPage);
 
   const set = (k, v) => setForm((p) => ({ ...p, [k]: v }));
   const toggleA = (a) =>
@@ -347,31 +386,13 @@ export default function PGForm({
             )}
           </div>
 
-          {/* new map */}
+          {/* new map - optimized with memoization */}
           <div className="h-64 w-full rounded-xl overflow-hidden border border-slate-200 shadow-sm relative">
-            {mounted && (
-              <MapContainer
-                center={
-                  form.coordinate.length === 2
-                    ? [form.coordinate[1], form.coordinate[0]]
-                    : [23.0225, 72.5714]
-                }
-                zoom={11}
-                style={{ width: "100%", height: "100%" }}
-                zoomControl={false}
-              >
-                <TileLayer
-                  attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/">CARTO</a>'
-                  url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
-                />
-                <ClickHandler onClick={handleMapClick} />
-                <PanToCoordinate coordinate={form.coordinate} />
-
-                {form.coordinate.length === 2 && (
-                  <Marker position={[form.coordinate[1], form.coordinate[0]]} />
-                )}
-              </MapContainer>
-            )}
+            <MemoizedMap 
+              coordinate={form.coordinate} 
+              mounted={mounted} 
+              onMapClick={handleMapClick} 
+            />
             <div
               className={`absolute top-3 left-3 bg-white/90 backdrop-blur-sm px-3 py-1.5 rounded-lg shadow border text-xs font-medium flex items-center gap-1.5 z-10 ${form.coordinate.length === 2 ? "border-rose-200 text-slate-700" : "border-red-200 text-red-600"}`}
             >
@@ -507,82 +528,110 @@ export default function PGForm({
         )}
 
         <div className="flex flex-col gap-3">
-          {roomTypes.map((rt, i) => (
-            <div
-              key={i}
-              className="border border-slate-200 rounded-xl p-3 bg-slate-50 flex flex-col gap-3"
-            >
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold text-slate-600">
-                  Room Type {i + 1}
-                  {rt._id && (
-                    <span className="ml-2 text-[10px] text-rose-500 border border-rose-100 bg-rose-50 px-1.5 py-0.5 rounded-full">
-                      existing
-                    </span>
-                  )}
-                </span>
-                <button
-                  type="button"
-                  onClick={() => removeRT(i)}
-                  className="text-red-400 hover:text-red-600 transition-colors"
-                >
-                  <Trash2 size={13} />
-                </button>
-              </div>
-
-              <div className="grid grid-cols-2 gap-2">
-                <div className="col-span-2">
-                  <label className={lab}>Type</label>
-                  <select
-                    className={inp}
-                    value={rt.name}
-                    onChange={(e) => setRT(i, "name", e.target.value)}
+          {paginatedRTs.map((rt, i) => {
+            const actualIndex = (rtPage - 1) * rtPerPage + i;
+            return (
+              <div
+                key={actualIndex}
+                className="border border-slate-200 rounded-xl p-3 bg-slate-50 flex flex-col gap-3 transition-all animate-in fade-in duration-200"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-semibold text-slate-600">
+                    Room Type {actualIndex + 1}
+                    {rt._id && (
+                      <span className="ml-2 text-[10px] text-rose-500 border border-rose-100 bg-rose-50 px-1.5 py-0.5 rounded-full">
+                        existing
+                      </span>
+                    )}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => removeRT(actualIndex)}
+                    className="text-red-400 hover:text-red-600 transition-colors"
                   >
-                    {ROOM_TYPE_NAMES.map((n) => (
-                      <option key={n} value={n} className="capitalize">
-                        {n.charAt(0).toUpperCase() + n.slice(1)}
-                      </option>
-                    ))}
-                  </select>
+                    <Trash2 size={13} />
+                  </button>
                 </div>
-                <div>
-                  <label className={lab}>Sharing Count</label>
-                  <input
-                    type="number"
-                    min="1"
-                    max="10"
-                    className={inp}
-                    value={rt.sharingCount}
-                    onChange={(e) => setRT(i, "sharingCount", e.target.value)}
-                    placeholder="e.g. 2"
-                  />
-                </div>
-                <div>
-                  <label className={lab}>No. of Rooms</label>
-                  <input
-                    type="number"
-                    min="1"
-                    className={inp}
-                    value={rt.availableRooms}
-                    onChange={(e) => setRT(i, "availableRooms", e.target.value)}
-                    placeholder="e.g. 3"
-                  />
-                </div>
-                <div className="col-span-2">
-                  <label className={lab}>Price / bed / month (₹)</label>
-                  <input
-                    type="number"
-                    min="0"
-                    className={inp}
-                    value={rt.price}
-                    onChange={(e) => setRT(i, "price", e.target.value)}
-                    placeholder="e.g. 7500"
-                  />
+
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="col-span-2">
+                    <label className={lab}>Type</label>
+                    <select
+                      className={inp}
+                      value={rt.name}
+                      onChange={(e) => setRT(actualIndex, "name", e.target.value)}
+                    >
+                      {ROOM_TYPE_NAMES.map((n) => (
+                        <option key={n} value={n} className="capitalize">
+                          {n.charAt(0).toUpperCase() + n.slice(1)}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className={lab}>Sharing Count</label>
+                    <input
+                      type="number"
+                      min="1"
+                      max="10"
+                      className={inp}
+                      value={rt.sharingCount}
+                      onChange={(e) => setRT(actualIndex, "sharingCount", e.target.value)}
+                      placeholder="e.g. 2"
+                    />
+                  </div>
+                  <div>
+                    <label className={lab}>No. of Rooms</label>
+                    <input
+                      type="number"
+                      min="1"
+                      className={inp}
+                      value={rt.availableRooms}
+                      onChange={(e) => setRT(actualIndex, "availableRooms", e.target.value)}
+                      placeholder="e.g. 3"
+                    />
+                  </div>
+                  <div className="col-span-2">
+                    <label className={lab}>Price / bed / month (₹)</label>
+                    <input
+                      type="number"
+                      min="0"
+                      className={inp}
+                      value={rt.price}
+                      onChange={(e) => setRT(actualIndex, "price", e.target.value)}
+                      placeholder="e.g. 7500"
+                    />
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
+
+        {/* Room Type Pagination Controls */}
+        {totalRtPages > 1 && (
+          <div className="mt-4 flex items-center justify-center gap-4">
+            <button
+              type="button"
+              disabled={rtPage === 1}
+              onClick={() => setRtPage(p => p - 1)}
+              className="px-3 py-1 text-xs font-semibold text-[#222222] border border-gray-300 rounded-lg disabled:opacity-30 disabled:cursor-not-allowed hover:bg-slate-50 transition-colors"
+            >
+              Previous
+            </button>
+            <span className="text-[10px] font-bold text-[#717171] uppercase tracking-widest">
+              Page {rtPage} of {totalRtPages}
+            </span>
+            <button
+              type="button"
+              disabled={rtPage === totalRtPages}
+              onClick={() => setRtPage(p => p + 1)}
+              className="px-3 py-1 text-xs font-semibold text-[#222222] border border-gray-300 rounded-lg disabled:opacity-30 disabled:cursor-not-allowed hover:bg-slate-50 transition-colors"
+            >
+              Next
+            </button>
+          </div>
+        )}
       </div>
 
       {/* ── actions ── */}
