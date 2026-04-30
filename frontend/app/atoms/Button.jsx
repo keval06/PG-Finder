@@ -16,12 +16,12 @@ export default function Button({
 
   const variants = {
     primary:
-      "bg-[#FF385C] text-white hover:bg-[#E31C5F] shadow-sm shadow-rose-200",
-    secondary: "bg-slate-100 text-slate-700 hover:bg-slate-200",
+      "bg-[#FF385C] text-white hover:bg-[#E31C5F] shadow-sm",
+    secondary: "bg-gray-100 text-[#222222] hover:bg-gray-200",
     outline:
-      "bg-transparent border border-slate-200 text-slate-600 hover:border-rose-300 hover:text-rose-500",
+      "bg-transparent border border-[#DDDDDD] text-[#222222] hover:border-[#222222]",
     danger:
-      "bg-red-50 text-red-600 hover:bg-red-600 hover:text-white border border-red-100",
+      "bg-rose-50 text-[#FF385C] border border-rose-100 hover:bg-[#FF385C] hover:text-white",
   };
 
   const sizes = {

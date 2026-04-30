@@ -17,12 +17,12 @@
   --rose-light: #FF6B81;
   --rose-50: #fff1f2;
   --rose-100: #ffe4e6;
-  --ink: #0f172a;
+  --ink: #222222;
   --slate-800: #1e293b;
-  --muted: #64748b;
+  --muted: #717171;
   --paper: #ffffff;
   --card: #ffffff;
-  --border: #e2e8f0;
+  --border: #DDDDDD;
 }
 
 * {
@@ -34,7 +34,7 @@
 body {
   font-family: "Inter", sans-serif;
   background: #ffffff;
-  color: #0f172a;
+  color: #222222;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
