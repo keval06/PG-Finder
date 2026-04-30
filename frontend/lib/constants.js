@@ -14,7 +14,6 @@ import {
   User,
   MapPin,
   Home,
-  Bath,
   Toilet,
   BedDouble,
   Bed,
