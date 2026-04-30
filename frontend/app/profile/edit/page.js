@@ -36,6 +36,8 @@ export default function EditProfilePage() {
   const [showConfirmPopup, setShowConfirmPopup] = useState(false);
   const [pendingBody, setPendingBody] = useState(null); //?Temporarily holds what changed — passed between handleSubmit and confirmUpdate
 
+  const passwordRegex = /^(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{8,16}$/;
+
   //? Pre-filling the Form
   useEffect(() => {
     // wait until AuthContext has finished reading localStorage
@@ -72,11 +74,10 @@ export default function EditProfilePage() {
     }
 
     // ? <- Password field is optional here. If empty → don't change it
-    if (password && password.length < 8) {
-      // ?← only validate IF user typed something
+    if (password && !passwordRegex.test(password)) {
       setMessage({
         type: "error",
-        text: "Password must be at least 8 characters",
+        text: "New password must be 8-16 characters with a digit and special character.",
       });
       return;
     }
@@ -181,7 +182,9 @@ export default function EditProfilePage() {
             <div className="bg-rose-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 border border-rose-100">
               <User size={30} className="text-rose-500" />
             </div>
-            <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-[#222222]">Edit Profile</h1>
+            <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-[#222222]">
+              Edit Profile
+            </h1>
             <p className="text-base text-[#717171] mt-1.5">
               Update your account details
             </p>
@@ -333,8 +336,7 @@ export default function EditProfilePage() {
               type="submit"
               loading={loading}
               disabled={
-                passwordTooShort ||
-                (showMatchIndicator && !passwordsMatch)
+                passwordTooShort || (showMatchIndicator && !passwordsMatch)
               }
               className="mt-1"
               size="lg"

@@ -4,7 +4,8 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Eye,
+import {
+  Eye,
   EyeOff,
   User,
   Phone,
@@ -18,34 +19,38 @@ export default function SignupPage() {
   // The steering wheel
   const router = useRouter();
 
-// Memory for the 3 input boxes
+  // Memory for the 3 input boxes
   const [name, setName] = useState("");
   const [mobile, setMobile] = useState("");
   const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);//*Toggle: show/hide password text
-  
+  const [showPassword, setShowPassword] = useState(false); //*Toggle: show/hide password text
+
   const [confirmPassword, setConfirmPassword] = useState(""); //* Stores re-entered password
-  const [showConfirm, setShowConfirm] = useState(false);  //* Toggle: show/hide confirm password
-  
+  const [showConfirm, setShowConfirm] = useState(false); //* Toggle: show/hide confirm password
+
   const passwordsMatch = password === confirmPassword;
   const showMatchIndicator = confirmPassword.length > 0;
 
-  const [loading, setLoading] = useState(false);//*Is API call in progress?
-  
+  const [loading, setLoading] = useState(false); //*Is API call in progress?
+  const passwordRegex = /^(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{8,16}$/;
+
   // *Memory to show an error if (e.g., Mobile already registered)
   const [error, setError] = useState(""); // ← visible error banner, not alert()
-
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
     setLoading(true);
 
-    if (password.length < 8) {
-      setError("Password must be at least 8 characters");
+    // Replace the old length check:
+    if (!passwordRegex.test(password)) {
+      setError(
+        "Password must be 8-16 characters and contain at least one digit and one special character.",
+      );
       setLoading(false);
       return;
     }
+
     if (!passwordsMatch) {
       setError("Passwords do not match");
       setLoading(false);
@@ -72,13 +77,9 @@ export default function SignupPage() {
 
       // show backend error (e.g. "Mobile already registered") in UI
       setError(data.message || "Signup failed. Please try again.");
-    } 
-
-    catch (err) {
+    } catch (err) {
       setError(err.message || "Something went wrong. Please try again.");
-    } 
-    
-    finally {
+    } finally {
       setLoading(false);
     }
   };
@@ -91,13 +92,11 @@ export default function SignupPage() {
   return (
     <div className="flex items-center justify-center min-h-screen bg-white px-4">
       <div className="bg-white w-full max-w-sm rounded-2xl shadow-sm border border-slate-200 p-8 flex flex-col gap-5">
-
-      {/* */}
+        {/* */}
         <div className="text-center">
           <h1 className="text-2xl font-bold text-slate-900">Create Account</h1>
           <p className="text-sm text-slate-400 mt-1">Join PG Finder today</p>
         </div>
-
         {/* ERROR BANNER — visible, not alert() */}
         {/* Short-circuit rendering */}
         {error && (
@@ -106,12 +105,10 @@ export default function SignupPage() {
             {error}
           </div>
         )}
-
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-
           {/* Name */}
           <div className="relative flex items-center border border-slate-200 rounded-xl bg-slate-50 focus-within:bg-white focus-within:border-rose-400 focus-within:ring-2 focus-within:ring-rose-50 transition-all">
-          {/* The input doesn't store its own value — React's state does. They stay in sync.*/}
+            {/* The input doesn't store its own value — React's state does. They stay in sync.*/}
             <User size={15} className={iconClass} />
             <input
               type="text"
@@ -120,7 +117,7 @@ export default function SignupPage() {
               onChange={(e) => {
                 const val = e.target.value.replace(/[^a-zA-Z\s]/g, "");
                 // Prevent user from adding space at the beginning
-                if (val.startsWith(" ")) return; 
+                if (val.startsWith(" ")) return;
                 setName(val);
               }}
               className={inputClass}
@@ -135,7 +132,6 @@ export default function SignupPage() {
 
           {/* Mobile */}
           <div className="relative flex items-center border border-slate-200 rounded-xl bg-slate-50 focus-within:bg-white focus-within:border-rose-400 focus-within:ring-2 focus-within:ring-rose-50 transition-all">
-            
             {/* Letters are automatically stripped as you type! */}
             <Phone size={15} className={iconClass} />
             <input
@@ -144,12 +140,11 @@ export default function SignupPage() {
               value={mobile}
               onChange={(e) =>
                 setMobile(e.target.value.replace(/\D/g, "").slice(0, 10))
-              }
+              } 
               className={inputClass}
               required
             />
           </div>
-
 
           {/* Password */}
           <div className="flex flex-col gap-1">
@@ -177,12 +172,12 @@ export default function SignupPage() {
             </div>
 
             {/* Live Password Length Warning*/}
-            {password.trim().length > 0 && password.trim().length < 8 && (
-              <p className="text-xs text-red-500 px-1 flex items-center gap-1">
-                <XCircle size={13} /> At least 8 characters ({password.length}
-                /8)
-              </p>
-            )}
+            {password.trim().length > 0 &&
+              !passwordRegex.test(password.trim()) && (
+                <p className="text-xs text-red-500 px-1 flex items-center gap-1">
+                  <XCircle size={13} /> 8-16 chars, 1 digit, 1 special char.
+                </p>
+              )}
           </div>
 
           {/* Confirm password */}
@@ -205,7 +200,7 @@ export default function SignupPage() {
                 {showConfirm ? <EyeOff size={16} /> : <Eye size={16} />}
               </button>
             </div>
-            
+
             {/* Live Password Match Warning*/}
             {showMatchIndicator && (
               <p
@@ -224,7 +219,6 @@ export default function SignupPage() {
                 )}
               </p>
             )}
-
           </div>
 
           {/*passwordsMatch   */}
@@ -241,9 +235,8 @@ export default function SignupPage() {
           >
             {loading ? "Creating account…" : "Sign Up"}
           </button>
-
-        </form> {/* Form close*/}
-
+        </form>{" "}
+        {/* Form close*/}
         {/* login router */}
         <p className="text-sm text-center text-slate-500">
           Already a member?{" "}
@@ -253,7 +246,6 @@ export default function SignupPage() {
           >
             Login
           </Link>
-
         </p>
       </div>
     </div>
