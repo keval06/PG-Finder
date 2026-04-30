@@ -14,7 +14,7 @@ import {
 } from "../../../lib/constants";
 import { MapPin, Star, ShieldCheck, Info, Calendar } from "lucide-react";
 import ReviewsSection from "./components/ReviewsSection";
-import BookNowButton from "./components/BookNowButton";
+import BookingStickyCard from "./components/BookingStickyCard";
 import OwnerEditButton from "./OwnerEditButton";
 import BackButton from "../../../components/BackButton";
 
@@ -266,66 +266,11 @@ export default async function PGDetails({ params }) {
           {/* RIGHT: STICKY BOOKING CARD */}
           <div className="lg:col-span-5 relative">
             <div className="lg:sticky lg:top-28">
-              <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-[0_6px_16px_rgba(0,0,0,0.12)]">
-                <div className="flex items-baseline justify-between mb-6">
-                  <div>
-                    <span className="text-2xl font-bold">
-                      ₹{pg.price?.toLocaleString()}
-                    </span>
-                    <span className="text-gray-500 ml-1">/month</span>
-                  </div>
-                  <div className="flex items-center gap-1 text-xs font-medium">
-                    <Star className="w-3 h-3 text-rose-500 fill-rose-500" />
-                    <span>{avgRating || "New"}</span>
-                    <span className="text-gray-400 font-normal">
-                      · {reviews.length} reviews
-                    </span>
-                  </div>
-                </div>
-
-                <div className="border border-gray-400 rounded-xl overflow-hidden mb-4">
-                  <div className="grid grid-cols-2 border-b border-gray-400">
-                    <div className="p-3 border-r border-gray-400">
-                      <p className="text-[10px] font-bold uppercase">
-                        Check-In
-                      </p>
-                      <p className="text-sm text-gray-500">Add date</p>
-                    </div>
-                    <div className="p-3">
-                      <p className="text-[10px] font-bold uppercase">
-                        Check-Out
-                      </p>
-                      <p className="text-sm text-gray-500">Add date</p>
-                    </div>
-                  </div>
-                  <div className="p-3">
-                    <p className="text-[10px] font-bold uppercase">Guests</p>
-                    <p className="text-sm text-gray-500">1 guest</p>
-                  </div>
-                </div>
-
-                <BookNowButton pgId={id} />
-
-                <p className="text-center text-sm text-gray-500 mt-4">
-                  You won't be charged yet
-                </p>
-
-                <div className="mt-6 space-y-4 text-sm">
-                  <div className="flex justify-between underline cursor-pointer">
-                    <span>₹{pg.price?.toLocaleString()} x 1 month</span>
-                    <span>₹{pg.price?.toLocaleString()}</span>
-                  </div>
-                  <div className="flex justify-between underline cursor-pointer">
-                    <span>Service fee</span>
-                    <span>₹0</span>
-                  </div>
-                </div>
-
-                <div className="mt-6 pt-6 border-t border-gray-200 flex justify-between font-bold text-lg">
-                  <span>Total</span>
-                  <span>₹{pg.price?.toLocaleString()}</span>
-                </div>
-              </div>
+              <BookingStickyCard 
+                pg={pg} 
+                avgRating={avgRating} 
+                reviewCount={reviews.length} 
+              />
 
               {/* Policy Footer under card */}
               <div className="mt-6 p-5 border border-gray-200 rounded-xl bg-rose-50/40">

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter, useParams } from "next/navigation";
+import { useRouter, useParams, useSearchParams } from "next/navigation";
 import { useAuth } from "../../../context/AuthContext";
 import {
   Check,
@@ -22,6 +22,7 @@ const STEPS = ["Room", "Dates", "Confirm"];
 
 export default function BookingPage() {
   const { id: pgId } = useParams();
+  const searchParams = useSearchParams();
   const router = useRouter();
   const { user, ready } = useAuth();
 
@@ -29,8 +30,9 @@ export default function BookingPage() {
   const [roomTypes, setRoomTypes] = useState([]);
   const [loadingRooms, setLoadingRooms] = useState(true);
   const [selectedRoom, setSelectedRoom] = useState(null);
-  const [checkIn, setCheckIn] = useState("");
-  const [checkOut, setCheckOut] = useState("");
+  const [checkIn, setCheckIn] = useState(searchParams.get("checkIn") || "");
+  const [checkOut, setCheckOut] = useState(searchParams.get("checkOut") || "");
+  const [guests, setGuests] = useState(Number(searchParams.get("guests")) || 1);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
