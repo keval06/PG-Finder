@@ -19,7 +19,7 @@ export default function StepperBar({ steps, currentStep }) {
                 i < currentStep
                   ? "bg-green-500 text-white"
                   : i === currentStep
-                    ? "bg-blue-600 text-white"
+                    ? "bg-[#FF385C] text-white"
                     : "bg-slate-100 text-slate-400"
               }`}
             >

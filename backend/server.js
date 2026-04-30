@@ -36,7 +36,9 @@ app.use(
 );
 
 // Middleware
-app.use(express.json());
+// Optional: Also limit URL encoded data if used
+app.use(express.json({ limit: "10kb" })); 
+app.use(express.urlencoded({ limit: "10kb", extended: true }));
 
 // Routes
 app.get("/", (req, res) => {
@@ -50,11 +52,12 @@ app.use("/api/reviews", require("./routes/reviewRoutes.js"));
 app.use("/api/image", require("./routes/imageRoutes.js"));
 app.use("/api/auth", require("./routes/authRoutes.js"));
 app.use("/api/roomtype", require("./routes/roomType.js"));
+require("./cron/bookingCleanup.js");
 
 // ── Global error handler ─────────────────────────────────────────────────────
 app.use((err, req, res, next) => {
   console.error(err.stack);
-  res.status(500).json({ error: "Something went wrong" });
+  res.status(500).json({ message: "Internal Server Error" });
 });
 
 // ── Start server AFTER all middleware & routes are registered ────────────────

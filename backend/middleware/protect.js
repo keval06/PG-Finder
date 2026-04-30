@@ -28,11 +28,24 @@ exports.protect = async (req, res, next) => {
     // Attach the user's info to the request so the controller can use it
     req.user = user;
     next(); // Pass control to the actual controller
-  } 
-  
-  catch (error) {
+  } catch (error) {
     res.status(401).json({
       message: error.message,
     });
   }
+};
+
+// 🛡️ REUSABLE: Same logic as protect, but doesn't block guests
+exports.optionalProtect = async (req, res, next) => {
+  const authHeader = req.headers.authorization;
+  if (authHeader && authHeader.startsWith("Bearer ")) {
+    try {
+      const token = authHeader.split(" ")[1];
+      const decoded = await jwt.verify(token, process.env.JWT_SECRET);
+      req.user = await User.findById(decoded.id).select("-password");
+    } catch (error) {
+     
+    }
+  }
+  next();
 };

@@ -48,7 +48,7 @@ export default function ConfirmModal({
             className={`w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3 border ${
               isDanger
                 ? "bg-red-50 border-red-100 text-red-500"
-                : "bg-blue-50 border-blue-100 text-blue-600"
+                : "bg-rose-50 border-rose-100 text-rose-500"
             }`}
           >
             {isDanger ? <X size={22} /> : <AlertCircle size={22} />}
@@ -57,7 +57,7 @@ export default function ConfirmModal({
           <h3 className="text-lg font-bold text-slate-900 leading-tight mb-1">
             {title}
           </h3>
-          <p className="text-sm text-slate-500">{description}</p>
+          <p className="text-[15px] text-slate-600 leading-normal">{description}</p>
         </div>
 
         {children}

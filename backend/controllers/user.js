@@ -4,6 +4,15 @@ const bcrypt = require("bcryptjs");
 exports.registerUser = async (req, res) => {
   try {
     const { name, mobile, password } = req.body;
+    //Password validation
+    const passwordRegex = /^(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{8,16}$/;
+
+    if (!passwordRegex.test(password)) {
+      return res.status(400).json({
+        message:
+          "Password must be 8-16 characters and contain at least one digit and one special character.",
+      });
+    }
 
     const existingUser = await User.findOne({ mobile });
     if (existingUser) {
@@ -14,8 +23,7 @@ exports.registerUser = async (req, res) => {
     const user = await User.create({ name, mobile, password: hash });
 
     res.status(201).json(user);
-  } 
-  catch (error) {
+  } catch (error) {
     console.error("registerUser:", error);
     if (error.code === 11000) {
       return res.status(400).json({ message: "Mobile already registered" });
@@ -37,8 +45,7 @@ exports.getUser = async (req, res) => {
 
     const users = await User.find(filter).select("-password");
     res.json(users);
-  } 
-  catch (error) {
+  } catch (error) {
     console.error("getUser:", error);
     res
       .status(500)
@@ -50,7 +57,7 @@ exports.updateUser = async (req, res) => {
   try {
     const userId = req.params.id;
     const { mobile, password } = req.body;
-  // ─── GUARD 1: If mobile is being updated, check no other user has it ───
+    // ─── GUARD 1: If mobile is being updated, check no other user has it ───
     if (mobile) {
       const existingUser = await User.findOne({ mobile });
       if (existingUser && existingUser._id.toString() !== userId) {
@@ -59,32 +66,55 @@ exports.updateUser = async (req, res) => {
     }
 
     // ─── GUARD 2: If password is being updated, hash it before saving ───
+
     if (password) {
-      password = await bcrypt.hash(password, 10);
-       // We overwrite req.body.password with the HASHED version
+      // 🛡️ SECURITY: Hardened Regex Check
+      // We overwrite req.body.password with the HASHED version
       // So the next step saves the hash, not plain text
+      const passwordRegex =
+        /^(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{8,16}$/;
+
+      if (!passwordRegex.test(password)) {
+        return res.status(400).json({
+          message:
+            "New password must be 8-16 characters and contain at least one digit and one special character.",
+        });
+      }
+      password = await bcrypt.hash(password, 10);
+    }
+
+    // 🛡️ SECURITY: build updateData dynamically to support PARTIAL updates
+    const allowedFields = ["name", "mobile"];
+    const updateData = {};
+
+    Object.keys(req.body).forEach((key) => {
+      if (allowedFields.includes(key)) {
+        updateData[key] = req.body[key];
+      }
+    });
+
+    // Handle Password separately: Use the HASHED local variable if it exists
+    if (password) {
+      updateData.password = password;
     }
 
     const updatedUser = await User.findByIdAndUpdate(
-      userId, 
-      req.body,
+      userId,
+      updateData, // ← Only contains fields the user actually sent
       {
         new: true,
         runValidators: true,
-      }
+      },
     ).select("-password");
 
     if (!updatedUser) {
-      return res.status(404).json(
-        { 
-          message: "User not found" 
-        }
-      );
+      return res.status(404).json({
+        message: "User not found",
+      });
     }
 
     res.json(updatedUser);
-  } 
-  catch (error) {
+  } catch (error) {
     console.error("updateUser:", error);
     if (error.code === 11000) {
       return res.status(400).json({ message: "Mobile already in use" });

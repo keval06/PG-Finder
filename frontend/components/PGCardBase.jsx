@@ -11,6 +11,7 @@ import {
   Utensils,
   Maximize2,
   X,
+  Star,
 } from "lucide-react";
 import Badge from "../app/atoms/Badge";
 import { AMENITY_ICONS, GENDER_LABELS, FOOD_LABELS } from "../lib/constants";
@@ -42,8 +43,8 @@ export default function PGCardBase({
     ? parseFloat(pg.ratingData.avg).toFixed(1)
     : null;
   const count = pg.ratingData?.count || 0;
-  const shown = (pg.amenities || []).slice(0, 5);
-  const extra = (pg.amenities?.length || 0) - 5;
+  const shown = (pg.amenities || []).slice(0, 4);
+  const extra = (pg.amenities?.length || 0) - 4;
   const inactive = pg.isActive === false;
 
   const handlePrev = (e) => {
@@ -62,110 +63,108 @@ export default function PGCardBase({
     <>
       <Link
         href={href}
-        className={`block group transition-all ${
+        className={`block group transition-all mb-4 ${
           showInactive && inactive ? "opacity-70" : ""
         }`}
       >
-        <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden flex flex-col sm:flex-row transition-all duration-200 hover:border-blue-300 hover:shadow-md hover:shadow-blue-50/50">
+        <div className="bg-white border border-[#DDDDDD] rounded-2xl overflow-hidden flex flex-col sm:flex-row transition-all duration-300 hover:shadow-[0_6px_16px_rgba(0,0,0,0.12)] hover:border-gray-300">
           {/* IMAGE SECTION */}
-          <div className="group/img relative w-full sm:w-[240px] h-[180px] sm:h-auto flex-shrink-0 bg-slate-50 overflow-hidden sm:min-h-[180px]">
+          <div className="group/img relative w-full sm:w-[280px] h-[210px] sm:h-auto flex-shrink-0 bg-slate-50 overflow-hidden">
             {images.length > 0 ? (
               <>
                 <Image
                   src={images[cardIdx]?.url}
                   alt={pg.name}
                   fill
-                  className="object-cover transition-transform duration-300 group-hover/img:scale-105"
-                  sizes="(max-width: 640px) 100vw, 240px"
-                  unoptimized={true}
+                  className="object-cover transition-opacity duration-500"
+                  sizes="(max-width: 640px) 100vw, 280px"
                 />
                 <button
                   onClick={(e) => {
                     e.preventDefault();
                     openLightbox(cardIdx);
                   }}
-                  className="absolute top-2 right-2 bg-black/50 hover:bg-black/70 text-white rounded-lg p-1.5 sm:opacity-0 sm:group-hover/img:opacity-100 transition-all z-10"
+                  className="absolute top-3 right-3 bg-white/90 hover:bg-white text-slate-900 rounded-full w-8 h-8 flex items-center justify-center shadow-md opacity-0 group-hover/img:opacity-100 transition-all z-10"
                 >
-                  <Maximize2 size={12} />
+                  <Maximize2 size={14} />
                 </button>
 
                 {images.length > 1 && (
                   <>
                     <button
                       onClick={handlePrev}
-                      className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white text-slate-700 rounded-full w-7 h-7 flex items-center justify-center shadow sm:opacity-0 sm:group-hover/img:opacity-100 transition-all z-10"
+                      className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white text-slate-900 rounded-full w-8 h-8 flex items-center justify-center shadow-md opacity-0 group-hover/img:opacity-100 transition-all z-10"
                     >
-                      <ChevronLeft size={14} />
+                      <ChevronLeft size={16} />
                     </button>
                     <button
                       onClick={handleNext}
-                      className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white text-slate-700 rounded-full w-7 h-7 flex items-center justify-center shadow sm:opacity-0 sm:group-hover/img:opacity-100 transition-all z-10"
+                      className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white text-slate-900 rounded-full w-8 h-8 flex items-center justify-center shadow-md opacity-0 group-hover/img:opacity-100 transition-all z-10"
                     >
-                      <ChevronRight size={14} />
+                      <ChevronRight size={16} />
                     </button>
-                    <div className="absolute bottom-2 left-1/2 -translate-x-1/2 bg-black/50 text-white text-[10px] px-2 py-0.5 rounded-md z-10">
-                      {cardIdx + 1}/{images.length}
+                    <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1 z-10">
+                      {images.slice(0, 5).map((_, i) => (
+                        <div
+                          key={i}
+                          className={`h-1.5 rounded-full transition-all ${
+                            i === cardIdx ? "bg-white w-3" : "bg-white/60 w-1.5"
+                          }`}
+                        />
+                      ))}
                     </div>
                   </>
                 )}
               </>
             ) : (
-              <div className="absolute inset-0 flex items-center justify-center text-3xl">
-                🏠
+              <div className="absolute inset-0 flex items-center justify-center bg-slate-100 text-slate-300">
+                <MapPin size={48} strokeWidth={1} />
               </div>
             )}
             {showInactive && inactive && (
-              <Badge variant="red" className="absolute top-2 left-2 shadow-sm z-10">
+              <Badge variant="red" className="absolute top-3 left-3 shadow-md z-10">
                 Inactive
               </Badge>
             )}
           </div>
 
           {/* CONTENT SECTION */}
-          <div className="flex-1 p-4 sm:p-5 flex flex-col justify-between min-w-0">
+          <div className="flex-1 p-5 flex flex-col justify-between min-w-0">
             <div>
-              <h2 className="text-xl font-semibold text-slate-800 truncate group-hover:text-blue-600 transition-colors mb-0.5">
-                {pg.name}
-              </h2>
+              <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-1 mb-1.5">
+                <h2 className="text-[17px] font-semibold text-[#222222] truncate leading-tight flex-1">
+                  {pg.name}
+                </h2>
+                <div className="flex items-center gap-1 flex-shrink-0">
+                  <Star size={13} className="text-[#FF385C] fill-[#FF385C]" />
+                  <span className="text-[15px] font-semibold text-[#222222]">
+                    {avg || "New"}
+                  </span>
+                  {count > 0 && (
+                    <span className="text-[15px] text-[#717171]">({count})</span>
+                  )}
+                </div>
+              </div>
 
-              <div className="flex items-center gap-1.5 mb-1">
-                <MapPin size={12} className="text-blue-500 flex-shrink-0" />
-                <span className="text-sm font-semibold text-slate-500 capitalize">
-                  {pg.city}
-                </span>
+              <div className="flex items-center gap-1.5 text-[#484848] text-[15px] mb-3 flex-wrap">
+                <div className="flex items-center gap-1 min-w-0">
+                  <MapPin size={14} className="text-gray-400 shrink-0" />
+                  <span className="font-medium text-[#222222] truncate">{pg.city}</span>
+                </div>
                 {pg.address && (
-                  <span className="text-xs text-slate-400 truncate">
+                  <span className="text-[#717171] truncate hidden sm:inline opacity-80">
                     · {pg.address}
                   </span>
                 )}
               </div>
 
-              <div className="flex items-center gap-1.5 mb-2">
-                {avg ? (
-                  <span className="text-yellow-500 text-sm">
-                    ★ {avg}/5
-                    <span className="text-slate-400 font-normal ml-1">
-                      ({count} {count === 1 ? "review" : "reviews"})
-                    </span>
-                  </span>
-                ) : (
-                  <span className="text-slate-400 text-xs">★ No reviews yet</span>
-                )}
-              </div>
-
-              <div className="flex items-center gap-2 flex-wrap mb-3">
-                <Badge
-                  variant="blue"
-                  className="flex items-center gap-1 normal-case"
-                >
-                  <User size={10} /> {GENDER_LABELS[pg.gender] || pg.gender}
-                </Badge>
-                <Badge
-                  variant="slate"
-                  className="flex items-center gap-1 normal-case font-medium"
-                >
-                  <Utensils size={10} /> {FOOD_LABELS[pg.food] || pg.food}
-                </Badge>
+              <div className="flex items-center gap-2 flex-wrap mb-4">
+                <div className="flex items-center gap-1.5 px-2.5 py-1 bg-rose-50 border border-rose-100 rounded-lg text-rose-600 text-[10px] font-bold uppercase tracking-wider">
+                  <User size={12} /> {GENDER_LABELS[pg.gender] || pg.gender}
+                </div>
+                <div className="flex items-center gap-1.5 px-2.5 py-1 bg-slate-50 border border-slate-200 rounded-lg text-slate-600 text-[10px] font-bold uppercase tracking-wider">
+                  <Utensils size={12} /> {FOOD_LABELS[pg.food] || pg.food}
+                </div>
               </div>
 
               <div className="flex items-center gap-2 flex-wrap">
@@ -174,31 +173,32 @@ export default function PGCardBase({
                   return (
                     <div
                       key={a}
-                      className="flex items-center gap-1.5 text-xs text-slate-600 bg-slate-50 border border-slate-200 px-2.5 py-1 rounded-full"
+                      className="flex items-center gap-1.5 text-[12px] text-[#484848] bg-white border border-gray-200 px-3 py-1.5 rounded-xl hover:border-rose-200 hover:bg-rose-50/30 transition-colors"
                     >
-                      {Icon && <Icon size={11} className="text-slate-400" />}
-                      {a}
+                      {Icon && <Icon size={14} className="text-gray-400" />}
+                      <span>{a}</span>
                     </div>
                   );
                 })}
                 {extra > 0 && (
-                  <span className="text-xs text-slate-400 bg-slate-50 border border-slate-200 px-2.5 py-1 rounded-full">
+                  <span className="text-[12px] text-[#717171] px-2">
                     +{extra} more
                   </span>
                 )}
               </div>
             </div>
-          </div>
 
-          {/* PRICE + ACTION SECTION */}
-          <div className="flex sm:flex-col items-center sm:items-stretch justify-between sm:justify-center gap-3 px-4 sm:px-5 pb-4 sm:py-5 sm:border-l border-slate-100 sm:w-36 flex-shrink-0">
-            <div className="sm:text-center">
-              <p className="text-xl font-bold text-slate-900 leading-none">
-                ₹{pg.price?.toLocaleString("en-IN")}
-              </p>
-              <p className="text-[10px] text-slate-400 mt-0.5">/month</p>
+            <div className="flex items-center justify-between pt-4 mt-auto border-t border-gray-100">
+              <div className="flex items-baseline gap-1">
+                <span className="text-[17px] font-bold text-[#222222]">
+                  ₹{pg.price?.toLocaleString("en-IN")}
+                </span>
+                <span className="text-[14px] text-[#717171]">/ month</span>
+              </div>
+              <div className="flex-shrink-0">
+                {footerAction}
+              </div>
             </div>
-            {footerAction}
           </div>
         </div>
       </Link>
@@ -210,7 +210,7 @@ export default function PGCardBase({
           onClick={closeLightbox}
         >
           {/* Top bar: counter + close */}
-          <div className="absolute top-0 left-0 right-0 flex items-center justify-between px-4 py-3 z-10">
+          <div className="absolute top-0 left-0 right-0 flex items-center justify-between px-4 py-4 z-10">
             <span className="text-white/70 text-sm font-medium">
               {lbIdx + 1} / {images.length}
             </span>
@@ -218,65 +218,53 @@ export default function PGCardBase({
               {pg.name}
             </span>
             <button
-              className="text-white/80 hover:text-white bg-white/10 hover:bg-white/20 rounded-full w-10 h-10 min-w-[40px] min-h-[40px] flex items-center justify-center transition-all"
+              className="text-white/80 hover:text-white bg-white/10 hover:bg-white/20 rounded-full w-10 h-10 flex items-center justify-center transition-all"
               onClick={closeLightbox}
             >
-              <X size={20} />
+              <X size={22} />
             </button>
           </div>
 
-          {/* Image with swipe support */}
+          {/* Image */}
           <div
-            className="relative max-w-[95vw] max-h-[80vh] flex items-center justify-center select-none"
+            className="relative max-w-[95vw] max-h-[85vh] flex items-center justify-center select-none"
             onClick={(e) => e.stopPropagation()}
-            onTouchStart={(e) => {
-              e.currentTarget._touchStartX = e.touches[0].clientX;
-            }}
-            onTouchEnd={(e) => {
-              const startX = e.currentTarget._touchStartX;
-              const endX = e.changedTouches[0].clientX;
-              const diff = startX - endX;
-              if (Math.abs(diff) > 50) {
-                if (diff > 0) lbNext(); // swipe left → next
-                else lbPrev(); // swipe right → prev
-              }
-            }}
           >
             <img
               key={lbIdx}
               src={images[lbIdx]?.url}
               alt={pg.name}
-              className="max-w-full max-h-[80vh] object-contain rounded-xl shadow-2xl"
-              style={{ animation: "pgFade .18s ease" }}
+              className="max-w-full max-h-[85vh] object-contain rounded-xl shadow-2xl"
+              style={{ animation: "pgFade .2s ease" }}
             />
           </div>
 
-          {/* Arrow buttons — large touch targets, always visible */}
+          {/* Arrow buttons */}
           {images.length > 1 && (
             <>
               <button
-                className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 text-white bg-white/15 hover:bg-white/25 active:bg-white/35 rounded-full w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center transition-all"
+                className="absolute left-4 top-1/2 -translate-y-1/2 text-white bg-white/15 hover:bg-white/25 rounded-full w-12 h-12 flex items-center justify-center transition-all"
                 onClick={(e) => {
                   e.stopPropagation();
                   lbPrev();
                 }}
               >
-                <ChevronLeft size={22} />
+                <ChevronLeft size={24} />
               </button>
               <button
-                className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 text-white bg-white/15 hover:bg-white/25 active:bg-white/35 rounded-full w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center transition-all"
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-white bg-white/15 hover:bg-white/25 rounded-full w-12 h-12 flex items-center justify-center transition-all"
                 onClick={(e) => {
                   e.stopPropagation();
                   lbNext();
                 }}
               >
-                <ChevronRight size={22} />
+                <ChevronRight size={24} />
               </button>
             </>
           )}
         </div>
       )}
-      <style>{`@keyframes pgFade{from{opacity:0;transform:scale(.97)}to{opacity:1;transform:scale(1)}}`}</style>
+      <style>{`@keyframes pgFade{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}`}</style>
     </>
   );
 }

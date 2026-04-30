@@ -11,10 +11,10 @@ export default function SortBtn({
   return (
     <button
       onClick={() => onToggle(field)}
-      className={`flex items-center gap-1 text-sm px-3 py-1.5 rounded-xl border transition-all font-medium ${
+      className={`flex items-center gap-1 text-sm px-3 py-1.5 rounded-xl border transition-all font-medium h-[38px] ${
         active
-          ? "bg-blue-50 border-blue-200 text-blue-700"
-          : "bg-white border-slate-200 text-slate-600 hover:border-blue-200 hover:text-slate-900"
+          ? "bg-rose-50 border-rose-200 text-[#FF385C]"
+          : "bg-white border-[#DDDDDD] text-[#717171] hover:border-[#222222] hover:text-[#222222]"
       }`}
     >
       {label}

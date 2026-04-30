@@ -4,7 +4,6 @@ import { pgApi } from "../../../lib/api/pg";
 import { imageApi } from "../../../lib/api/image";
 import { reviewApi } from "../../../lib/api/review";
 import { roomTypeApi } from "../../../lib/api/roomType";
-//new map
 import PGLocationMapWrapper from "./components/PGLocationMapWrapper";
 import {
   AMENITY_ICONS,
@@ -13,32 +12,12 @@ import {
   POLICY_ICONS,
   ROOM_DETAIL_ICONS,
 } from "../../../lib/constants";
-import {
-  ArrowLeft,
-  Pencil,
-  Eye,
-  EyeOff,
-  Check,
-  X,
-  MapPin,
-  Trash2,
-  CheckCircle2,
-  XCircle,
-  Star,
-  IndianRupee,
-  Users,
-} from "lucide-react";
+import { MapPin, Star, ShieldCheck, Info, Calendar } from "lucide-react";
 import ReviewsSection from "./components/ReviewsSection";
-import BookNowButton from "./components/BookNowButton";
+import BookingStickyCard from "./components/BookingStickyCard";
 import OwnerEditButton from "./OwnerEditButton";
 import BackButton from "../../../components/BackButton";
 
-// async function getPG(id) {
-//   const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/pg/${id}`, {
-//     cache: "no-store",
-//   });
-//   return await res.json();
-// }
 async function getPG(id) {
   return await pgApi.getById(id);
 }
@@ -49,9 +28,7 @@ async function getImages(pgId) {
 
 async function getReviews(pgId) {
   const result = await reviewApi.getByPgId(pgId);
-  // reviewApi.getByPgId now returns paginated shape: { reviews, total, ... }
-  // unwrap to plain array so avgRating calculation and reviews.length work correctly
-  return Array.isArray(result) ? result : result?.reviews ?? [];
+  return Array.isArray(result) ? result : (result?.reviews ?? []);
 }
 
 async function getRoomTypes(pgId) {
@@ -94,183 +71,232 @@ export default async function PGDetails({ params }) {
 
   const totalBeds = roomTypes.reduce(
     (s, rt) => s + rt.availableRooms * rt.sharingCount,
-    0
+    0,
   );
   const freeBeds = roomTypes.reduce(
     (s, rt) =>
       s +
       (rt.remainingBeds ??
         rt.availableRooms * rt.sharingCount - (rt.occupiedBeds || 0)),
-    0
+    0,
   );
 
   return (
-    <div className="bg-gray-50 min-h-screen">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6">
-        {/* BACK BUTTON */}
-        <div className="mb-4">
+    <div className="bg-white min-h-screen text-[#222222] font-sans selection:bg-rose-100">
+      <div className="max-w-[1360px] mx-auto px-6 md:px-12 lg:px-12 py-6">
+        {/* TOP NAV/BACK */}
+        <div className="mb-4 flex items-center justify-between">
           <BackButton />
         </div>
 
-        {/* GALLERY */}
-        <PGGallery images={images} />
-
-        {/* MAIN GRID — 1 col mobile, 3 col desktop */}
-        <div className="mt-6 flex flex-col lg:grid lg:grid-cols-3 lg:gap-10">
-          {/* ── LEFT / MAIN CONTENT ── */}
-          <div className="lg:col-span-2 flex flex-col gap-8">
-            {/* Name + location + rating */}
-            <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
-              <h1 className="text-2xl sm:text-3xl font-semibold capitalize">
+        {/* TITLE & HEADER */}
+        <div className="mb-6">
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+            <div>
+              <h1 className="text-2xl md:text-3xl font-semibold tracking-tight text-[#222222] capitalize">
                 {pg.name}
               </h1>
-              <div className="flex items-start gap-1.5 mt-1.5 text-gray-500 text-sm">
-                <MapPin size={15} className="mt-0.5 flex-shrink-0" />
-                <span className="capitalize">
-                  {pg.address}, {pg.city}
-                </span>
-              </div>
-              {avgRating && (
-                <p className="text-yellow-500 mt-2 font-medium text-sm">
-                  ★ {avgRating}/5
-                  <span className="text-gray-400 font-normal ml-1">
-                    ({reviews.length} reviews)
+              <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-2 text-[15px]">
+                <div className="flex items-center gap-1 font-semibold underline cursor-pointer">
+                  <Star className="w-3.5 h-3.5 text-rose-500 fill-rose-500" />
+                  <span>{avgRating || "New"}</span>
+                  <span className="text-[#717171] font-normal">
+                    · {reviews.length} reviews
                   </span>
-                </p>
-              )}
-              <OwnerEditButton pgOwnerId={pg.owner} pgId={id} />
+                </div>
+                <div className="flex items-center gap-1 font-semibold underline cursor-pointer">
+                  <MapPin className="w-3.5 h-3.5" />
+                  <span className="capitalize">{pg.city}</span>
+                </div>
+              </div>
+            </div>
+            <OwnerEditButton pgOwnerId={pg.owner} pgId={id} />
+          </div>
+        </div>
+
+        {/* GALLERY AREA */}
+        <div className="rounded-2xl overflow-hidden shadow-sm">
+          <PGGallery images={images} />
+        </div>
+
+        {/* MAIN LAYOUT GRID */}
+        <div className="mt-6 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
+          {/* LEFT: CONTENT */}
+          <div className="lg:col-span-7">
+            {/* Quick Info */}
+            <div className="pb-6 border-b border-gray-200">
+              <p className="text-[#484848] text-base">
+                {pg.room} rooms · {totalBeds} beds · {pg.bathroom} bathrooms
+              </p>
             </div>
 
-            {/* Room details */}
-            <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
-              <h2 className="text-lg font-semibold mb-4">Room Details</h2>
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+            {/* Special Features */}
+            <div className="py-8 border-b border-gray-200 space-y-6">
+              <div className="flex gap-4 items-start">
+                <ShieldCheck className="w-6 h-6 mt-0.5 flex-shrink-0" />
+                <div>
+                  <h3 className="text-[15px] font-semibold">Verified Stay</h3>
+                  <p className="text-[#717171] text-sm mt-0.5">
+                    Every room is inspected for quality and safety standards.
+                  </p>
+                </div>
+              </div>
+              <div className="flex gap-4 items-start">
+                <Info className="w-6 h-6 mt-0.5 flex-shrink-0" />
+                <div>
+                  <h3 className="text-[15px] font-semibold">Flexible Policies</h3>
+                  <p className="text-[#717171] text-sm mt-0.5">
+                    Simplified booking and checkout process for modern living.
+                  </p>
+                </div>
+              </div>
+              <div className="flex gap-4 items-start">
+                <Calendar className="w-6 h-6 mt-0.5 flex-shrink-0" />
+                <div>
+                  <h3 className="text-[15px] font-semibold">Free cancellation</h3>
+                  <p className="text-[#717171] text-sm mt-0.5">
+                    Cancel before check-in for a partial refund (terms apply).
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Description / About */}
+            <div className="py-8 border-b border-gray-200">
+              <p className="text-[#484848] leading-relaxed text-base whitespace-pre-line">
+                Welcome to {pg.name}. Experience a blend of comfort and modern
+                living in the heart of {pg.city}. Our space is designed for
+                individuals seeking a professional and vibrant environment.
+                Located at {pg.address}, you'll have easy access to local
+                transport and amenities.
+              </p>
+            </div>
+
+            {/* Room Details Grid */}
+            <div className="py-8 border-b border-gray-200">
+              <h2 className="text-[22px] font-semibold mb-5">
+                Room configurations
+              </h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                 {[
-                  { icon: ROOM_DETAIL_ICONS.Rooms, label: "Rooms", value: pg.room },
-                  { icon: ROOM_DETAIL_ICONS.Gender, label: "Gender", value: GENDER_LABELS[pg.gender] || pg.gender },
-                  { icon: ROOM_DETAIL_ICONS.Food, label: "Food", value: FOOD_LABELS[pg.food] || pg.food },
-                  { icon: ROOM_DETAIL_ICONS.Bathroom, label: "Bathroom", value: bathroomRatio },
-                  { icon: ROOM_DETAIL_ICONS.Toilet, label: "Toilet", value: toiletRatio },
-                  { icon: ROOM_DETAIL_ICONS["Total Beds"], label: "Total Beds", value: totalBeds },
-                  { icon: ROOM_DETAIL_ICONS["Free Beds"], label: "Free Beds", value: freeBeds },
+                  {
+                    icon: ROOM_DETAIL_ICONS.Rooms,
+                    label: "Private & Shared Rooms",
+                    value: `${pg.room} rooms`,
+                  },
+                  {
+                    icon: ROOM_DETAIL_ICONS.Gender,
+                    label: "Gender Specification",
+                    value: GENDER_LABELS[pg.gender] || pg.gender,
+                  },
+                  {
+                    icon: ROOM_DETAIL_ICONS.Food,
+                    label: "Food Service",
+                    value: FOOD_LABELS[pg.food] || pg.food,
+                  },
+                  {
+                    icon: ROOM_DETAIL_ICONS.Bathroom,
+                    label: "Bathroom Ratio",
+                    value: bathroomRatio,
+                  },
+                  {
+                    icon: ROOM_DETAIL_ICONS.Toilet,
+                    label: "Toilet Facility",
+                    value: toiletRatio,
+                  },
+                  {
+                    icon: ROOM_DETAIL_ICONS["Free Beds"],
+                    label: "Current Availability",
+                    value: `${freeBeds} beds free`,
+                  },
                 ].map(({ icon: Icon, label, value }) => (
                   <div
                     key={label}
-                    className="flex flex-col items-center justify-center bg-gray-50 rounded-xl p-4 gap-2 border border-gray-100"
+                    className="p-3 border border-gray-200 rounded-xl flex items-center gap-3"
                   >
-                    <Icon size={20} className="text-blue-500" />
-                    <span className="text-xs text-gray-400">{label}</span>
-                    <span className="text-sm font-medium capitalize text-gray-700">
-                      {value}
-                    </span>
+                    <Icon className="w-5 h-5 text-gray-600" />
+                    <div>
+                      <p className="text-sm font-semibold text-[#222222]">
+                        {label}
+                      </p>
+                      <p className="text-sm text-gray-600">{value}</p>
+                    </div>
                   </div>
                 ))}
               </div>
             </div>
 
-            {/* Amenities */}
-            <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
-              <h2 className="text-lg font-semibold mb-4">Amenities</h2>
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-                {(pg.amenities || []).map((item) => {
+            {/* Amenities Section */}
+            <div className="py-8 border-b border-gray-200">
+              <h2 className="text-[22px] font-semibold mb-5">
+                What this place offers
+              </h2>
+              <div className="grid grid-cols-2 gap-y-5">
+                {(pg.amenities || []).slice(0, 10).map((item) => {
                   const Icon = AMENITY_ICONS[item];
                   return (
                     <div
                       key={item}
-                      className="flex items-center gap-2 bg-gray-50 border border-gray-100 rounded-full px-3 py-2 text-sm text-gray-600"
+                      className="flex items-center gap-4 text-gray-700"
                     >
-                      {Icon && (
-                        <Icon
-                          size={15}
-                          className="text-blue-500 flex-shrink-0"
-                        />
-                      )}
-                      {item}
+                      {Icon && <Icon className="w-6 h-6 opacity-80" />}
+                      <span className="text-[15px] text-[#484848]">{item}</span>
                     </div>
                   );
                 })}
               </div>
+              {pg.amenities?.length > 10 && (
+                <button className="mt-5 px-5 py-2.5 border border-[#222222] rounded-lg text-sm font-semibold hover:bg-gray-50 transition-colors">
+                  Show all {pg.amenities.length} amenities
+                </button>
+              )}
             </div>
 
-            {/* Policies */}
-            <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
-              <h2 className="text-lg font-semibold mb-4">Policies</h2>
-              <ul className="flex flex-col gap-3">
-                {[
-                  {
-                    icon: POLICY_ICONS.CheckIn,
-                    text: "Check-in: 10:00 AM — Check-out: 9:00 AM",
-                  },
-                  { icon: POLICY_ICONS.NoSmoking, text: "No smoking inside the premises" },
-                  {
-                    icon: POLICY_ICONS.NoParties,
-                    text: "No parties or loud music after 10 PM",
-                  },
-                  { icon: POLICY_ICONS.NoPets, text: "Pets not allowed" },
-                  {
-                    icon: POLICY_ICONS.SecurityDeposit,
-                    text: "1 month security deposit required at check-in",
-                  },
-                ].map(({ icon: Icon, text }) => (
-                  <li
-                    key={text}
-                    className="flex items-start gap-3 text-sm text-gray-600"
-                  >
-                    <Icon
-                      size={16}
-                      className="text-slate-400 mt-0.5 flex-shrink-0"
-                    />
-                    {text}
-                  </li>
-                ))}
-              </ul>
+            {/* Reviews Preview (passed to Section) */}
+            <div className="py-8 border-b border-gray-200">
+              <ReviewsSection
+                pgId={id}
+                initialTotal={reviews.length}
+                avgRating={avgRating}
+              />
             </div>
 
-            {/* // ✅ After — receives pgId + total count only */}
-            <ReviewsSection
-              pgId={id}
-              initialTotal={reviews.length}
-              avgRating={avgRating}
-            />
-
-            {/* Location Map */}
-            <PGLocationMapWrapper
-              coordinate={pg.coordinate}
-              address={pg.address}
-              city={pg.city}
-            />
           </div>
 
-          {/* ── RIGHT / BOOKING CARD ──
-              mobile: shows at top (order-first), desktop: sticky right column */}
-          <div className="order-first lg:order-none mb-6 lg:mb-0">
-            <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 lg:sticky lg:top-24">
-              <p className="text-3xl font-bold text-gray-900">
-                ₹{pg.price?.toLocaleString()}
-              </p>
-              <p className="text-gray-400 text-sm mt-0.5">per month</p>
+          {/* RIGHT: STICKY BOOKING CARD */}
+          <div className="lg:col-span-5 relative">
+            <div className="lg:sticky lg:top-28">
+              <BookingStickyCard 
+                pg={pg} 
+                avgRating={avgRating} 
+                reviewCount={reviews.length} 
+              />
 
-              <div className="mt-4 flex flex-col gap-2 text-sm text-gray-600">
-                <div className="flex justify-between py-2 border-b border-gray-100">
-                  <span>Gender</span>
-                  <span className="font-medium capitalize">{pg.gender}</span>
+              {/* Policy Footer under card */}
+              <div className="mt-6 p-5 border border-gray-200 rounded-xl bg-rose-50/40">
+                <div className="flex items-center gap-2 mb-2">
+                  <Info className="w-4 h-4 text-rose-500 flex-shrink-0" />
+                  <span className="font-semibold text-sm text-[#222222]">
+                    House Rules
+                  </span>
                 </div>
-                <div className="flex justify-between py-2 border-b border-gray-100">
-                  <span>Food</span>
-                  <span className="font-medium capitalize">{pg.food}</span>
-                </div>
-                <div className="flex justify-between py-2">
-                  <span>Rooms</span>
-                  <span className="font-medium">{pg.room}</span>
-                </div>
+                <p className="text-sm text-gray-600 leading-relaxed">
+                  No smoking · No parties · Pets not allowed.
+                  <br />
+                  Check-in after 10 AM, Check-out by 9 AM.
+                </p>
               </div>
-
-              <BookNowButton pgId={id} />
-              <p className="text-center text-xs text-gray-400 mt-2">
-                No charges yet
-              </p>
             </div>
           </div>
+        </div>
+
+        {/* Location Map Section — full width below grid */}
+        <div className="pt-8 pb-4">
+          <PGLocationMapWrapper
+            coordinate={pg.coordinate}
+            address={pg.address}
+            city={pg.city}
+          />
         </div>
       </div>
     </div>

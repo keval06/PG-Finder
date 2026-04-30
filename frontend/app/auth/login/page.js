@@ -54,7 +54,7 @@ export default function LoginPage() {
     "w-full bg-transparent pl-9 pr-10 py-2.5 text-sm outline-none placeholder:text-gray-400";
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-50 px-4">
+    <div className="flex items-center justify-center min-h-screen bg-white px-4">
       <div className="bg-white w-full max-w-sm rounded-2xl shadow-md p-8 flex flex-col gap-5">
         <div className="text-center">
           <h1 className="text-2xl font-semibold text-gray-900">Welcome Back</h1>
@@ -63,7 +63,7 @@ export default function LoginPage() {
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           {/* Mobile */}
-          <div className="relative flex items-center border border-gray-200 rounded-xl bg-gray-50 focus-within:bg-white focus-within:border-blue-400 transition-colors">
+          <div className="relative flex items-center border border-gray-200 rounded-xl bg-gray-50 focus-within:bg-white focus-within:border-rose-400 transition-colors">
             <Phone size={15} className={iconClass} />
             <input
               type="tel"
@@ -78,7 +78,7 @@ export default function LoginPage() {
           </div>
 
           {/* Password */}
-          <div className="relative flex items-center border border-gray-200 rounded-xl bg-gray-50 focus-within:bg-white focus-within:border-blue-400 transition-colors">
+          <div className="relative flex items-center border border-gray-200 rounded-xl bg-gray-50 focus-within:bg-white focus-within:border-rose-400 transition-colors">
             <Lock size={15} className={iconClass} />
             <input
               type={showPassword ? "text" : "password"}
@@ -108,7 +108,7 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="bg-blue-600 text-white py-2.5 rounded-xl font-medium text-sm hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed mt-1"
+            className="bg-[#FF385C] text-white py-2.5 rounded-xl font-medium text-sm hover:bg-[#E31C5F] transition-colors disabled:opacity-50 disabled:cursor-not-allowed mt-1"
           >
             {loading ? "Logging in..." : "Login"}
           </button>
@@ -118,7 +118,7 @@ export default function LoginPage() {
           Not registered?{" "}
           <Link
             href="/auth/signup"
-            className="text-blue-600 hover:underline font-medium"
+            className="text-rose-500 hover:underline font-medium"
           >
             Sign Up
           </Link>

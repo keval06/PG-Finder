@@ -29,6 +29,7 @@ frontend/.env.local
 backend/.env
 frontend/learning_roadmap
 backend/learning_roadmap
+backend/DBdesign.md
 all_files.txt
 all_project_files.txt
 backend_files.txt

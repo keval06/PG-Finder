@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { Search, User, X, SlidersHorizontal, MapPin } from "lucide-react";
 import { useSearch } from "../app/context/SearchContext";
@@ -24,6 +24,7 @@ export default function Navbar() {
   const [suggestions, setSuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
+  const skipFetch = useRef(false);
 
   const isLanding = pathname === "/";
   const isBrowse = pathname === "/home" || pathname === "/my-listings";
@@ -32,6 +33,10 @@ export default function Navbar() {
   useEffect(() => {
     if (!query || query.trim().length < 2) {
       setSuggestions([]);
+      return;
+    }
+    if (skipFetch.current) {
+      skipFetch.current = false;
       return;
     }
     const timer = setTimeout(async () => {
@@ -121,23 +126,23 @@ export default function Navbar() {
       <nav
         className={`sticky top-0 z-50 w-full transition-all duration-200 ${
           scrolled
-            ? "bg-white/95 backdrop-blur-md shadow-sm border-b border-slate-200"
-            : "bg-white border-b border-slate-200"
+            ? "bg-white/95 backdrop-blur-md border-b border-gray-200"
+            : "bg-white border-b border-gray-200"
         }`}
       >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between gap-4">
+        <div className="w-full mx-auto px-6 md:px-10 lg:px-20 h-[80px] flex items-center justify-between gap-4">
           {/* LEFT: LOGO */}
           <button
             onClick={() => router.push("/")}
             className="flex items-center flex-shrink-0"
           >
-            <img src="/logo.png" alt="PGVista Logo" className="h-10 sm:h-11 w-auto object-contain" />
+            <img src="/logo.png" alt="PGVista Logo" className="h-12 sm:h-14 w-auto object-contain" />
           </button>
 
           {/* MIDDLE: SEARCH + FILTER (desktop) */}
           <div className="hidden md:flex flex-1 justify-center max-w-2xl px-4">
            <div className="flex items-center gap-2 w-full max-w-lg relative" onClick={(e) => e.stopPropagation()}>
-            <div className="flex-1 flex items-center bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 gap-2 focus-within:bg-white focus-within:border-blue-400 focus-within:ring-2 focus-within:ring-blue-50 transition-all z-10 relative">
+            <div className="flex-1 flex items-center bg-white border border-gray-300 rounded-full px-4 py-2.5 gap-2 shadow-md hover:shadow-lg focus-within:shadow-lg transition-all z-10 relative">
               <Search size={15} className="text-slate-400 flex-shrink-0" />
               <input
                 type="text"
@@ -145,7 +150,7 @@ export default function Navbar() {
                 value={query}
                 onChange={(e) => { setQuery(e.target.value); setShowSuggestions(true); }}
                 onFocus={() => { if (suggestions.length > 0) setShowSuggestions(true); }}
-                className="flex-1 text-sm outline-none bg-transparent text-slate-900 placeholder:text-slate-400"
+                className="flex-1 text-sm outline-none bg-transparent text-[#222222] placeholder:text-slate-400"
               />
               {query && (
                 <button onClick={() => { setQuery(""); setSuggestions([]); setShowSuggestions(false); }}>
@@ -161,12 +166,12 @@ export default function Navbar() {
             {isBrowse && (
               <button
                 onClick={() => setDrawerOpen(true)}
-                className="flex items-center gap-2 px-3.5 py-2 bg-white border border-slate-200 rounded-xl text-slate-700 text-sm font-medium hover:bg-slate-50 hover:border-slate-300 transition-all shadow-sm relative group"
+                className="flex items-center gap-2 px-3.5 py-2 bg-white border border-slate-200 rounded-xl text-[#484848] text-sm font-medium hover:bg-slate-50 hover:border-slate-300 transition-all shadow-sm relative group"
               >
-                <SlidersHorizontal size={15} className="text-slate-500" />
+                <SlidersHorizontal size={15} className="text-[#717171]" />
                 <span>Filter</span>
                 {filterCount > 0 && (
-                  <span className="bg-blue-600 text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-bold absolute -top-1.5 -right-1.5 shadow-sm border border-white">
+                  <span className="bg-rose-500 text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-bold absolute -top-1.5 -right-1.5 shadow-sm border border-white">
                     {filterCount}
                   </span>
                 )}
@@ -184,6 +189,7 @@ export default function Navbar() {
                       key={i}
                       className="w-full text-left px-4 py-3 hover:bg-slate-50 flex items-center gap-3 border-b border-slate-50 last:border-0 transition-colors"
                       onClick={() => {
+                        skipFetch.current = true;
                         setQuery(city);
                         setShowSuggestions(false);
                         setSuggestions([]);
@@ -195,8 +201,8 @@ export default function Navbar() {
                         <MapPin size={14} />
                       </div>
                       <div className="flex flex-col overflow-hidden">
-                        <span className="text-sm font-semibold text-slate-900 truncate">{city}</span>
-                        <span className="text-xs text-slate-500 truncate">{state ? `${state}, India` : s.display_name}</span>
+                        <span className="text-[15px] font-semibold text-[#222222] truncate">{city}</span>
+                        <span className="text-sm text-[#717171] truncate">{state ? `${state}, India` : s.display_name}</span>
                       </div>
                     </button>
                   );
@@ -213,11 +219,11 @@ export default function Navbar() {
               <div className="w-20 h-8" />
             ) : user ? (
               <>
-                <span className="hidden sm:block text-sm text-slate-500">
+                <span className="hidden sm:block text-base text-[#717171]">
                   Hey,{" "}
-                  <span className="text-slate-900 font-medium truncate max-w-[100px]">
-                    {user.name?.split(" ")[0]?.slice(0, 10)}
-                    {(user.name?.split(" ")[0]?.length || 0) > 10 ? "..." : ""}
+                  <span className="text-[#222222] font-semibold truncate max-w-[120px]">
+                    {user.name?.split(" ")[0]?.slice(0, 12)}
+                    {(user.name?.split(" ")[0]?.length || 0) > 12 ? "..." : ""}
                   </span>
                 </span>
 
@@ -227,21 +233,21 @@ export default function Navbar() {
                       e.stopPropagation();
                       setOpen(!open);
                     }}
-                    className="w-8 h-8 rounded-full bg-blue-50 border border-blue-200 flex items-center justify-center text-blue-600 hover:bg-blue-100 transition-colors"
+                    className="w-10 h-10 rounded-full bg-rose-50 border border-rose-200 flex items-center justify-center text-rose-500 hover:bg-rose-100 transition-colors shadow-sm"
                   >
-                    <User size={15} />
+                    <User size={20} />
                   </button>
 
                   {open && (
                     <div
-                      className="absolute right-0 top-10 bg-white border border-slate-200 rounded-2xl shadow-xl p-1.5 w-48 z-50"
+                      className="absolute right-0 top-12 bg-white border border-[#DDDDDD] rounded-2xl shadow-[0_6px_16px_rgba(0,0,0,0.12)] p-2 w-56 z-50 animate-in fade-in zoom-in-95 duration-150"
                       onClick={(e) => e.stopPropagation()}
                     >
-                      <div className="px-3 py-2 border-b border-slate-100 mb-1">
-                        <p className="text-[10px] text-slate-400 uppercase tracking-wider">
+                      <div className="px-4 py-3 border-b border-slate-100 mb-2">
+                        <p className="text-[11px] text-[#717171] font-bold uppercase tracking-widest">
                           Signed in as
                         </p>
-                        <p className="text-sm font-semibold text-slate-900 truncate">
+                        <p className="text-base font-semibold text-[#222222] truncate">
                           {user.name}
                         </p>
                       </div>
@@ -252,7 +258,7 @@ export default function Navbar() {
                           router.push("/");
                           setOpen(false);
                         }}
-                        className="w-full text-left px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 rounded-xl transition-colors"
+                        className="w-full text-left px-4 py-2.5 text-base text-[#484848] hover:bg-slate-50 hover:text-[#222222] rounded-xl transition-colors"
                       >
                         Home
                       </button>
@@ -263,7 +269,7 @@ export default function Navbar() {
                             router.push("/home");
                             setOpen(false);
                           }}
-                          className="w-full text-left px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 rounded-xl transition-colors"
+                          className="w-full text-left px-4 py-2.5 text-base text-[#484848] hover:bg-slate-50 hover:text-[#222222] rounded-xl transition-colors"
                         >
                           Browse PGs
                         </button>
@@ -275,7 +281,7 @@ export default function Navbar() {
                           router.push("/profile/edit");
                           setOpen(false);
                         }}
-                        className="w-full text-left px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 rounded-xl transition-colors"
+                        className="w-full text-left px-4 py-2.5 text-base text-[#484848] hover:bg-slate-50 hover:text-[#222222] rounded-xl transition-colors"
                       >
                         Edit Profile
                       </button>
@@ -286,7 +292,7 @@ export default function Navbar() {
                           router.push("/bookings");
                           setOpen(false);
                         }}
-                        className="w-full text-left px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 rounded-xl transition-colors"
+                        className="w-full text-left px-4 py-2.5 text-base text-[#484848] hover:bg-slate-50 hover:text-[#222222] rounded-xl transition-colors"
                       >
                         My Bookings
                       </button>
@@ -297,7 +303,7 @@ export default function Navbar() {
                           router.push("/my-listings");
                           setOpen(false);
                         }}
-                        className="w-full text-left px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 rounded-xl transition-colors"
+                        className="w-full text-left px-4 py-2.5 text-base text-[#484848] hover:bg-slate-50 hover:text-[#222222] rounded-xl transition-colors"
                       >
                         My Listings
                       </button>
@@ -308,7 +314,7 @@ export default function Navbar() {
                           router.push("/received-bookings");
                           setOpen(false);
                         }}
-                        className="w-full text-left px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 rounded-xl transition-colors"
+                        className="w-full text-left px-4 py-2.5 text-base text-[#484848] hover:bg-slate-50 hover:text-[#222222] rounded-xl transition-colors"
                       >
                         Received Bookings
                       </button>
@@ -322,7 +328,7 @@ export default function Navbar() {
                           setOpen(false);
                           setShowLogoutConfirm(true);
                         }}
-                        className="w-full text-left px-3 py-2 text-sm text-red-500 hover:bg-red-50 rounded-xl transition-colors"
+                        className="w-full text-left px-4 py-2.5 text-base text-rose-500 hover:bg-rose-50 rounded-xl transition-colors font-medium"
                       >
                         Logout
                       </button>
@@ -343,7 +349,7 @@ export default function Navbar() {
                 {/* Sign up */}
                 <button
                   onClick={() => router.push("/auth/signup")}
-                  className="text-sm bg-blue-600 text-white px-4 py-1.5 rounded-xl hover:bg-blue-700 transition-colors font-medium"
+                  className="text-sm bg-rose-500 text-white px-4 py-1.5 rounded-xl hover:bg-rose-600 transition-colors font-medium"
                 >
                   Sign up
                 </button>
@@ -355,7 +361,7 @@ export default function Navbar() {
         {/* MOBILE SEARCH */}
         <div className="md:hidden border-t border-slate-200 px-4 py-2 relative" onClick={(e) => e.stopPropagation()}>
           <div className="flex gap-2">
-            <div className="flex-1 flex items-center bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 gap-2 focus-within:bg-white focus-within:border-blue-400 transition-all">
+            <div className="flex-1 flex items-center bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 gap-2 focus-within:bg-white focus-within:border-rose-400 transition-all">
               <Search size={14} className="text-slate-400 flex-shrink-0" />
               <input
                 type="text"
@@ -380,7 +386,7 @@ export default function Navbar() {
               >
                 <SlidersHorizontal size={16} />
                 {filterCount > 0 && (
-                  <span className="bg-blue-600 text-white text-[9px] w-4 h-4 rounded-full flex items-center justify-center font-bold absolute -top-1.5 -right-1.5 shadow-sm border border-white">
+                  <span className="bg-rose-500 text-white text-[9px] w-4 h-4 rounded-full flex items-center justify-center font-bold absolute -top-1.5 -right-1.5 shadow-sm border border-white">
                     {filterCount}
                   </span>
                 )}
@@ -399,6 +405,7 @@ export default function Navbar() {
                     key={i}
                     className="w-full text-left px-4 py-3 hover:bg-slate-50 flex items-center gap-3 border-b border-slate-50 last:border-0 transition-colors"
                     onClick={() => {
+                      skipFetch.current = true;
                       setQuery(city);
                       setShowSuggestions(false);
                       setSuggestions([]);

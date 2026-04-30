@@ -8,7 +8,12 @@ export default function PGCard({ pg }) {
     <PGCardBase
       pg={pg}
       href={`/pg/${pg._id}`}
-      footerAction={<BookNowButton pgId={pg._id} />}
+      footerAction={
+        <BookNowButton 
+          pgId={pg._id} 
+          className="py-2.5 px-6 text-[15px] w-auto rounded-xl"
+        />
+      }
     />
   );
 }

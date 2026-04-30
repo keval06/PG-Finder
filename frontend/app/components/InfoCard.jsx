@@ -74,7 +74,7 @@ export default function InfoCard({ activePin, avg, count, setActivePin }) {
         {images.length > 1 && (
           <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1">
             {images.map((_, i) => (
-              <div key={i} className={`w-1.5 h-1.5 rounded-full transition-all ${i === idx ? "bg-white scale-110" : "bg-white/50"}`} />
+              <div key={i} className={`w-1.5 h-1.5 rounded-full transition-all ${i === idx ? "bg-white w-2.5" : "bg-white/50"}`} />
             ))}
           </div>
         )}
@@ -84,9 +84,9 @@ export default function InfoCard({ activePin, avg, count, setActivePin }) {
       <div className="px-3 pt-2.5 pb-3">
         <div className="flex justify-between items-start gap-2 mb-0.5">
           <p className="text-[13px] font-semibold text-gray-900 truncate">{activePin.name}</p>
-          <span className="text-[12px] font-medium text-gray-900 shrink-0">
-            ★ {avg ?? "New"}
-            {count > 0 && <span className="text-gray-400 font-normal text-[11px]"> ({count})</span>}
+          <span className="text-[13px] font-semibold text-gray-900 shrink-0 flex items-center gap-1">
+            <span className="text-[#FF385C]">★</span> {avg ?? "New"}
+            {count > 0 && <span className="text-gray-400 font-normal text-[12px]"> ({count})</span>}
           </span>
         </div>
         <p className="text-[11px] text-gray-400 mb-2">

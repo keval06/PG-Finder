@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { ChevronLeft, ChevronRight, Pencil, Trash2 } from "lucide-react";
+import { ChevronLeft, ChevronRight, Pencil, Trash2, Star } from "lucide-react";
 import { reviewApi } from "../../../../lib/api/review";
 import { useAuth } from "../../../context/AuthContext";
 import ConfirmModal from "../../../../components/ConfirmModal";
@@ -42,9 +42,9 @@ function StarPicker({ value, onChange }) {
           onClick={() => onChange(s)}
           onMouseEnter={() => setHovered(s)}
           onMouseLeave={() => setHovered(0)}
-          className="text-2xl transition-transform hover:scale-110"
+          className="text-2xl transition-colors"
         >
-          <span className={s <= (hovered || value) ? "text-yellow-400" : "text-gray-300"}>★</span>
+          <span className={s <= (hovered || value) ? "text-[#FF385C]" : "text-gray-300"}>★</span>
         </button>
       ))}
       {value > 0 && <span className="text-xs text-gray-400 ml-1">{value}/5</span>}
@@ -69,7 +69,7 @@ function ReviewForm({ pgId, token, existingReview, onRequestConfirm, onCancel })
   };
 
   return (
-    <div className="border border-blue-100 rounded-xl p-4 bg-blue-50/40 mb-4">
+    <div className="border border-rose-100 rounded-xl p-4 bg-rose-50/40 mb-4">
       <p className="text-sm font-medium text-gray-700 mb-3">
         {isEditing ? "Edit your review" : "Write a review"}
       </p>
@@ -82,7 +82,7 @@ function ReviewForm({ pgId, token, existingReview, onRequestConfirm, onCancel })
         placeholder="Share your experience..."
         rows={3}
         maxLength={256}
-        className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 resize-none focus:outline-none focus:ring-2 focus:ring-blue-300 bg-white"
+        className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 resize-none focus:outline-none focus:ring-2 focus:ring-rose-300 bg-white"
       />
       <p className="text-[10px] text-gray-400 text-right mt-0.5">{comment.length}/256</p>
       {error && <p className="text-xs text-red-500 mt-1">{error}</p>}
@@ -90,9 +90,9 @@ function ReviewForm({ pgId, token, existingReview, onRequestConfirm, onCancel })
         <button
           onClick={handleSubmit}
           disabled={submitting}
-          className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg disabled:opacity-50 transition-colors"
+          className="px-6 py-2.5 bg-rose-500 hover:bg-rose-600 text-white text-xs font-bold rounded-lg disabled:opacity-50 transition-colors shadow-sm"
         >
-          {submitting ? "Saving..." : isEditing ? "Update Review" : "Submit Review"}
+          {submitting ? "Saving..." : isEditing ? "Update Review" : "Post Review"}
         </button>
         {onCancel && (
           <button
@@ -244,16 +244,13 @@ export default function ReviewsSection({ pgId, initialTotal, avgRating }) {
   const token       = typeof window !== "undefined" ? localStorage.getItem("token") : null;
 
   return (
-    <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
+    <div className="bg-white py-2">
 
       {/* ── HEADER ── */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
-        <h2 className="text-lg font-semibold">
-          Reviews
-          <span className="text-gray-500 font-normal text-base ml-2">({total})</span>
-          {avgRating && (
-            <span className="text-yellow-500 text-base font-normal ml-2">★ {avgRating}/5</span>
-          )}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+        <h2 className="text-lg font-semibold flex items-center gap-1.5 text-[#222222]">
+          <Star className="w-4 h-4 text-rose-500 fill-rose-500" />
+          {avgRating || "New"} · {total} reviews
         </h2>
         {total > 1 && (
           <div className="flex items-center gap-1 bg-gray-100 rounded-xl p-1 self-start sm:self-auto">
@@ -262,7 +259,7 @@ export default function ReviewsSection({ pgId, initialTotal, avgRating }) {
                 key={opt.value}
                 onClick={() => handleSort(opt.value)}
                 className={`text-xs px-3 py-1.5 rounded-lg transition-all font-medium ${
-                  sort === opt.value ? "bg-white text-blue-600 shadow-sm" : "text-gray-500 hover:text-gray-700"
+                  sort === opt.value ? "bg-slate-100 text-slate-900" : "text-slate-500 hover:text-slate-900"
                 }`}
               >
                 {opt.label}
@@ -279,7 +276,7 @@ export default function ReviewsSection({ pgId, initialTotal, avgRating }) {
           {/* Case 1: Not logged in */}
           {!user && (
             <p className="text-xs text-gray-400 mb-4">
-              <a href="/auth/login" className="text-blue-500 hover:underline">Log in</a> to leave a review.
+              <a href="/auth/login" className="text-rose-500 hover:underline">Log in</a> to leave a review.
             </p>
           )}
 
@@ -302,11 +299,11 @@ export default function ReviewsSection({ pgId, initialTotal, avgRating }) {
 
           {/* Case 5: Already reviewed — show their review card with edit/delete */}
           {user && myReview && !editMode && (
-            <div className="border border-blue-200 rounded-xl p-4 bg-blue-50/30 mb-4">
+            <div className="border border-gray-200 rounded-xl p-4 bg-gray-50/50 mb-4">
               <div className="flex items-start justify-between gap-2">
                 <div>
-                  <p className="text-xs font-semibold text-blue-600 mb-1">Your review</p>
-                  <span className="text-yellow-400 text-sm">
+                  <p className="text-xs font-semibold text-rose-500 mb-1">Your review</p>
+                  <span className="text-rose-500 text-sm">
                     {"★".repeat(myReview.star)}{"☆".repeat(5 - myReview.star)}
                   </span>
                   <p className="text-sm text-gray-600 mt-1">{myReview.comment}</p>
@@ -314,7 +311,7 @@ export default function ReviewsSection({ pgId, initialTotal, avgRating }) {
                 <div className="flex items-center gap-1.5 flex-shrink-0">
                   <button
                     onClick={() => setEditMode(true)}
-                    className="p-1.5 rounded-lg hover:bg-blue-100 text-blue-500 transition-colors"
+                    className="p-1.5 rounded-lg hover:bg-rose-100 text-rose-500 transition-colors"
                     title="Edit"
                   >
                     <Pencil size={13} />
@@ -369,23 +366,23 @@ export default function ReviewsSection({ pgId, initialTotal, avgRating }) {
       {/* ── REVIEWS LIST ── */}
       {!loading && total > 0 && (
         <>
-          <div className="flex flex-col gap-3">
+          <div className="flex flex-col">
             {reviews.map((r) => (
-              <div key={r._id} className="border border-gray-100 rounded-xl p-4 bg-gray-50">
+              <div key={r._id} className="py-3 border-b border-gray-100 last:border-0">
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex flex-col gap-0.5">
-                    <p className="font-medium text-sm capitalize">{r.user?.name || "Anonymous"}</p>
-                    <p className="text-xs text-gray-400">
+                    <p className="font-semibold text-base text-[#222222] capitalize">{r.user?.name || "Anonymous"}</p>
+                    <p className="text-gray-500 text-sm">
                       {new Date(r.createdAt).toLocaleDateString("en-IN", {
                         day: "numeric", month: "short", year: "numeric",
                       })}
                     </p>
                   </div>
-                  <span className="text-yellow-500 text-sm flex-shrink-0">
+                  <span className="text-[#FF385C] text-sm flex-shrink-0">
                     {"★".repeat(r.star)}{"☆".repeat(5 - r.star)}
                   </span>
                 </div>
-                <p className="text-gray-600 text-sm mt-2">{r.comment}</p>
+                <p className="text-[#222222] mt-2 leading-relaxed text-sm">{r.comment}</p>
               </div>
             ))}
           </div>
@@ -404,7 +401,7 @@ export default function ReviewsSection({ pgId, initialTotal, avgRating }) {
                 <button
                   onClick={() => goTo(currentPage - 1)}
                   disabled={currentPage === 1}
-                  className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium border border-gray-200 text-gray-500 hover:border-blue-300 hover:text-blue-600 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                  className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium border border-gray-200 text-gray-500 hover:border-rose-300 hover:text-rose-500 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                 >
                   <ChevronLeft size={13} /> Prev
                 </button>
@@ -418,7 +415,7 @@ export default function ReviewsSection({ pgId, initialTotal, avgRating }) {
                         onClick={() => goTo(page)}
                         className={`w-8 h-8 rounded-lg text-xs font-medium transition-all ${
                           page === currentPage
-                            ? "bg-blue-600 text-white shadow-sm"
+                            ? "bg-slate-900 text-white"
                             : "text-gray-500 hover:bg-gray-100 hover:text-gray-800"
                         }`}
                       >
@@ -430,7 +427,7 @@ export default function ReviewsSection({ pgId, initialTotal, avgRating }) {
                 <button
                   onClick={() => goTo(currentPage + 1)}
                   disabled={currentPage === totalPages}
-                  className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium border border-gray-200 text-gray-500 hover:border-blue-300 hover:text-blue-600 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                  className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium border border-gray-200 text-gray-500 hover:border-rose-300 hover:text-rose-500 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                 >
                   Next <ChevronRight size={13} />
                 </button>

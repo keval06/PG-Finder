@@ -151,27 +151,8 @@ export default function HomeClient({
     radius,
   ]);
 
-  // Fallback to IP matching if Windows returns 0,0 or strict HTTP mobile block
-  const handleNearMeFallback = async () => {
-    try {
-      const res = await fetch("https://ipinfo.io/json");
-      const data = await res.json();
-      if (data && data.loc) {
-        const [latStr, lngStr] = data.loc.split(",");
-        setIsLocationLoading(false);
-        setUserLocation({ lat: Number(latStr), lng: Number(lngStr) });
-        // IP-based is always city-level (~10-50km) — warn user and widen radius
-        setLocationError(
-          "Using approximate IP-based location. Results may cover a wider area. " +
-          "Use the search bar for precise results."
-        );
-        setRadius((prev) => Math.max(prev, 15));
-        return true;
-      }
-    } catch {
-      return false;
-    }
-  };
+  // IP-based fallback removed — user will handle location manually
+  const handleNearMeFallback = async () => false;
 
   const handleNearMe = () => {
     // Toggle off if already active
@@ -273,21 +254,17 @@ export default function HomeClient({
       )}
 
       {/* ── MOBILE / TABLET LAYOUT (below xl) ── */}
-      <div className="xl:hidden block min-h-screen bg-[#f8fafc]">
+      <div className="xl:hidden block min-h-screen bg-white">
         {/* Map — sticky at top, taller when InfoCard is showing */}
         <div
           className={
             isMapFullscreen
-              ? "fixed inset-0 z-[40] bg-[#f8fafc] pt-28 md:pt-20 px-3 pb-4"
-              : `sticky top-14 z-0 ${activePin ? 'h-[55vh]' : 'h-[40vh]'} px-3 pt-3 pb-1 transition-all duration-300`
+              ? "fixed inset-0 z-[100] bg-white p-4 pt-24"
+              : `sticky top-[80px] z-0 ${activePin ? 'h-[55vh]' : 'h-[40vh]'} px-3 pt-3 pb-1 transition-all duration-300`
           }
         >
           <div
-            className={
-              isMapFullscreen
-                ? "w-full h-full"
-                : "w-full h-full rounded-2xl overflow-hidden border border-slate-200 shadow-sm"
-            }
+            className="w-full h-full rounded-2xl overflow-hidden border border-gray-200 shadow-sm relative"
           >
             <HomeMap
               pgs={sorted}
@@ -303,7 +280,7 @@ export default function HomeClient({
 
         {/* PG listings — scrolls over the map because of z-index and background */}
         <div
-          className={`relative z-10 bg-[#f8fafc] flex-1 px-4 sm:px-5 py-4 min-h-[65vh] ${isMapFullscreen ? "hidden" : "block"}`}
+          className={`relative z-10 bg-white flex-1 px-4 sm:px-5 py-4 min-h-[65vh] ${isMapFullscreen ? "hidden" : "block"}`}
         >
           {locationError && (
             <div className="mb-3 flex items-start gap-2.5 text-sm text-amber-800 bg-amber-50 border border-amber-200 rounded-xl px-3.5 py-2.5">
@@ -371,7 +348,7 @@ export default function HomeClient({
                 <a
                   key={l}
                   href="#"
-                  className="text-slate-500 hover:text-blue-400 text-xs uppercase tracking-wider transition-colors"
+                  className="text-slate-500 hover:text-rose-400 text-xs uppercase tracking-wider transition-colors"
                 >
                   {l}
                 </a>
@@ -382,10 +359,12 @@ export default function HomeClient({
       </div>
 
       {/* ── DESKTOP LAYOUT (xl and above) ── */}
-      <div className="hidden xl:flex h-[calc(100vh-56px)] sticky top-14 p-6 gap-6">
-        <div
-          className={`w-1/2 flex flex-col min-w-0 overflow-y-auto custom-scrollbar ${isMapFullscreen ? "hidden" : "block"}`}
-        >
+      <div className="hidden xl:grid grid-cols-12 h-[calc(100vh-80px)] sticky top-[80px] bg-white">
+        {/* Left Margin */}
+        <div className="col-span-1" />
+
+        {/* Listings - 6 Columns */}
+        <div className={`col-span-6 flex flex-col min-w-0 overflow-y-auto no-scrollbar px-6 py-8 ${isMapFullscreen ? "hidden" : "block"}`}>
           {locationError && (
             <div className="mb-3 flex items-start gap-2.5 text-sm text-amber-800 bg-amber-50 border border-amber-200 rounded-xl px-3.5 py-2.5">
               <AlertCircle size={16} className="flex-shrink-0 mt-0.5" />
@@ -439,24 +418,23 @@ export default function HomeClient({
           )}
         </div>
 
-        {/* Desktop Map - Fixed on right side, no scroll */}
-        <div
-          className={
-            isMapFullscreen
-              ? "fixed inset-0 z-[40] bg-[#f8fafc] pt-20 p-6"
-              : "w-1/2 flex-shrink-0 flex flex-col h-full rounded-3xl overflow-hidden border border-slate-200 shadow-sm"
-          }
-        >
-          <HomeMap
-            pgs={sorted}
-            userLocation={userLocation}
-            defaultMapCenter={defaultMapCenter}
-            activePin={activePin}
-            setActivePin={setActivePin}
-            isFullscreen={isMapFullscreen}
-            setIsFullscreen={setIsMapFullscreen}
-          />
+        {/* Desktop Map - 4 Columns or Fullscreen overlay within grid */}
+        <div className={isMapFullscreen ? "col-span-10 h-full py-10 px-4" : "col-span-4 h-full py-8 pl-4 pr-6"}>
+          <div className="h-full rounded-3xl overflow-hidden border border-gray-200 shadow-sm relative group">
+            <HomeMap
+              pgs={sorted}
+              userLocation={userLocation}
+              defaultMapCenter={defaultMapCenter}
+              activePin={activePin}
+              setActivePin={setActivePin}
+              isFullscreen={isMapFullscreen}
+              setIsFullscreen={setIsMapFullscreen}
+            />
+          </div>
         </div>
+
+        {/* Right Margin */}
+        <div className="col-span-1" />
       </div>
 
       {/* No footer on desktop — map+list layout fills viewport (Airbnb pattern) */}

@@ -14,7 +14,6 @@ import {
   User,
   MapPin,
   Home,
-  Bath,
   Toilet,
   BedDouble,
   Bed,
@@ -56,11 +55,11 @@ export const FOOD_LABELS = {
 
 export const GALLERY_CATEGORIES = [
   "room",
+  "building",
+  "amenities",
   "kitchen",
   "bathroom",
   "toilet",
-  "building",
-  "amenities",
 ];
 
 export const CATEGORY_LABELS = {

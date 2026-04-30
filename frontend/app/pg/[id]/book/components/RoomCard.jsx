@@ -11,8 +11,8 @@ export default function RoomCard({ room, selected, onSelect }) {
         full
           ? "opacity-40 cursor-not-allowed border-slate-100 bg-slate-50"
           : selected
-            ? "border-blue-500 bg-blue-50 ring-2 ring-blue-100"
-            : "border-slate-200 hover:border-blue-300 bg-white"
+            ? "border-rose-500 bg-rose-50 ring-2 ring-rose-100"
+            : "border-slate-200 hover:border-rose-300 bg-white"
       }`}
     >
       <div className="flex items-center justify-between mb-2">
@@ -25,7 +25,7 @@ export default function RoomCard({ room, selected, onSelect }) {
           </span>
         ) : (
           selected && (
-            <div className="w-5 h-5 rounded-full bg-blue-600 flex items-center justify-center">
+            <div className="w-5 h-5 rounded-full bg-[#FF385C] flex items-center justify-center">
               <Check size={11} className="text-white" />
             </div>
           )

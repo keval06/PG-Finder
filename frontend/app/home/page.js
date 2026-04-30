@@ -107,7 +107,7 @@ export default async function Home({ searchParams }) {
   // Step C: Render and Pass Data Down
   // 3. Render HomeClient and pass the fully cooked `data` DOWN as a prop
   return (
-    <div className="bg-gray-50 min-h-screen">
+    <div className="bg-white min-h-screen">
       <HomeClient
         data={data}
         pagination={{

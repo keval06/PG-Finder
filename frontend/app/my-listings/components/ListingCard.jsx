@@ -10,7 +10,7 @@ export default function ListingCard({ pg }) {
       href={`/my-listings/${pg._id}`}
       showInactive={true}
       footerAction={
-        <div className="flex items-center gap-1 text-xs text-blue-600 font-semibold sm:justify-center">
+        <div className="flex items-center gap-1 text-xs text-rose-500 font-semibold sm:justify-center">
           Manage <ChevronRight size={13} />
         </div>
       }

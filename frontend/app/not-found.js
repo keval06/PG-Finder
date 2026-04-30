@@ -12,8 +12,8 @@ export default function NotFound() {
       <div className="max-w-md w-full text-center">
         {/* Animated Icon Container */}
         <div className="relative inline-block mb-8">
-          <div className="w-24 h-24 bg-blue-50 rounded-3xl flex items-center justify-center mx-auto border border-blue-100 shadow-sm animate-pulse">
-            <MapPinOff size={44} className="text-blue-500" />
+          <div className="w-24 h-24 bg-rose-50 rounded-3xl flex items-center justify-center mx-auto border border-rose-100 shadow-sm animate-pulse">
+            <MapPinOff size={44} className="text-rose-500" />
           </div>
           <div className="absolute -top-2 -right-2 bg-red-500 text-white p-1.5 rounded-full shadow-lg">
             <SearchX size={16} />
@@ -32,7 +32,7 @@ export default function NotFound() {
         <div className="flex flex-col gap-3">
           <Link
             href="/home"
-            className="flex items-center justify-center gap-2 bg-blue-600 text-white font-semibold py-3 px-6 rounded-2xl hover:bg-blue-700 transition-all shadow-md shadow-blue-200 active:scale-[0.98]"
+            className="flex items-center justify-center gap-2 bg-[#FF385C] text-white font-semibold py-3 px-6 rounded-2xl hover:bg-[#E31C5F] transition-all shadow-md shadow-rose-200"
           >
             <Home size={18} />
             Back to Home
