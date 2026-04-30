@@ -1,6 +1,6 @@
 "use client"; // Context requires React memory, so it must be a client component.
 
-import { usePathname, useSearchParams } from "next/navigation";
+import { usePathname, useSearchParams, useRouter } from "next/navigation";
 import { createContext, useState, useContext, useEffect } from "react";
 
 const SearchContext = createContext();
@@ -13,13 +13,40 @@ export function SearchProvider({ children }) {
   const [filterCount, setFilterCount] = useState(0);
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const router = useRouter(); // Added router for URL manipulation
 
   // Derive a primitive string so the useEffect dependency works reliably
   const qParam = searchParams.get("q") ?? "";
 
+  // 1. Sync URL -> Local State (Handles initial load & Browser Back Button)
   useEffect(() => {
-    setQuery(qParam);
-  }, [pathname]); // Only sync when the page actually changes (e.g. Navigating to /home)
+    // Only update if they differ to prevent infinite loops and flickering
+    if (qParam !== query) {
+      setQuery(qParam);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [qParam]);
+
+  // 2. Sync Local State -> URL (Debounced by 500ms)
+  useEffect(() => {
+    // Don't push to URL if they are already identical
+    if (query === qParam) return;
+
+    // Wait 500ms after the user stops typing before pushing to the URL
+    const timeoutId = setTimeout(() => {
+      const params = new URLSearchParams(searchParams);
+      if (query) {
+        params.set("q", query);
+      } else {
+        params.delete("q");
+      }
+      // Use router.replace to avoid clogging up the back-button history with every keystroke
+      router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+    }, 500);
+
+    // Cleanup function cancels the timeout if the user types again before 500ms is up
+    return () => clearTimeout(timeoutId);
+  }, [query, pathname, router, searchParams, qParam]);
 
   return (
     // We wrap all children inside the Provider.
@@ -38,6 +65,7 @@ export function SearchProvider({ children }) {
     </SearchContext.Provider>
   );
 }
+
 // 3. Create a Custom Hook (The Shortcut)
 
 // ?custom hook, whoever use useSearch()
