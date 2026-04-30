@@ -78,7 +78,6 @@ export default function PGCardBase({
                   fill
                   className="object-cover transition-opacity duration-500"
                   sizes="(max-width: 640px) 100vw, 280px"
-                  unoptimized={true}
                 />
                 <button
                   onClick={(e) => {

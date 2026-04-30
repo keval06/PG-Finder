@@ -4,6 +4,13 @@ export default function useLightbox(images) {
   const [isOpen, setIsOpen] = useState(false);
   const [index, setIndex] = useState(0);
 
+  // Add this effect to the top of the hook (around Line 6):
+  useEffect(() => {
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, []);
+
   const openLightbox = useCallback((idx = 0) => {
     setIndex(idx);
     setIsOpen(true);

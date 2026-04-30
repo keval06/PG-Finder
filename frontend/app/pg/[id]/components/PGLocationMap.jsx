@@ -119,7 +119,7 @@ export default function PGLocationMap({ coordinate, address, city }) {
         {address}, {city}
       </p>
 
-      <div className="w-full h-[380px] rounded-2xl overflow-hidden shadow-[0_6px_16px_rgba(0,0,0,0.12)]">
+      <div className="w-full h-[500px] rounded-2xl overflow-hidden shadow-[0_6px_16px_rgba(0,0,0,0.12)]">
         {mounted && (
           <MapContainer
             center={pos}
