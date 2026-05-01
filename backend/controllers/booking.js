@@ -46,11 +46,9 @@ exports.registerBooking = async (req, res) => {
       return res.status(404).json({ message: "Room type not found" });
     }
 
-    // check if beds are available
-    const remainingBeds = totalBeds - roomType.occupiedBeds;
 
-    // check if booking is valid
-    if (remainingBeds < 1) {
+    const totalBeds = roomType.availableRooms * roomType.sharingCount;
+    if (roomType.occupiedBeds >= totalBeds) {
       await session.abortTransaction();
       return res.status(400).json({ message: "No beds available" });
     }
@@ -91,14 +89,6 @@ exports.registerBooking = async (req, res) => {
 
     // update room type
     // REPLACE the blind update (Lines 94-98) with this atomic one:
-    // new — just validate bed availability, don't increment yet
-    const totalBeds = roomType.availableRooms * roomType.sharingCount;
-    if (roomType.occupiedBeds >= totalBeds) {
-      await session.abortTransaction();
-      return res.status(400).json({
-        message: "Room just filled up! Please try another room type.",
-      });
-    }
 
     // commit transaction
     await session.commitTransaction();
@@ -197,7 +187,7 @@ exports.updateBooking = async (req, res) => {
     });
 
     // if user cancels booking
-    if (updateData.status === "cancelled" && existing.status === "cancelled") {
+    if (updateData.status === "cancelled" && existing.status === "confirmed") {
       await RoomType.findByIdAndUpdate(
         existing.roomType,
         { $inc: { occupiedBeds: -1 } },
