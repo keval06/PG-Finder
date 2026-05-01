@@ -15,6 +15,7 @@ import {
 import StepperBar from "./components/StepperBar";
 import RoomCard from "./components/RoomCard";
 import BackButton from "../../../../components/BackButton";
+import CalendarPopover from "../components/CalendarPopover";
 import { roomTypeApi } from "../../../../lib/api/roomType";
 import { bookingApi } from "../../../../lib/api/booking";
 
@@ -32,6 +33,7 @@ export default function BookingPage() {
   const [selectedRoom, setSelectedRoom] = useState(null);
   const [checkIn, setCheckIn] = useState(searchParams.get("checkIn") || "");
   const [checkOut, setCheckOut] = useState(searchParams.get("checkOut") || "");
+  const [showCalendar, setShowCalendar] = useState(false);
   const [guests, setGuests] = useState(Number(searchParams.get("guests")) || 1);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
@@ -317,50 +319,40 @@ export default function BookingPage() {
                 Pick your check-in and check-out
               </p>
 
-              <div className="flex flex-col gap-4">
-                {/* CheckIn Date */}
-                <div>
-                  <label className="text-xs font-medium text-slate-500 mb-1.5 block">
-                    Check-in Date
-                  </label>
-                  <div className="relative flex items-center border border-slate-200 rounded-xl bg-slate-50 focus-within:bg-white focus-within:border-rose-400 focus-within:ring-2 focus-within:ring-rose-50 transition-all">
-                    <Calendar
-                      size={15}
-                      className="absolute left-3 text-slate-400 pointer-events-none"
-                    />
-                    <input
-                      type="date"
-                      min={today}
-                      value={checkIn}
-                      onChange={(e) => {
-                        setCheckIn(e.target.value);
-                        if (checkOut && e.target.value >= checkOut)
-                          setCheckOut("");
-                      }}
-                      className="w-full bg-transparent pl-9 pr-4 py-2.5 text-sm outline-none text-slate-900"
-                    />
+              <div className="flex flex-col gap-4 relative">
+                {/* Premium Date Selector */}
+                <div 
+                  onClick={() => setShowCalendar(true)}
+                  className="border border-[#DDDDDD] rounded-xl cursor-pointer overflow-hidden shadow-sm transition-colors"
+                >
+                  <div className="grid grid-cols-2 divide-x divide-[#DDDDDD]">
+                    <div className="p-3 hover:bg-gray-50 transition-colors">
+                      <label className="block text-[10px] font-bold uppercase text-[#222222]">Check-In</label>
+                      <div className="text-sm text-[#484848] mt-0.5 min-h-[20px]">
+                        {checkIn || <span className="text-[#717171]">Add date</span>}
+                      </div>
+                    </div>
+                    <div className="p-3 hover:bg-gray-50 transition-colors">
+                      <label className="block text-[10px] font-bold uppercase text-[#222222]">Checkout</label>
+                      <div className="text-sm text-[#484848] mt-0.5 min-h-[20px]">
+                        {checkOut || <span className="text-[#717171]">Add date</span>}
+                      </div>
+                    </div>
                   </div>
                 </div>
 
-                {/* CheckOut DTE */}
-                <div>
-                  <label className="text-xs font-medium text-slate-500 mb-1.5 block">
-                    Check-out Date
-                  </label>
-                  <div className="relative flex items-center border border-slate-200 rounded-xl bg-slate-50 focus-within:bg-white focus-within:border-rose-400 focus-within:ring-2 focus-within:ring-rose-50 transition-all">
-                    <Calendar
-                      size={15}
-                      className="absolute left-3 text-slate-400 pointer-events-none"
-                    />
-                    <input
-                      type="date"
-                      min={checkIn || today}
-                      value={checkOut}
-                      onChange={(e) => setCheckOut(e.target.value)}
-                      className="w-full bg-transparent pl-9 pr-4 py-2.5 text-sm outline-none text-slate-900"
+                {/* Calendar Popover */}
+                {showCalendar && (
+                  <div className="absolute top-0 left-0 w-full z-[100]">
+                    <CalendarPopover 
+                      checkIn={checkIn}
+                      checkOut={checkOut}
+                      setCheckIn={setCheckIn}
+                      setCheckOut={setCheckOut}
+                      onClose={() => setShowCalendar(false)}
                     />
                   </div>
-                </div>
+                )}
 
                 {/* summary */}
                 {months > 0 && (
