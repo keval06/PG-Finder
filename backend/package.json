@@ -22,7 +22,8 @@
     "mongoose": "^9.2.0",
     "multer": "^2.1.1",
     "multer-s3": "^2.10.0",
-    "node-cron": "^4.2.1"
+    "node-cron": "^4.2.1",
+    "razorpay": "^2.9.6"
   },
   "devDependencies": {
     "nodemon": "^3.1.11"
