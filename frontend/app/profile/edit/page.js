@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import Button from "../../atoms/Button";
 import ConfirmModal from "../../../components/ConfirmModal";
+import Link from "next/link";
 
 export default function EditProfilePage() {
   const router = useRouter();
@@ -26,6 +27,9 @@ export default function EditProfilePage() {
   const [mobile, setMobile] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
 
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showConfirm, setShowConfirm] = useState(false);
@@ -82,6 +86,15 @@ export default function EditProfilePage() {
       return;
     }
 
+    // add after the passwordsMatch check
+    if (password && !currentPassword) {
+      setMessage({
+        type: "error",
+        text: "Please enter your current password to set a new one.",
+      });
+      return;
+    }
+
     if (password && !passwordsMatch) {
       setMessage({
         type: "error",
@@ -101,7 +114,11 @@ export default function EditProfilePage() {
 
     if (name !== user.name) body.name = name;
     if (mobile !== String(user.mobile)) body.mobile = mobile;
-    if (password) body.password = password;
+    // new
+    if (password) {
+      body.newPassword = password;
+      body.currentPassword = currentPassword;
+    }
 
     if (Object.keys(body).length === 0) {
       setMessage({
@@ -126,6 +143,7 @@ export default function EditProfilePage() {
 
       if (data && data._id) {
         updateUser(data); // context + localStorage updated instantly
+        setCurrentPassword("");
         setPassword("");
         setConfirmPassword("");
         setMessage({
@@ -138,10 +156,10 @@ export default function EditProfilePage() {
           text: data.message || "Update failed. Please try again.",
         });
       }
-    } catch {
+    } catch (error) {
       setMessage({
         type: "error",
-        text: "Something went wrong. Please try again.",
+        text: error.message || "Something went wrong. Please try again.",
       });
     } finally {
       setLoading(false);
@@ -167,7 +185,7 @@ export default function EditProfilePage() {
   if (!user) return null; // redirect already fired in useEffect
 
   return (
-    <div className="min-h-screen bg-white px-4 py-8 mt-6">
+    <div className="bg-white px-4 py-10 pb-20">
       <div className="max-w-sm mx-auto">
         <button
           onClick={() => router.back()}
@@ -176,10 +194,10 @@ export default function EditProfilePage() {
           <ArrowLeft size={16} /> Back
         </button>
 
-        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-8 flex flex-col gap-5">
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-10 flex flex-col gap-6">
           {/* header */}
           <div className="text-center">
-            <div className="bg-rose-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 border border-rose-100">
+            <div className="bg-rose-50 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-5 border border-rose-100">
               <User size={30} className="text-rose-500" />
             </div>
             <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-[#222222]">
@@ -208,7 +226,7 @@ export default function EditProfilePage() {
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          <form onSubmit={handleSubmit} className="flex flex-col gap-5">
             {/* Name   */}
 
             <div>
@@ -258,6 +276,40 @@ export default function EditProfilePage() {
               <p className="text-xs text-slate-400 mb-3">
                 Leave password fields empty to keep current password
               </p>
+
+              <div className="flex flex-col gap-1 mb-4">
+                <label className="text-xs font-medium text-slate-500 mb-1.5 block">
+                  Current Password
+                </label>
+                
+                <div className="relative flex items-center border border-slate-200 rounded-xl bg-slate-50 focus-within:bg-white focus-within:border-rose-400 focus-within:ring-2 focus-within:ring-rose-50 transition-all">
+                  <Lock size={15} className={iconClass} />
+                  <input
+                    type={showCurrentPassword ? "text" : "password"}
+                    placeholder="Enter current password"
+                    value={currentPassword}
+                    onChange={(e) => setCurrentPassword(e.target.value)}
+                    className={inputClass}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                    className="absolute right-3 text-slate-400 hover:text-slate-600 transition-colors"
+                  >
+                    {showCurrentPassword ? (
+                      <EyeOff size={16} />
+                    ) : (
+                      <Eye size={16} />
+                    )}
+                  </button>
+                </div>
+                <Link
+                  href="/auth/forgot-password"
+                  className="text-xs text-rose-500 hover:text-rose-600 mt-1 px-1 self-end"
+                >
+                  Forgot password?
+                </Link>
+              </div>
 
               {/* New pAssword */}
 

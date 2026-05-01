@@ -9,6 +9,8 @@ import ConfirmModal from "../../components/ConfirmModal";
 import PaginationWrapper from "../../components/PaginationWrapper";
 import { bookingApi } from "../../lib/api/booking";
 import { useSearch } from "../context/SearchContext";
+import CustomSelect from "../../components/CustomSelect";
+import EmptyState from "../atoms/EmptyState";
 
 import {
   MapPin,
@@ -29,6 +31,27 @@ function formatDate(d) {
     month: "short",
     year: "numeric",
   });
+}
+
+function formatFullDate(d) {
+  if (!d) return "—";
+  const date = new Date(d);
+  if (isNaN(date.getTime())) return "—";
+  const day = date.getDate();
+  const month = date.toLocaleDateString("en-IN", { month: "short" });
+  const year = date.getFullYear();
+
+  const suffix = (day) => {
+    if (day > 3 && day < 21) return "th";
+    switch (day % 10) {
+      case 1: return "st";
+      case 2: return "nd";
+      case 3: return "rd";
+      default: return "th";
+    }
+  };
+
+  return `${day}${suffix(day)} ${month} ${year}`;
 }
 
 export default function ReceivedBookingsPage() {
@@ -145,7 +168,7 @@ export default function ReceivedBookingsPage() {
   };
 
   const displayList =
-    statusTab === "all" ? [...pending, ...confirmed, ...cancelled] :
+    statusTab === "all" ? searched :
     statusTab === "pending" ? pending :
     statusTab === "confirmed" ? confirmed :
     cancelled;
@@ -158,11 +181,11 @@ export default function ReceivedBookingsPage() {
   ];
 
   const DATE_OPTIONS = [
-    { key: "all", label: "All Time" },
-    { key: "30d", label: "30 Days" },
-    { key: "90d", label: "90 Days" },
-    { key: "6m", label: "6 Months" },
-    { key: "1y", label: "1 Year" },
+    { value: "all", label: "All Time" },
+    { value: "30d", label: "30 Days" },
+    { value: "90d", label: "90 Days" },
+    { value: "6m", label: "6 Months" },
+    { value: "1y", label: "1 Year" },
   ];
 
   return (
@@ -227,15 +250,12 @@ export default function ReceivedBookingsPage() {
                     />
                   </div>
                   
-                  <select
+                  <CustomSelect
                     value={dateRange}
-                    onChange={(e) => setDateRange(e.target.value)}
-                    className="bg-white border border-[#DDDDDD] text-[#484848] text-sm font-semibold rounded-xl px-4 py-2.5 outline-none shadow-sm cursor-pointer hover:border-gray-300 transition-all"
-                  >
-                    {DATE_OPTIONS.map((d) => (
-                      <option key={d.key} value={d.key}>{d.label}</option>
-                    ))}
-                  </select>
+                    onChange={(val) => setDateRange(val)}
+                    options={DATE_OPTIONS}
+                    className="sm:w-40 h-[42px]"
+                  />
                 </div>
               </div>
 
@@ -259,17 +279,29 @@ export default function ReceivedBookingsPage() {
 
             {/* content */}
             {bookings.length === 0 ? (
-              <div className="text-center py-32 bg-white rounded-3xl border border-[#DDDDDD] shadow-sm">
-                <div className="w-20 h-20 bg-rose-50 border border-rose-100 rounded-3xl flex items-center justify-center mx-auto mb-6">
-                  <Bed size={32} className="text-rose-500" />
-                </div>
-                <h2 className="text-[22px] font-semibold text-[#222222] mb-2">No bookings yet</h2>
-                <p className="text-[#717171] max-w-xs mx-auto">Bookings for your properties will appear here automatically.</p>
-              </div>
+              <EmptyState
+                icon={Bed}
+                title="No bookings yet"
+                description="Bookings for your properties will appear here automatically."
+              />
             ) : displayList.length === 0 ? (
-              <div className="text-center py-20 bg-white rounded-3xl border border-[#DDDDDD]">
-                <p className="text-[#484848] font-medium">No bookings match your current filters.</p>
-              </div>
+              <EmptyState
+                icon={Search}
+                title="No matches found"
+                description="We couldn't find any bookings matching your current search or filters."
+                action={
+                  <button
+                    onClick={() => {
+                      setQuery("");
+                      setStatusTab("all");
+                      setDateRange("all");
+                    }}
+                    className="text-rose-500 font-semibold hover:underline"
+                  >
+                    Clear all filters
+                  </button>
+                }
+              />
             ) : (
               <div className="flex flex-col gap-6">
                 <PaginationWrapper
@@ -333,10 +365,12 @@ export default function ReceivedBookingsPage() {
 function ReceivedCard({ booking: b, onConfirm, onCancel }) {
   const isCancelled = b.status === "cancelled";
   const isPending = b.status === "pending";
+  const router = useRouter();
 
   return (
     <div
-      className={`bg-white border rounded-2xl overflow-hidden transition-all ${
+      onClick={() => router.push(`/pg/${b.pg?._id}`)}
+      className={`bg-white border rounded-2xl overflow-hidden cursor-pointer transition-all ${
         isCancelled
           ? "opacity-50 border-[#DDDDDD]"
           : "border-[#DDDDDD] hover:shadow-[0_6px_16px_rgba(0,0,0,0.12)] hover:border-gray-300"
@@ -354,7 +388,12 @@ function ReceivedCard({ booking: b, onConfirm, onCancel }) {
               <span className="truncate capitalize">{b.pg?.city || "—"}</span>
             </div>
           </div>
-          <StatusBadge type="booking" status={b.status} />
+          <div className="flex flex-col items-end gap-1.5">
+            <StatusBadge type="booking" status={b.status} />
+            <span className="text-[12px] font-medium text-[#717171] whitespace-nowrap">
+              {formatFullDate(b.createdAt)}
+            </span>
+          </div>
         </div>
 
         {/* row 2: guest info */}
@@ -398,7 +437,7 @@ function ReceivedCard({ booking: b, onConfirm, onCancel }) {
           </div>
           <div className="bg-white border border-[#DDDDDD] rounded-xl px-3 py-2.5">
             <p className="text-[10px] font-bold uppercase text-[#717171] mb-1 tracking-wider">Payment</p>
-            <StatusBadge type="payment" status={b.paymentStatus} className="!text-[10px]" />
+            <StatusBadge type="payment" status={b.paymentStatus} />
           </div>
         </div>
 

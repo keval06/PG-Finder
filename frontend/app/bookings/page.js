@@ -9,6 +9,8 @@ import StatusBadge from "../../components/StatusBadge";
 import ConfirmModal from "../../components/ConfirmModal";
 import PaginationWrapper from "../../components/PaginationWrapper";
 import { bookingApi } from "../../lib/api/booking";
+import CustomSelect from "../../components/CustomSelect";
+import EmptyState from "../atoms/EmptyState";
 
 import {
   MapPin,
@@ -30,6 +32,27 @@ function formatDate(d) {
     month: "short",
     year: "numeric",
   });
+}
+
+function formatFullDate(d) {
+  if (!d) return "—";
+  const date = new Date(d);
+  if (isNaN(date.getTime())) return "—";
+  const day = date.getDate();
+  const month = date.toLocaleDateString("en-IN", { month: "short" });
+  const year = date.getFullYear();
+
+  const suffix = (day) => {
+    if (day > 3 && day < 21) return "th";
+    switch (day % 10) {
+      case 1: return "st";
+      case 2: return "nd";
+      case 3: return "rd";
+      default: return "th";
+    }
+  };
+
+  return `${day}${suffix(day)} ${month} ${year}`;
 }
 
 // ─── main component ───────────────────────────────────────────
@@ -129,7 +152,7 @@ export default function MyBookingsPage() {
   };
 
   const displayList =
-    statusTab === "all" ? [...pending, ...confirmed, ...cancelled] :
+    statusTab === "all" ? searched :
     statusTab === "pending" ? pending :
     statusTab === "confirmed" ? confirmed :
     cancelled;
@@ -142,11 +165,11 @@ export default function MyBookingsPage() {
   ];
 
   const RANGES = [
-    { key: "all", label: "All Time" },
-    { key: "30d", label: "30 Days" },
-    { key: "90d", label: "90 Days" },
-    { key: "6m", label: "6 Months" },
-    { key: "1y", label: "1 Year" },
+    { value: "all", label: "All Time" },
+    { value: "30d", label: "30 Days" },
+    { value: "90d", label: "90 Days" },
+    { value: "6m", label: "6 Months" },
+    { value: "1y", label: "1 Year" },
   ];
 
   return (
@@ -210,37 +233,48 @@ export default function MyBookingsPage() {
                 />
               </div>
               
-              <select
+              <CustomSelect
                 value={dateRange}
-                onChange={(e) => setDateRange(e.target.value)}
-                className="bg-white border border-[#DDDDDD] text-[#484848] text-sm font-semibold rounded-xl px-4 py-2.5 outline-none shadow-sm cursor-pointer hover:border-gray-300 transition-all"
-              >
-                {RANGES.map((r) => (
-                  <option key={r.key} value={r.key}>{r.label}</option>
-                ))}
-              </select>
+                onChange={(val) => setDateRange(val)}
+                options={RANGES}
+                className="sm:w-40 h-[42px]"
+              />
             </div>
           </div>
 
           <div className="flex flex-col gap-6">
             {bookings.length === 0 ? (
-              <div className="text-center py-32 bg-white rounded-3xl border border-[#DDDDDD] shadow-sm">
-                <div className="w-20 h-20 bg-rose-50 border border-rose-100 rounded-3xl flex items-center justify-center mx-auto mb-6">
-                  <Bed size={32} className="text-rose-500" />
-                </div>
-                <h2 className="text-[22px] font-semibold text-[#222222] mb-2">No bookings yet</h2>
-                <p className="text-[#717171] max-w-xs mx-auto">Your upcoming stays will appear here after booking a property.</p>
-                <button
-                  onClick={() => router.push("/home")}
-                  className="mt-6 inline-flex items-center gap-2 bg-rose-500 text-white text-sm font-semibold px-8 py-3 rounded-xl hover:bg-rose-600 transition-all shadow-md shadow-rose-100"
-                >
-                  Start Searching <ChevronRight size={16} strokeWidth={2.5} />
-                </button>
-              </div>
+              <EmptyState
+                icon={Bed}
+                title="No bookings yet"
+                description="Your upcoming stays will appear here after booking a property."
+                action={
+                  <button
+                    onClick={() => router.push("/home")}
+                    className="inline-flex items-center gap-2 bg-rose-500 text-white text-sm font-semibold px-8 py-3 rounded-xl hover:bg-rose-600 transition-all shadow-md shadow-rose-100"
+                  >
+                    Start Searching <ChevronRight size={16} strokeWidth={2.5} />
+                  </button>
+                }
+              />
             ) : displayList.length === 0 ? (
-              <div className="text-center py-20 bg-white rounded-3xl border border-[#DDDDDD]">
-                <p className="text-[#484848] font-medium">No bookings match your current filters.</p>
-              </div>
+              <EmptyState
+                icon={Search}
+                title="No matches found"
+                description="We couldn't find any bookings matching your current search or filters."
+                action={
+                  <button
+                    onClick={() => {
+                      setQuery("");
+                      setStatusTab("all");
+                      setDateRange("all");
+                    }}
+                    className="text-rose-500 font-semibold hover:underline"
+                  >
+                    Clear all filters
+                  </button>
+                }
+              />
             ) : (
               <div className="flex flex-col gap-6">
                 <PaginationWrapper
@@ -295,7 +329,12 @@ function BookingCard({ b, onCancel }) {
               <span className="truncate capitalize">{b.pg?.city || "Location not specified"}</span>
             </div>
           </div>
-          <StatusBadge type="booking" status={b.status} />
+          <div className="flex flex-col items-end gap-1.5">
+            <StatusBadge type="booking" status={b.status} />
+            <span className="text-[12px] font-medium text-[#717171] whitespace-nowrap">
+              {formatFullDate(b.createdAt)}
+            </span>
+          </div>
         </div>
 
         {/* Details Grid */}
@@ -323,7 +362,7 @@ function BookingCard({ b, onCancel }) {
           </div>
           <div className="bg-white border border-[#DDDDDD] rounded-xl px-3 py-2.5">
             <p className="text-[10px] font-bold uppercase text-[#717171] mb-1 tracking-wider">Payment</p>
-            <StatusBadge type="payment" status={b.paymentStatus} className="!text-[10px]" />
+            <StatusBadge type="payment" status={b.paymentStatus} />
           </div>
         </div>
 
