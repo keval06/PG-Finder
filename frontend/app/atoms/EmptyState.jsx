@@ -1,21 +1,38 @@
 import React from "react";
 
+/**
+ * EmptyState - Standardized placeholder for empty lists
+ * 
+ * Props:
+ *  icon: LucideIcon component
+ *  title: Bold heading text
+ *  description: Muted helper text
+ *  action: Optional JSX (e.g. Button) to show below description
+ */
 export default function EmptyState({ 
   icon: Icon, 
   title, 
   description, 
-  action  //accepts a JSX element as a prop. Not a string. Not a function. An actual React element.
+  action 
 }) {
   return (
-    <div className="text-center py-20 px-4 bg-white rounded-3xl border border-slate-100 shadow-sm">
+    <div className="text-center py-20 px-6 bg-white rounded-3xl border border-[#DDDDDD] shadow-sm">
       {Icon && (
-        <div className="bg-slate-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 border border-slate-100">
-          <Icon size={28} className="text-slate-400" />
+        <div className="w-20 h-20 bg-rose-50 border border-rose-100 rounded-3xl flex items-center justify-center mx-auto mb-6">
+          <Icon size={32} className="text-rose-500" />
         </div>
       )}
-      <h3 className="text-lg font-bold text-slate-900 mb-1">{title}</h3>
-      <p className="text-sm text-slate-500 max-w-xs mx-auto mb-6">{description}</p>
-      {action}
+      <h2 className="text-[22px] font-semibold text-[#222222] mb-2 leading-tight">
+        {title}
+      </h2>
+      <p className="text-base text-[#717171] max-w-xs mx-auto mb-8 leading-relaxed">
+        {description}
+      </p>
+      {action && (
+        <div className="flex justify-center">
+          {action}
+        </div>
+      )}
     </div>
   );
 }

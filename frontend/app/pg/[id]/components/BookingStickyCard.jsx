@@ -14,6 +14,20 @@ export default function BookingStickyCard({ pg, avgRating, reviewCount }) {
   const [checkOut, setCheckOut] = useState("");
   const [showCalendar, setShowCalendar] = useState(false);
 
+  const getMonths = () => {
+    if (!checkIn || !checkOut) return 1;
+    const start = new Date(checkIn);
+    const end = new Date(checkOut);
+    if (isNaN(start) || isNaN(end) || end <= start) return 1;
+    
+    const diffDays = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
+    // Simple logic: 30 days = 1 month
+    return Math.max(1, Math.round(diffDays / 30));
+  };
+
+  const months = getMonths();
+  const baseTotal = (pg.price || 0) * months;
+
   const handleBooking = () => {
     if (!ready) return;
     if (!user) {
@@ -104,8 +118,10 @@ export default function BookingStickyCard({ pg, avgRating, reviewCount }) {
       {/* Pricing Breakdown */}
       <div className="space-y-4 text-base text-[#222222]">
         <div className="flex justify-between items-center underline decoration-gray-300">
-          <span>₹{pg.price?.toLocaleString("en-IN")} x 1 month</span>
-          <span>₹{pg.price?.toLocaleString("en-IN")}</span>
+          <span>
+            ₹{pg.price?.toLocaleString("en-IN")} x {months} {months === 1 ? "month" : "months"}
+          </span>
+          <span>₹{baseTotal.toLocaleString("en-IN")}</span>
         </div>
         <div className="flex justify-between items-center underline decoration-gray-300">
           <span>Service fee</span>
@@ -116,7 +132,7 @@ export default function BookingStickyCard({ pg, avgRating, reviewCount }) {
       {/* Total Display */}
       <div className="mt-6 pt-6 border-t border-[#DDDDDD] flex justify-between items-center text-[18px] font-bold text-[#222222]">
         <span>Total</span>
-        <span>₹{pg.price?.toLocaleString("en-IN")}</span>
+        <span>₹{baseTotal.toLocaleString("en-IN")}</span>
       </div>
     </div>
   );

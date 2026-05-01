@@ -38,9 +38,16 @@ export default function LoginPage() {
       // - HTTP error → "Login failed (400)" or "Invalid credentials"
       // - Network error → TypeError with generic message
       if (err.message?.includes("timed out")) {
-        setError("Server is not responding. Make sure the backend is running on the correct port.");
-      } else if (err.message?.includes("Failed to fetch") || err.message?.includes("NetworkError")) {
-        setError("Cannot reach server. Check your internet connection and backend URL.");
+        setError(
+          "Server is not responding. Make sure the backend is running on the correct port.",
+        );
+      } else if (
+        err.message?.includes("Failed to fetch") ||
+        err.message?.includes("NetworkError")
+      ) {
+        setError(
+          "Cannot reach server. Check your internet connection and backend URL.",
+        );
       } else {
         setError(err.message || "Login failed. Please try again.");
       }
@@ -78,6 +85,7 @@ export default function LoginPage() {
           </div>
 
           {/* Password */}
+          {/* Password Container */}
           <div className="relative flex items-center border border-gray-200 rounded-xl bg-gray-50 focus-within:bg-white focus-within:border-rose-400 transition-colors">
             <Lock size={15} className={iconClass} />
             <input
@@ -95,6 +103,16 @@ export default function LoginPage() {
             >
               {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
             </button>
+          </div>
+
+          {/* Forgot Password Link - Place it HERE, outside the div above */}
+          <div className="flex justify-end -mt-2">
+            <Link
+              href="/auth/forgot-password"
+              className="text-xs font-medium text-rose-500 hover:text-rose-600 transition-colors"
+            >
+              Forgot Password?
+            </Link>
           </div>
 
           {/* Inline error — replaces the blocking native alert() */}
