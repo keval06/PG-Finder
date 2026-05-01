@@ -119,6 +119,14 @@ exports.verifyPayment = async (req, res) => {
       });
     }
 
+    if (booking.paymentStatus === "paid") {
+      return res.status(200).json({
+        success: true,
+        message: "Payment already verified.",
+        data: booking,
+      });
+    }
+
     const body = razorpay_order_id + "|" + razorpay_payment_id;
     const expectedSignature = crypto
       .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
