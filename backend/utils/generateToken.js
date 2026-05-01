@@ -1,6 +1,6 @@
 const jwt = require("jsonwebtoken");
 
-const generateToken = (id)=>{
+exports.generateToken = (id)=>{
     return jwt.sign(
         {id : id},  // Payload stored INSIDE the token
         process.env.JWT_SECRET,  // Secret key from .env file
@@ -8,4 +8,10 @@ const generateToken = (id)=>{
     );
 };
 
-module.exports = generateToken;
+exports.generateResetToken = (email) => {
+  return jwt.sign(
+    { email },
+    process.env.JWT_SECRET + "_reset",
+    { expiresIn: "15m" }
+  );
+};
