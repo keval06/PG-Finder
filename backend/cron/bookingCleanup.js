@@ -9,6 +9,18 @@ cron.schedule("0 0 * * *", async () => {
     const today = new Date();
     today.setHours(0, 0, 0, 0); // Start of today
 
+    // Clean up abandoned pending bookings older than 30 minutes
+    const thirtyMinutesAgo = new Date(Date.now() - 30 * 60 * 1000);
+    await Booking.updateMany(
+      {
+        status: "pending",
+        paymentStatus: "pending",
+        createdAt: { $lt: thirtyMinutesAgo },
+      },
+      { $set: { status: "cancelled" } },
+    );
+    console.log("Stale pending bookings cleaned up.");
+
     // Find all active/confirmed bookings where the checkout date is in the past
     const expiredBookings = await Booking.find({
       status: "confirmed",

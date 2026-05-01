@@ -35,6 +35,14 @@ app.use(
   })
 );
 
+app.use("/api/payment/webhook",
+  express.raw({ type :"application/json"}),
+  (req,res,next)=>{
+    req.body = JSON.parse(req.body);
+    next();
+  }
+);
+
 // Middleware
 // Optional: Also limit URL encoded data if used
 app.use(express.json({ limit: "10kb" })); 
@@ -52,6 +60,7 @@ app.use("/api/reviews", require("./routes/reviewRoutes.js"));
 app.use("/api/image", require("./routes/imageRoutes.js"));
 app.use("/api/auth", require("./routes/authRoutes.js"));
 app.use("/api/roomtype", require("./routes/roomType.js"));
+app.use("/api/payment", require("./routes/paymentRoutes.js"));
 require("./cron/bookingCleanup.js");
 
 // ── Global error handler ─────────────────────────────────────────────────────

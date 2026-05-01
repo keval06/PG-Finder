@@ -41,16 +41,26 @@ const bookingSchema = new mongoose.Schema(
       type: Number,
       required: true,
     },
-    
+
     paymentStatus: {
       type: String,
       enum: ["pending", "paid", "failed"],
       default: "pending",
       required: true,
     },
+
+    razorpayOrderId: {
+      type: String,
+      default: null,
+    },
+
+    razorpayPaymentId: {
+      type: String,
+      default: null,
+    },
   },
 
-  { timestamps: true }
+  { timestamps: true },
 );
 
 // 🚀 Indexing for fast dashboard loading
