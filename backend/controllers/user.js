@@ -3,7 +3,7 @@ const bcrypt = require("bcryptjs");
 
 exports.registerUser = async (req, res) => {
   try {
-    const { name, mobile, password } = req.body;
+    const { name, mobile, email, password } = req.body;
     //Password validation
     const passwordRegex = /^(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{8,16}$/;
 
@@ -19,8 +19,13 @@ exports.registerUser = async (req, res) => {
       return res.status(400).json({ message: "Mobile already registered" });
     }
 
+    existingEmail = await User.findOne({ email });
+    if (existingEmail) {
+      return res.status(400).json({ message: "Email already registered" });
+    }
+
     const hash = await bcrypt.hash(password, 10);
-    const user = await User.create({ name, mobile, password: hash });
+    const user = await User.create({ name, mobile, email, password: hash });
 
     res.status(201).json(user);
   } catch (error) {
@@ -56,7 +61,7 @@ exports.getUser = async (req, res) => {
 exports.updateUser = async (req, res) => {
   try {
     const userId = req.params.id;
-    const { mobile, password } = req.body;
+    const { mobile, currentPassword, newPassword } = req.body;
     // ─── GUARD 1: If mobile is being updated, check no other user has it ───
     if (mobile) {
       const existingUser = await User.findOne({ mobile });
@@ -67,20 +72,30 @@ exports.updateUser = async (req, res) => {
 
     // ─── GUARD 2: If password is being updated, hash it before saving ───
 
-    if (password) {
-      // 🛡️ SECURITY: Hardened Regex Check
-      // We overwrite req.body.password with the HASHED version
-      // So the next step saves the hash, not plain text
+
+    let hashedNewPassword = null;
+    if (newPassword) {
+      // Verify current password first
+      const user = await User.findById(userId);
+      if (!user) return res.status(404).json({ message: "User not found" });
+
+      const isMatch = await bcrypt.compare(currentPassword, user.password);
+      if (!isMatch) {
+        return res
+          .status(400)
+          .json({ message: "Current password is incorrect." });
+      }
+//   // We overwrite req.body.password with the HASHED version
+    //   // So the next step saves the hash, not plain text
       const passwordRegex =
         /^(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{8,16}$/;
-
-      if (!passwordRegex.test(password)) {
+      if (!passwordRegex.test(newPassword)) {
         return res.status(400).json({
           message:
             "New password must be 8-16 characters and contain at least one digit and one special character.",
         });
       }
-      password = await bcrypt.hash(password, 10);
+      hashedNewPassword = await bcrypt.hash(newPassword, 10);
     }
 
     // 🛡️ SECURITY: build updateData dynamically to support PARTIAL updates
@@ -94,8 +109,8 @@ exports.updateUser = async (req, res) => {
     });
 
     // Handle Password separately: Use the HASHED local variable if it exists
-    if (password) {
-      updateData.password = password;
+    if (hashedNewPassword) {
+      updateData.password = hashedNewPassword;
     }
 
     const updatedUser = await User.findByIdAndUpdate(
