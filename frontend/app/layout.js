@@ -20,7 +20,7 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body className="min-h-screen bg-[#f8fafc]">
+      <body className="min-h-screen bg-white">
       <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="beforeInteractive" />
         <MapProvider>
           <AuthProvider>
