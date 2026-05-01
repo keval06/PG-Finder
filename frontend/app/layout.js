@@ -4,6 +4,7 @@ import { SearchProvider } from "./context/SearchContext";
 import { AuthProvider } from "./context/AuthContext";
 import "./globals.css";
 import MapProvider from "../components/MapProvider";
+import Script from "next/script";
 // ?Next.js's special file — it's the permanent frame around every page.
 // ?This is a React Server Component by default in Next.js.
 // ?=Server Component → runs on the SERVER, not the browser
@@ -20,6 +21,7 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body className="min-h-screen bg-white">
+      <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="beforeInteractive" />
         <MapProvider>
           <AuthProvider>
             <Suspense fallback={null}>
