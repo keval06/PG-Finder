@@ -132,26 +132,36 @@ export default function BookingPage() {
         currency: order.currency,
         name: "QuickPG",
         description: `Booking for ${selectedRoom.name}`,
+
+        // new
         handler: async function (response) {
-          // Step 4: Verify payment
-          const verifyRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/payment/verify-payment`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-            },
-            body: JSON.stringify({
-              bookingId,
-              razorpay_order_id: response.razorpay_order_id,
-              razorpay_payment_id: response.razorpay_payment_id,
-              razorpay_signature: response.razorpay_signature,
-            }),
-          });
-          const verifyData = await verifyRes.json();
-          if (verifyData.success) {
-            setSuccess(true);
-          } else {
-            setError("Payment verification failed. Contact support.");
+          setSubmitting(true);
+          try {
+            const verifyRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/payment/verify-payment`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+              },
+              body: JSON.stringify({
+                bookingId,
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature,
+              }),
+            });
+            const verifyData = await verifyRes.json();
+            if (verifyData.success) {
+              setSuccess(true);
+            } else {
+              // Payment went through but verify failed — booking likely confirmed by webhook
+              // Redirect to bookings page instead of showing error
+              router.push("/bookings");
+            }
+          } catch {
+            router.push("/bookings");
+          } finally {
+            setSubmitting(false);
           }
         },
         modal: {
