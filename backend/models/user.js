@@ -23,10 +23,15 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+
+    email: {
+      type: String,
+      required: true,
+      unique: true,
+      match: [/^\S+@\S+\.\S+$/, "Invalid email address"],
+    },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
-
 module.exports = mongoose.model("User", userSchema);
-

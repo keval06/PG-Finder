@@ -43,7 +43,7 @@ export default function StatusBadge({ type, status, className = "" }) {
     const config = STATUS_CONFIG[status] || STATUS_CONFIG.pending;
     return (
       <span
-        className={`inline-flex items-center gap-1 text-[9px] sm:text-[10px] font-semibold px-1.5 sm:px-2 py-0.5 rounded-full border whitespace-nowrap ${config.badge} ${className}`}
+        className={`inline-flex items-center gap-1.5 text-[10px] sm:text-[11px] font-semibold px-2 py-1 rounded-full border whitespace-nowrap ${config.badge} ${className}`}
       >
         <span
           className={`w-1 h-1 sm:w-1.5 sm:h-1.5 rounded-full ${config.dot}`}
@@ -57,7 +57,7 @@ export default function StatusBadge({ type, status, className = "" }) {
     const config = PAYMENT_CONFIG[status] || PAYMENT_CONFIG.pending;
     return (
       <span
-        className={`inline-flex text-[9px] sm:text-[10px] font-semibold px-1.5 sm:px-2 py-0.5 rounded-full border whitespace-nowrap ${config.badge} ${className}`}
+        className={`inline-flex text-[10px] sm:text-[11px] font-semibold px-4 py-1 rounded-full border whitespace-nowrap ${config.badge} ${className}`}
       >
         {config.label}
       </span>

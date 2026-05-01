@@ -235,13 +235,11 @@ export default function MyListingsClient() {
         )}
 
         {sorted.length === 0 ? (
-          <div className="bg-white border border-[#DDDDDD] rounded-3xl p-16 text-center shadow-sm">
-            <EmptyState
-              icon={HomeIcon}
-              title="No listings yet"
-              description='Click "Add New PG" to begin.'
-            />
-          </div>
+          <EmptyState
+            icon={HomeIcon}
+            title="No listings yet"
+            description='Click "Add New PG" to begin.'
+          />
         ) : (
           <div className="flex flex-col gap-6">
             <PaginationWrapper
