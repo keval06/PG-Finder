@@ -82,12 +82,17 @@ export default function BookingPage() {
   const step2Valid =
     checkIn && checkOut && checkIn >= today && checkOut > checkIn && months > 0;
 
+  // new
   const handleSubmit = async () => {
     setError("");
     setSubmitting(true);
+    let bookingId = null;
+
     try {
       const token = localStorage.getItem("token");
-      const data = await bookingApi.create({
+
+      // Step 1: Create booking record (status: pending)
+      const booking = await bookingApi.create({
         pg: pgId,
         roomType: selectedRoom._id,
         checkInDate: checkIn,
@@ -95,14 +100,86 @@ export default function BookingPage() {
         amount: totalAmount,
       }, token);
 
-      if (data._id) {
-        setSuccess(true);
-      } else {
-        setError(data.message || "Booking failed. Please try again.");
+      if (!booking._id) {
+        setError(booking.message || "Booking failed. Please try again.");
+        setSubmitting(false);
+        return;
       }
+      bookingId = booking._id;
+
+      // Step 2: Create Razorpay order
+      const orderRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/payment/create-order`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ bookingId }),
+      });
+      const order = await orderRes.json();
+
+      if (!orderRes.ok) {
+        setError(order.message || "Payment initiation failed.");
+        setSubmitting(false);
+        return;
+      }
+
+      // Step 3: Open Razorpay modal
+      const options = {
+        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+        order_id: order.id,
+        amount: order.amount,
+        currency: order.currency,
+        name: "QuickPG",
+        description: `Booking for ${selectedRoom.name}`,
+        handler: async function (response) {
+          // Step 4: Verify payment
+          const verifyRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/payment/verify-payment`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({
+              bookingId,
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature,
+            }),
+          });
+          const verifyData = await verifyRes.json();
+          if (verifyData.success) {
+            setSuccess(true);
+          } else {
+            setError("Payment verification failed. Contact support.");
+          }
+        },
+        modal: {
+          ondismiss: async function () {
+            // User cancelled — mark booking as cancelled
+            await bookingApi.updateStatus(bookingId, "cancelled", token);
+            setError("Payment cancelled. Your booking has been cancelled.");
+            setSubmitting(false);
+          },
+        },
+        prefill: {
+          name: user?.name || "",
+          email: user?.email || "",
+        },
+        theme: { color: "#FF385C" },
+      };
+
+      const rzp = new window.Razorpay(options);
+      rzp.open();
+      setSubmitting(false);
+
     } catch (err) {
+      // If booking was created but payment failed, cancel it
+      if (bookingId) {
+        const token = localStorage.getItem("token");
+        await bookingApi.updateStatus(bookingId, "cancelled", token);
+      }
       setError(err.message || "Something went wrong. Please try again.");
-    } finally {
       setSubmitting(false);
     }
   };
