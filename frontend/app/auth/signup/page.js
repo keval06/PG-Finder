@@ -12,6 +12,7 @@ import {
   Lock,
   CheckCircle2,
   XCircle,
+  Mail,
 } from "lucide-react";
 import { userApi } from "../../../lib/api/user";
 
@@ -22,6 +23,7 @@ export default function SignupPage() {
   // Memory for the 3 input boxes
   const [name, setName] = useState("");
   const [mobile, setMobile] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false); //*Toggle: show/hide password text
 
@@ -68,6 +70,7 @@ export default function SignupPage() {
         name: name.trim(),
         mobile: mobile.trim(),
         password: password,
+        email: email.trim(),
       });
 
       if (data._id) {
@@ -90,12 +93,12 @@ export default function SignupPage() {
     "w-full bg-transparent pl-9 pr-10 py-2.5 text-sm outline-none placeholder:text-slate-400 text-slate-900";
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-white px-4">
-      <div className="bg-white w-full max-w-sm rounded-2xl shadow-sm border border-slate-200 p-8 flex flex-col gap-5">
+    <div className="flex items-center justify-center min-h-[calc(100vh-80px)] bg-white px-4 py-10 ">
+      <div className="bg-white w-full max-w-sm rounded-2xl shadow-md border border-slate-200 p-8 flex flex-col gap-5 mt-1">
         {/* */}
         <div className="text-center">
           <h1 className="text-2xl font-bold text-slate-900">Create Account</h1>
-          <p className="text-sm text-slate-400 mt-1">Join PG Finder today</p>
+          <p className="text-sm text-slate-400 mt-1">Join QuickPG today</p>
         </div>
         {/* ERROR BANNER — visible, not alert() */}
         {/* Short-circuit rendering */}
@@ -130,6 +133,19 @@ export default function SignupPage() {
             </p>
           )}
 
+          {/* Email */}
+          <div className="relative flex items-center border border-slate-200 rounded-xl bg-slate-50 focus-within:bg-white focus-within:border-rose-400 focus-within:ring-2 focus-within:ring-rose-50 transition-all">
+            <Mail size={15} className={iconClass} />
+            <input
+              type="email"
+              placeholder="Email Address"
+              value={email}
+              onChange={(e) => setEmail(e.target.value.trim())}
+              className={inputClass}
+              required
+            />
+          </div>
+
           {/* Mobile */}
           <div className="relative flex items-center border border-slate-200 rounded-xl bg-slate-50 focus-within:bg-white focus-within:border-rose-400 focus-within:ring-2 focus-within:ring-rose-50 transition-all">
             {/* Letters are automatically stripped as you type! */}
@@ -140,12 +156,11 @@ export default function SignupPage() {
               value={mobile}
               onChange={(e) =>
                 setMobile(e.target.value.replace(/\D/g, "").slice(0, 10))
-              } 
+              }
               className={inputClass}
               required
             />
           </div>
-
           {/* Password */}
           <div className="flex flex-col gap-1">
             {/* password input field */}
@@ -175,11 +190,10 @@ export default function SignupPage() {
             {password.trim().length > 0 &&
               !passwordRegex.test(password.trim()) && (
                 <p className="text-xs text-red-500 px-1 flex items-center gap-1">
-                  <XCircle size={13} /> 8-16 chars, 1 digit, 1 special char.
+                  <XCircle size={13} /> Password must be 8–16 characters with a number and a symbol (e.g. @, #, !)
                 </p>
               )}
           </div>
-
           {/* Confirm password */}
           <div className="flex flex-col gap-1">
             <div className="relative flex items-center border border-slate-200 rounded-xl bg-slate-50 focus-within:bg-white focus-within:border-rose-400 focus-within:ring-2 focus-within:ring-rose-50 transition-all">
@@ -220,7 +234,6 @@ export default function SignupPage() {
               </p>
             )}
           </div>
-
           {/*passwordsMatch   */}
           <button
             type="submit"

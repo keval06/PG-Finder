@@ -19,7 +19,7 @@ exports.registerUser = async (req, res) => {
       return res.status(400).json({ message: "Mobile already registered" });
     }
 
-    existingEmail = await User.findOne({ email });
+    const existingEmail = await User.findOne({ email });
     if (existingEmail) {
       return res.status(400).json({ message: "Email already registered" });
     }

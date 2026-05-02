@@ -1,6 +1,6 @@
 const Image = require("../models/image.js");
 const s3 = require("../config/s3.js");
-const pg = require("../models/pg.js");
+const PG = require("../models/pg.js");
 
 exports.registerImage = async (req, res) => {
   try {
@@ -11,7 +11,7 @@ exports.registerImage = async (req, res) => {
     }
     // 1. Find the PG being targeted for this image upload
 
-    const pgDoc = await pg.findById(pg);
+    const pgDoc = await PG.findById(pg);
 
     // 2. Make sure the PG actually exists
     if (!pgDoc) {
