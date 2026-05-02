@@ -45,8 +45,12 @@ export const pgApi = {
   },
 
   // Owner's Dashboard Listings (Verified: /api/pg/owner)
-  getOwnerPgs: async (token) => {
-    return authFetch(`${API_URL}/api/pg/owner`, {
+  getOwnerPgs: async (token, queryString = "") => {
+    const url = queryString
+      ? `${API_URL}/api/pg/owner?${queryString}`
+      : `${API_URL}/api/pg/owner`;
+
+    return authFetch(url, {
       headers: { Authorization: `Bearer ${token}` },
       cache: "no-store",
     });
