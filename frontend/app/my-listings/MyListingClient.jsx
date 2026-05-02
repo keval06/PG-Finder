@@ -9,7 +9,7 @@ import FilterPanel from "../../components/FilterPanel";
 import SortBtn from "../../components/SortBtn";
 import ConfirmModal from "../../components/ConfirmModal";
 import PaginationWrapper from "../../components/PaginationWrapper";
-import { usePGFilters } from "../hooks/usePGFilters";
+import { usePGFilters, buildFilterParams } from "../hooks/usePGFilters";
 import { pgApi } from "../../lib/api/pg";
 import { reviewApi } from "../../lib/api/review";
 import { roomTypeApi } from "../../lib/api/roomType";
@@ -37,6 +37,11 @@ export default function MyListingsClient() {
 
   const { query } = useSearch();
 
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
+  const ITEMS_PER_PAGE = 5;
+
   const {
     sorted,
     fp,
@@ -48,13 +53,19 @@ export default function MyListingsClient() {
     setDrawerOpen,
     hasFilters,
     clearFilters,
-  } = usePGFilters(pgs, query);
+    active,
+  } = usePGFilters(pgs, query, "remote");
 
   const { setFilterCount: setGlobalFilterCount } = useSearch();
 
   useEffect(() => {
     setGlobalFilterCount(filterCount);
   }, [filterCount, setGlobalFilterCount]);
+
+  // Reset pagination to page 1 when any filter changes
+  useEffect(() => {
+    setPage(1);
+  }, [active, sortField, sortOrder, query]);
 
   // Lock body scroll when filter drawer is open
   useEffect(() => {
@@ -68,14 +79,21 @@ export default function MyListingsClient() {
     };
   }, [drawerOpen]);
 
+  // Now, if the user clicks "Page 2" or applies a "Price Filter", React automatically detects the state change, waits 300ms (debounce to prevent spamming the server while typing), and fires the request.
+
   useEffect(() => {
     if (!ready) return;
     if (!user) {
       router.push("/auth/login");
       return;
     }
-    fetchMyPGs();
-  }, [ready, user]);
+    
+    const timeoutId = setTimeout(() => {
+      fetchMyPGs();
+    }, 300);
+    
+    return () => clearTimeout(timeoutId);
+  }, [ready, user, page, active, sortField, sortOrder, query]);
 
   const fetchMyPGs = async () => {
     setLoading(true);
@@ -85,46 +103,50 @@ export default function MyListingsClient() {
         setLoading(false);
         return;
       }
-      // Get owner PGs directly
-      const ownerResponse = await pgApi.getOwnerPgs(token);
+      
+      const params = buildFilterParams({
+        active, query, sortField, sortOrder, page, limit: ITEMS_PER_PAGE
+      });
 
-      //Extract .data from response
-      let mine = Array.isArray(ownerResponse.data) ? ownerResponse.data : [];
+      const response = await pgApi.getOwnerPgs(token, params.toString());
+      const pgsData = response.data || [];
 
-      const withRatings = await Promise.all(
-        mine.map(async (pg) => {
+      const formattedPgs = await Promise.all(
+        pgsData.map(async (pg) => {
           try {
-            const [reviewRes, images] = await Promise.all([
-              reviewApi.getByPgId(pg._id).catch(() => []),
-              imageApi.getByPgId(pg._id).catch(() => []),
-            ]);
-
-            // Extract array from paginated response
-            const reviews = Array.isArray(reviewRes)
-              ? reviewRes
-              : reviewRes?.reviews ?? [];
-            const total = Array.isArray(reviewRes)
-              ? reviews.length
-              : reviewRes?.total ?? 0;
-            let ratingData = null;
-            if (reviews.length > 0) {
-              const avg =
-                reviews.reduce((s, rv) => s + rv.star, 0) / reviews.length;
-              ratingData = { avg: avg.toFixed(1), count: total };
-            }
-
+            const images = await imageApi.getByPgId(pg._id).catch(() => []);
             return {
               ...pg,
               images: Array.isArray(images) ? images : [],
               image: images?.[0]?.url || null,
-              ratingData,
+              // Now we just map the data the server handed us natively:
+              ratingData: {
+                avg: pg.avgRating?.toFixed(1) || "0.0",
+                count: pg.reviewCount || 0
+              }
             };
           } catch {
             return { ...pg, ratingData: null, image: null };
           }
         })
       );
-      setPgs(withRatings);
+      
+      setPgs(formattedPgs);
+      setTotalPages(response.totalPages || 1);
+      setTotalCount(response.totalCount || 0);
+    } catch (err) {
+      if (
+        err?.message?.includes("invalid signature") ||
+        err?.message?.includes("jwt expired") ||
+        err?.status === 401 ||
+        err?.status === 403
+      ) {
+        localStorage.removeItem("token");
+        router.replace("/auth/login");
+      }
+      setPgs([]);
+      setTotalPages(1);
+      setTotalCount(0);
     } finally {
       setLoading(false);
     }
@@ -244,8 +266,12 @@ export default function MyListingsClient() {
           <div className="flex flex-col gap-6">
             <PaginationWrapper
               data={sorted}
-              itemsPerPage={5}
+              itemsPerPage={ITEMS_PER_PAGE}
               renderItem={(pg) => <ListingCard key={pg._id} pg={pg} />}
+              page={page}
+              onPageChange={setPage}
+              totalPages={totalPages}
+              totalItems={totalCount}
             />
           </div>
         )}

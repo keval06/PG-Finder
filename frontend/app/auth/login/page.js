@@ -61,13 +61,13 @@ export default function LoginPage() {
     "w-full bg-transparent pl-9 pr-10 py-2.5 text-sm outline-none placeholder:text-gray-400";
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-white px-4">
-      <div className="bg-white w-full max-w-sm rounded-2xl shadow-md p-8 flex flex-col gap-5">
+    <div className="flex items-center justify-center min-h-[calc(100vh-80px)] bg-white px-4 py-8">
+      <div className="bg-white w-full max-w-sm rounded-2xl shadow-[0_4px_16px_rgba(0,0,0,0.10)] p-8 flex flex-col gap-5">
+        {" "}
         <div className="text-center">
           <h1 className="text-2xl font-semibold text-gray-900">Welcome Back</h1>
-          <p className="text-sm text-gray-400 mt-1">Login to PG Finder</p>
+          <p className="text-sm text-gray-400 mt-1">Login to QuickPG</p>
         </div>
-
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           {/* Mobile */}
           <div className="relative flex items-center border border-gray-200 rounded-xl bg-gray-50 focus-within:bg-white focus-within:border-rose-400 transition-colors">
@@ -131,7 +131,6 @@ export default function LoginPage() {
             {loading ? "Logging in..." : "Login"}
           </button>
         </form>
-
         <p className="text-sm text-center text-gray-500">
           Not registered?{" "}
           <Link

@@ -13,7 +13,7 @@ import {
 import { GALLERY_CATEGORIES, CATEGORY_LABELS } from "../../lib/constants";
 import useLightbox from "../hooks/useLightbox";
 
-export default function PGGallery({ images, onDelete, onUpload }) {
+export default function PGGallery({ images, onDelete, onUpload, uploading }) {
   const [activeImage, setActiveImage] = useState(0);
   const [activeCategory, setActiveCategory] = useState("room");
 
@@ -161,9 +161,13 @@ export default function PGGallery({ images, onDelete, onUpload }) {
                 ))}
 
                 {onUpload && (
-                  <label className="w-[88px] h-[60px] flex-shrink-0 rounded-xl border-2 border-dashed border-slate-300 flex items-center justify-center cursor-pointer hover:border-slate-400 hover:bg-slate-50 transition-colors">
-                    <ImagePlus size={18} className="text-slate-400" />
-                    <input type="file" accept="image/*" className="sr-only" onChange={(e) => { if (e.target.files[0]) onUpload(e.target.files[0], activeCategory); e.target.value = ''; }} />
+                  <label className={`w-[88px] h-[60px] flex-shrink-0 rounded-xl border-2 border-dashed border-slate-300 flex items-center justify-center transition-colors ${uploading ? "opacity-50 cursor-not-allowed" : "cursor-pointer hover:border-slate-400 hover:bg-slate-50"}`}>
+                    {uploading ? (
+                      <div className="w-5 h-5 border-2 border-rose-500 border-t-transparent rounded-full animate-spin" />
+                    ) : (
+                      <ImagePlus size={18} className="text-slate-400" />
+                    )}
+                    <input type="file" accept="image/*" className="sr-only" disabled={uploading} onChange={(e) => { if (e.target.files[0]) onUpload(e.target.files[0], activeCategory); e.target.value = ''; }} />
                   </label>
                 )}
               </div>
@@ -172,13 +176,19 @@ export default function PGGallery({ images, onDelete, onUpload }) {
         ) : (
           /* Empty State */
           onUpload ? (
-            <label className="w-full h-[300px] sm:h-[450px] bg-slate-50 border-2 border-dashed border-slate-200 rounded-3xl flex flex-col items-center justify-center gap-2 text-slate-400 group hover:border-slate-400 hover:bg-slate-50/30 transition-all cursor-pointer">
+            <label className={`w-full h-[300px] sm:h-[450px] bg-slate-50 border-2 border-dashed border-slate-200 rounded-3xl flex flex-col items-center justify-center gap-2 text-slate-400 group transition-all ${uploading ? "opacity-70 cursor-not-allowed" : "hover:border-slate-400 hover:bg-slate-50/30 cursor-pointer"}`}>
               <div className="w-14 h-14 bg-white rounded-2xl shadow-sm flex items-center justify-center mb-1 transition-transform">
-                <ImagePlus size={28} className="text-slate-400" />
+                {uploading ? (
+                   <div className="w-6 h-6 border-2 border-rose-500 border-t-transparent rounded-full animate-spin" />
+                ) : (
+                   <ImagePlus size={28} className="text-slate-400" />
+                )}
               </div>
-              <p className="text-sm font-semibold text-slate-600">No {CATEGORY_LABELS[activeCategory]} images yet</p>
-              <p className="text-xs text-slate-400">Click to upload</p>
-              <input type="file" accept="image/*" className="sr-only" onChange={(e) => { if (e.target.files[0]) onUpload(e.target.files[0], activeCategory); e.target.value = ''; }} />
+              <p className="text-sm font-semibold text-slate-600">
+                {uploading ? "Uploading..." : `No ${CATEGORY_LABELS[activeCategory]} images yet`}
+              </p>
+              {!uploading && <p className="text-xs text-slate-400">Click to upload</p>}
+              <input type="file" accept="image/*" className="sr-only" disabled={uploading} onChange={(e) => { if (e.target.files[0]) onUpload(e.target.files[0], activeCategory); e.target.value = ''; }} />
             </label>
           ) : (
             <div className="w-full h-[300px] sm:h-[450px] bg-slate-50 border-2 border-dashed border-slate-200 rounded-3xl flex flex-col items-center justify-center gap-2 text-slate-400">

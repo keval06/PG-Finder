@@ -64,6 +64,8 @@ export default function EditListingClient({ pgId }) {
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [deleteImgTarget, setDeleteImgTarget] = useState(null);
+  const [uploadingImg, setUploadingImg] = useState(false);
+  const [deletingImg, setDeletingImg] = useState(false);
 
   const token = () => localStorage.getItem("token");
   useEffect(() => {
@@ -205,14 +207,19 @@ export default function EditListingClient({ pgId }) {
 
   const handleUpload = async (file, category) => {
     try {
+      setUploadingImg(true);
       const formData = new FormData();
       formData.append("image", file);
       formData.append("pg", pgId);
       formData.append("category", category);
       await imageApi.upload(formData, token());
       await fetchAll();
+      showToast("success", "Image uploaded successfully!");
     } catch (err) {
       console.error(err.message);
+      showToast("error", "Failed to upload image.");
+    } finally {
+      setUploadingImg(false);
     }
   };
 
@@ -220,13 +227,17 @@ export default function EditListingClient({ pgId }) {
 
   const handleDeleteImg = async () => {
     const imgId = deleteImgTarget;
-    setDeleteImgTarget(null);
-    setImages((prev) => prev.filter((img) => img._id !== imgId));
     try {
+      setDeletingImg(true);
       await imageApi.delete(imgId, token());
+      setImages((prev) => prev.filter((img) => img._id !== imgId));
+      setDeleteImgTarget(null);
+      showToast("success", "Image deleted successfully!");
     } catch (err) {
       console.error("Delete failed", err);
-      await fetchAll();
+      showToast("error", "Failed to delete image.");
+    } finally {
+      setDeletingImg(false);
     }
   };
 
@@ -332,6 +343,7 @@ export default function EditListingClient({ pgId }) {
             images={images}
             onUpload={handleUpload}
             onDelete={requestDeleteImg}
+            uploading={uploadingImg}
           />
         </div>
 
@@ -705,6 +717,7 @@ export default function EditListingClient({ pgId }) {
         description="This image will be permanently removed from the gallery."
         confirmText="Delete"
         variant="danger"
+        processing={deletingImg}
       />
     </div>
   );
