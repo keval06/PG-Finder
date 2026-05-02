@@ -103,43 +103,99 @@ exports.registerBooking = async (req, res) => {
   }
 };
 
-// after — user sees own, owner sees their PG's bookings
-exports.getMyBookings = async (req, res) => {
+// Helper to build filters from query string
+const buildBookingFilter = async (baseFilter, req) => {
+  const { status, dateRange, q } = req.query;
+  let filter = { ...baseFilter };
+
+  if (status && status !== "all") {
+    filter.status = status;
+  }
+
+  if (dateRange && dateRange !== "all") {
+    const daysMap = { "30d": 30, "90d": 90, "6m": 180, "1y": 365 };
+    if (daysMap[dateRange]) {
+      const cutoff = new Date(Date.now() - daysMap[dateRange] * 86400000);
+      filter.checkInDate = { $gte: cutoff };
+    }
+  }
+
+  if (q && q.trim()) {
+    const regex = new RegExp(q.trim(), "i");
+    const matchingPgs = await PG.find({
+      $or: [{ name: regex }, { city: regex }]
+    }).select("_id");
+    const matchingPgIds = matchingPgs.map(p => p._id.toString());
+
+    if (filter.pg && filter.pg.$in) {
+       // Intersect owner's PG ids with searched PG ids
+       const ownerPgIds = filter.pg.$in.map(id => id.toString());
+       const intersected = ownerPgIds.filter(id => matchingPgIds.includes(id));
+       filter.pg.$in = intersected;
+    } else {
+       filter.pg = { $in: matchingPgIds };
+    }
+  }
+
+  return filter;
+};
+
+// Helper for sending paginated response
+const paginateAndSendBookings = async (baseFilter, req, res, populates) => {
   try {
-    // get bookings
-    const bookings = await Booking.find({ user: req.user._id })
-      .populate("pg", "name price city")
-      .populate("roomType", "name sharingCount price")
-      .sort({ createdAt: -1 });
+    const filter = await buildBookingFilter(baseFilter, req);
+    
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    let queryBuilder = Booking.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit);
+    if (populates) {
+      populates.forEach(p => { queryBuilder = queryBuilder.populate(p.path, p.select); });
+    }
+
+    const bookings = await queryBuilder;
+    const totalCount = await Booking.countDocuments(filter);
+
     res.json({
       data: bookings,
-      totalCount: bookings.length,
-      page: 1,
-      totalPages: 1,
+      totalCount,
+      page,
+      totalPages: Math.ceil(totalCount / limit) || 1,
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
 
+// after — user sees own, owner sees their PG's bookings
+exports.getMyBookings = async (req, res) => {
+  return await paginateAndSendBookings(
+    { user: req.user._id },
+    req,
+    res,
+    [
+      { path: "pg", select: "name price city" },
+      { path: "roomType", select: "name sharingCount price" }
+    ]
+  );
+};
+
 exports.getReceivedBookings = async (req, res) => {
   try {
-    // get bookings
     const myPgs = await PG.find({ owner: req.user._id }).select("_id");
     const pgIds = myPgs.map((pg) => pg._id);
 
-    const bookings = await Booking.find({ pg: { $in: pgIds } })
-      .populate("user", "name mobile") // populate user
-      .populate("pg", "name city") // populate pg
-      .populate("roomType", "name sharingCount price") // populate room type
-      .sort({ createdAt: -1 });
-
-    res.json({
-      data: bookings,
-      totalCount: bookings.length,
-      page: 1,
-      totalPages: 1,
-    });
+    return await paginateAndSendBookings(
+      { pg: { $in: pgIds } },
+      req,
+      res,
+      [
+        { path: "user", select: "name mobile" },
+        { path: "pg", select: "name city" },
+        { path: "roomType", select: "name sharingCount price" }
+      ]
+    );
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
