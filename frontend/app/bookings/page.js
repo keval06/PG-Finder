@@ -70,11 +70,12 @@ export default function MyBookingsPage() {
 
   const { query, setQuery } = useSearch();
 
-  // ─── auth guard
-  useEffect(() => {
-    if (!ready) return;
-    if (!user) router.replace("/auth/login");
-  }, [ready, user, router]);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
+  const ITEMS_PER_PAGE = 5;
+
+
 
   // ─── fetch bookings
   const fetchBookings = useCallback(async () => {
@@ -82,18 +83,46 @@ export default function MyBookingsPage() {
     try {
       const token = localStorage.getItem("token");
       if (!token) return;
-      const response = await bookingApi.getUserBookings(token);
+      
+      const params = new URLSearchParams();
+      if (statusTab !== "all") params.append("status", statusTab);
+      if (dateRange !== "all") params.append("dateRange", dateRange);
+      if (query.trim()) params.append("q", query.trim());
+      params.append("page", page);
+      params.append("limit", ITEMS_PER_PAGE);
+
+      const response = await bookingApi.getUserBookings(token, params.toString());
       setBookings(Array.isArray(response.data) ? response.data : []);
-    } catch {
+      setTotalPages(response.totalPages || 1);
+      setTotalCount(response.totalCount || 0);
+    } catch (err) {
+      if (
+        err?.message?.includes("invalid signature") ||
+        err?.message?.includes("jwt expired") ||
+        err?.status === 401 ||
+        err?.status === 403
+      ) {
+        localStorage.removeItem("token");
+        router.replace("/auth/login");
+      }
       setBookings([]);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [statusTab, dateRange, query, page]);
 
   useEffect(() => {
-    if (ready && user) fetchBookings();
-  }, [ready, user, fetchBookings]);
+    if (!ready) return;
+    if (!user) {
+      router.replace("/auth/login");
+      return;
+    }
+    setLoading(true);
+    const timeoutId = setTimeout(() => {
+      fetchBookings();
+    }, 300);
+    return () => clearTimeout(timeoutId);
+  }, [ready, user, router, fetchBookings]);
 
   // ─── cancel booking
   const handleCancel = async () => {
@@ -112,7 +141,7 @@ export default function MyBookingsPage() {
     }
   };
 
-  if (!ready || loading) {
+  if (!ready) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="w-6 h-6 border-2 border-rose-500 border-t-transparent rounded-full animate-spin" />
@@ -120,48 +149,14 @@ export default function MyBookingsPage() {
     );
   }
 
-  // ─── filters
-  const filterByDate = (list) => {
-    if (dateRange === "all") return list;
-    const now = new Date();
-    const daysMap = { "30d": 30, "90d": 90, "6m": 180, "1y": 365 };
-    const cutoff = new Date(now - daysMap[dateRange] * 86400000);
-    return list.filter((b) => new Date(b.checkInDate) >= cutoff);
-  };
-
-  const filterBySearch = (list) => {
-    if (!query.trim()) return list;
-    const q = query.toLowerCase();
-    return list.filter(
-      (b) =>
-        (b.pg?.name || "").toLowerCase().includes(q) ||
-        (b.pg?.city || "").toLowerCase().includes(q)
-    );
-  };
-
-  const searched = filterBySearch(filterByDate(bookings));
-  const pending = searched.filter((b) => b.status === "pending");
-  const confirmed = searched.filter((b) => b.status === "confirmed");
-  const cancelled = searched.filter((b) => b.status === "cancelled");
-
-  const tabCounts = {
-    all: searched.length,
-    pending: pending.length,
-    confirmed: confirmed.length,
-    cancelled: cancelled.length,
-  };
-
-  const displayList =
-    statusTab === "all" ? searched :
-    statusTab === "pending" ? pending :
-    statusTab === "confirmed" ? confirmed :
-    cancelled;
+  // ─── local filtering removed (now remote) ───
 
   const TABS = [
     { key: "all", label: "All" },
-    { key: "pending", label: "Pending" },
     { key: "confirmed", label: "Confirmed" },
+    { key: "pending", label: "Pending" },
     { key: "cancelled", label: "Cancelled" },
+    { key: "completed", label: "Completed" },
   ];
 
   const RANGES = [
@@ -183,9 +178,11 @@ export default function MyBookingsPage() {
                 My Bookings
               </h1>
               <p className="text-base text-[#717171]">
-                {query.trim()
-                  ? `${searched.length} of ${bookings.length} matching "${query}"`
-                  : `${bookings.length} booking${bookings.length !== 1 ? "s" : ""} placed`}
+                {loading
+                  ? "Updating..."
+                  : query.trim()
+                  ? `${totalCount} matching "${query}"`
+                  : `${totalCount} booking${totalCount !== 1 ? "s" : ""} placed`}
               </p>
             </div>
             <button
@@ -202,7 +199,10 @@ export default function MyBookingsPage() {
               {TABS.map((t) => (
                 <button
                   key={t.key}
-                  onClick={() => setStatusTab(t.key)}
+                  onClick={() => {
+                    setStatusTab(t.key);
+                    setPage(1);
+                  }}
                   className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
                     statusTab === t.key
                       ? "bg-[#FF385C] text-white shadow-md shadow-rose-200"
@@ -210,11 +210,9 @@ export default function MyBookingsPage() {
                   }`}
                 >
                   {t.label}
-                  {tabCounts[t.key] > 0 && (
-                    <span className={`ml-2 text-[10px] font-bold uppercase px-2 py-0.5 rounded-full ${
-                      statusTab === t.key ? "bg-white/20 text-white" : "bg-slate-200 text-[#717171]"
-                    }`}>
-                      {tabCounts[t.key]}
+                  {statusTab === t.key && totalCount > 0 && !loading && (
+                    <span className="ml-2 text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-white/20 text-white">
+                      {totalCount}
                     </span>
                   )}
                 </button>
@@ -228,14 +226,20 @@ export default function MyBookingsPage() {
                   type="text"
                   placeholder="Search PG name or city…"
                   value={query}
-                  onChange={(e) => setQuery(e.target.value)}
+                  onChange={(e) => {
+                    setQuery(e.target.value);
+                    setPage(1);
+                  }}
                   className="w-full pl-9 pr-4 py-2.5 bg-white border border-[#DDDDDD] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-rose-50 focus:border-rose-400 transition-all shadow-sm"
                 />
               </div>
               
               <CustomSelect
                 value={dateRange}
-                onChange={(val) => setDateRange(val)}
+                onChange={(val) => {
+                  setDateRange(val);
+                  setPage(1);
+                }}
                 options={RANGES}
                 className="sm:w-40 h-[42px]"
               />
@@ -243,7 +247,11 @@ export default function MyBookingsPage() {
           </div>
 
           <div className="flex flex-col gap-6">
-            {bookings.length === 0 ? (
+            {loading ? (
+              <div className="flex justify-center py-20">
+                <div className="w-6 h-6 border-2 border-rose-500 border-t-transparent rounded-full animate-spin" />
+              </div>
+            ) : bookings.length === 0 && statusTab === "all" && dateRange === "all" && !query.trim() ? (
               <EmptyState
                 icon={Bed}
                 title="No bookings yet"
@@ -257,7 +265,7 @@ export default function MyBookingsPage() {
                   </button>
                 }
               />
-            ) : displayList.length === 0 ? (
+            ) : bookings.length === 0 ? (
               <EmptyState
                 icon={Search}
                 title="No matches found"
@@ -268,6 +276,7 @@ export default function MyBookingsPage() {
                       setQuery("");
                       setStatusTab("all");
                       setDateRange("all");
+                      setPage(1);
                     }}
                     className="text-rose-500 font-semibold hover:underline"
                   >
@@ -278,11 +287,15 @@ export default function MyBookingsPage() {
             ) : (
               <div className="flex flex-col gap-6">
                 <PaginationWrapper
-                  data={displayList}
-                  itemsPerPage={5}
+                  data={bookings}
+                  itemsPerPage={ITEMS_PER_PAGE}
                   renderItem={(b) => (
                     <BookingCard key={b._id} b={b} onCancel={() => setCancelTarget(b)} />
                   )}
+                  page={page}
+                  onPageChange={setPage}
+                  totalPages={totalPages}
+                  totalItems={totalCount}
                 />
               </div>
             )}

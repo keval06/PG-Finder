@@ -170,8 +170,15 @@ export default function PGForm({
   // Room Type Pagination
   const [rtPage, setRtPage] = useState(1);
   const rtPerPage = 5;
-  const totalRtPages = Math.ceil(roomTypes.length / rtPerPage);
+  const totalRtPages = Math.max(1, Math.ceil(roomTypes.length / rtPerPage));
   const paginatedRTs = roomTypes.slice((rtPage - 1) * rtPerPage, rtPage * rtPerPage);
+
+  useEffect(() => {
+    if (rtPage > totalRtPages) {
+      setRtPage(totalRtPages);
+    }
+  }, [totalRtPages, rtPage]);
+
 
   const set = (k, v) => setForm((p) => ({ ...p, [k]: v }));
   const toggleA = (a) =>
