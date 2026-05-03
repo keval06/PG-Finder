@@ -27,6 +27,7 @@ skills
 .env.local
 frontend/.env.local
 backend/.env
+frontend/prompt.md
 frontend/learning_roadmap
 backend/learning_roadmap
 backend/DBdesign.md
