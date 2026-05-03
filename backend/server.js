@@ -1,12 +1,14 @@
 const express = require("express");
 const cors = require("cors");
+const helmet = require("helmet");
 const connectDB = require("./db/db.js");
+const { globalLimiter } = require("./middleware/rateLimiter.js");
 
 require("dotenv").config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
-
+app.use(helmet());
 // ── Middleware ──────────────────────────────────────────────────────────────
 // Must be registered BEFORE app.listen() so every request is processed correctly.
 app.use(
@@ -23,7 +25,7 @@ app.use(
         "http://127.0.0.1:3000",
         "http://localhost:3001",
         "http://127.0.0.1:3001",
-      ].filter(Boolean);  
+      ].filter(Boolean);
       // Allow any LAN IP (192.168.x.x) for development/mobile testing
       if (allowed.includes(origin) || /^http:\/\/192\.168\.\d+\.\d+:\d+$/.test(origin)) {
         return callback(null, true);
@@ -36,22 +38,27 @@ app.use(
 );
 
 app.use("/api/payment/webhook",
-  express.raw({ type :"application/json"}),
-  (req,res,next)=>{
-    req.body = JSON.parse(req.body);
-    next();
+  express.raw({ type: "application/json" }),
+  (req, res, next) => {
+    try {
+      req.body = JSON.parse(req.body);
+      next();
+    } catch (e) {
+      return res.status(400).json({ message: "Invalid webhook payload" });
+    }
   }
 );
 
 // Middleware
 // Optional: Also limit URL encoded data if used
-app.use(express.json({ limit: "10kb" })); 
+// app.use("/api", globalLimiter);
+app.use(express.json({ limit: "10kb" }));
 app.use(express.urlencoded({ limit: "10kb", extended: true }));
 
 // Routes
-app.get("/", (req, res) => {
-  res.json({ message: "PG Finder API" });
-});
+// app.get("/", (req, res) => {
+//   res.json({ message: "PG Finder API" });
+// });
 
 app.use("/api/user", require("./routes/userRoutes.js"));
 app.use("/api/pg", require("./routes/pgRoutes.js"));

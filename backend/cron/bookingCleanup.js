@@ -1,15 +1,11 @@
 const cron = require("node-cron");
+const mongoose = require("mongoose");
 const Booking = require("../models/booking");
 const RoomType = require("../models/roomType");
 
-// Run every day at midnight (0 0 * * *)
-cron.schedule("0 0 * * *", async () => {
-  console.log("Running daily booking cleanup cron job...");
+// Every 30 minutes — clean abandoned pending bookings
+cron.schedule("*/30 * * * *", async () => {
   try {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0); // Start of today
-
-    // Clean up abandoned pending bookings older than 30 minutes
     const thirtyMinutesAgo = new Date(Date.now() - 30 * 60 * 1000);
     await Booking.updateMany(
       {
@@ -20,8 +16,19 @@ cron.schedule("0 0 * * *", async () => {
       { $set: { status: "cancelled" } },
     );
     console.log("Stale pending bookings cleaned up.");
+  } 
+  catch (error) {
+    console.error("Error cleaning stale pending bookings:", error);
+  }
+});
 
-    // Find all active/confirmed bookings where the checkout date is in the past
+// Every day at midnight — mark confirmed+expired bookings as completed
+cron.schedule("0 0 * * *", async () => {
+  console.log("Running daily booking cleanup cron job...");
+  try {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
     const expiredBookings = await Booking.find({
       status: "confirmed",
       checkOutDate: { $lt: today },
@@ -32,28 +39,41 @@ cron.schedule("0 0 * * *", async () => {
       return;
     }
 
-    console.log(
-      `Found ${expiredBookings.length} expired bookings. Cleaning up...`,
-    );
+    console.log(`Found ${expiredBookings.length} expired bookings. Cleaning up...`);
 
     for (const booking of expiredBookings) {
-      // 1. Atomically mark as completed ONLY if it was still confirmed
-      const result = await Booking.findOneAndUpdate(
-        { _id: booking._id, status: "confirmed" },
-        { $set: { status: "completed" } },
-      );
+      const session = await mongoose.startSession();
+      session.startTransaction();
+      try {
+        const result = await Booking.findOneAndUpdate(
+          { _id: booking._id, status: "confirmed" },
+          { $set: { status: "completed" } },
+          { session },
+        );
 
-      // 2. ONLY if the booking was actually updated by this process, free the bed
-      if (result) {
-        await RoomType.findByIdAndUpdate(booking.roomType, {
-          $inc: { occupiedBeds: -1 },
-        });
-        console.log(`Cleaned up booking ${booking._id}`);
+        if (result) {
+          await RoomType.findByIdAndUpdate(
+            booking.roomType,
+            { $inc: { occupiedBeds: -1 } },
+            { session },
+          );
+          console.log(`Cleaned up booking ${booking._id}`);
+        }
+
+        await session.commitTransaction();
+      } 
+      catch (err) {
+        await session.abortTransaction();
+        console.error(`Failed to clean up booking ${booking._id}:`, err);
+      } 
+      finally {
+        session.endSession();
       }
     }
 
     console.log("Booking cleanup finished successfully.");
-  } catch (error) {
-    console.error("Error running booking cleanup cron job:", error);
+  } 
+  catch (error) {
+    console.error("Error running daily booking cleanup:", error);
   }
 });

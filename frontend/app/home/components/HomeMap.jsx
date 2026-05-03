@@ -48,7 +48,12 @@ const getLatLng = (coordinate) => {
 
 // Handles map view changes ONLY for explicit user actions (location, fullscreen)
 // Does NOT auto-zoom/pan when data changes (sort, filter, page)
-function MapEffect({ userLocation, defaultMapCenter, isFullscreen, shouldFitBounds }) {
+function MapEffect({
+  userLocation,
+  defaultMapCenter,
+  isFullscreen,
+  shouldFitBounds,
+}) {
   const map = useMap();
 
   // Handle fullscreen container resize
@@ -67,9 +72,9 @@ function MapEffect({ userLocation, defaultMapCenter, isFullscreen, shouldFitBoun
 
   // Fit bounds when shouldFitBounds flag is set (initial load only)
   useEffect(() => {
-    if (!map || !shouldFitBounds || !defaultMapCenter) return;
-    map.setView(defaultMapCenter, 11, { animate: false });
-  }, [map, shouldFitBounds, defaultMapCenter]);
+    if (!map || !defaultMapCenter) return;
+    map.setView(defaultMapCenter,userLocation ? 13 :11, { animate: true });
+  }, [map, userLocation, defaultMapCenter]);
 
   return null;
 }
@@ -92,8 +97,9 @@ export default function HomeMap({
   const [shouldFitBounds] = useState(true);
 
   const center = userLocation ??
-    defaultMapCenter ?? { lat: 20.5937, lng: 78.9629 };
-  const zoom = userLocation ? 13 : 11;
+    defaultMapCenter ?? { lat: 23.0225, lng: 72.5714 }; // Ahmedabad
+
+  const zoom = userLocation ? 13 : 5;
 
   // Track if this is the initial mount → prevent auto-zoom on data change
   useEffect(() => {
@@ -113,9 +119,9 @@ export default function HomeMap({
       <button
         onClick={() => setIsFullscreen(!isFullscreen)}
         className={`absolute z-[500] bg-white shadow-[0_4px_12px_rgba(0,0,0,0.15)] hover:shadow-[0_8px_24px_rgba(0,0,0,0.22)] transition-all duration-300 flex items-center justify-center font-sans tracking-tight ${
-          isFullscreen 
-            ? 'top-6 right-6 px-5 py-2.5 rounded-xl gap-2 text-sm font-bold text-slate-900' 
-            : 'top-4 right-4 px-5 py-2.5 rounded-xl gap-2 text-sm font-bold text-slate-800'
+          isFullscreen
+            ? "top-6 right-6 px-5 py-2.5 rounded-xl gap-2 text-sm font-bold text-slate-900"
+            : "top-4 right-4 px-5 py-2.5 rounded-xl gap-2 text-sm font-bold text-slate-800"
         }`}
       >
         {isFullscreen ? (
@@ -160,7 +166,38 @@ export default function HomeMap({
           )}
 
           {/* Clustered PG markers */}
-          <MarkerClusterGroup chunkedLoading>
+          {/* Clustered PG markers */}
+          <MarkerClusterGroup
+            chunkedLoading
+            maxClusterRadius={60}
+            spiderfyOnMaxZoom={false}
+            iconCreateFunction={(cluster) => {
+              const count = cluster.getChildCount();
+              return L.divIcon({
+                html: `
+        <div style="
+          background: white;
+          color: #222222;
+          border: 1px solid #DDDDDD;
+          border-radius: 999px;
+          padding: 6px 12px;
+          font-size: 13px;
+          font-weight: 700;
+          font-family: Inter, sans-serif;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+          white-space: nowrap;
+          display: flex;
+          align-items: center;
+          gap: 4px;
+        ">
+          <span style="color:#FF385C;">●</span> ${count} PGs
+        </div>
+      `,
+                className: "",
+                iconSize: null,
+              });
+            }}
+          >
             {pgs.map((pg) => {
               const pos = getLatLng(pg.coordinate);
               if (!pos) return null;
@@ -168,7 +205,26 @@ export default function HomeMap({
                 <Marker
                   key={pg._id}
                   position={pos}
-                  icon={pgPinIcon}
+                  icon={L.divIcon({
+                    className: "",
+                    html: `
+            <div style="
+              background: white;
+              color: #222222;
+              border: 1px solid #DDDDDD;
+              border-radius: 999px;
+              padding: 5px 10px;
+              font-size: 12px;
+              font-weight: 700;
+              font-family: Inter, sans-serif;
+              box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+              white-space: nowrap;
+            ">
+              ₹${(pg.price || 0).toLocaleString("en-IN")}
+            </div>
+          `,
+                    iconSize: null,
+                  })}
                   eventHandlers={{ click: () => setActivePin(pg) }}
                 />
               );

@@ -3,6 +3,73 @@ const RoomType = require("../models/roomType.js");
 const PG = require("../models/pg.js");
 const mongoose = require("mongoose");
 
+// Helper to build filters from query string
+// double query, denormalize later. ✅
+const buildBookingFilter = async (baseFilter, req) => {
+  const { status, dateRange, q } = req.query;
+  let filter = { ...baseFilter };
+
+  if (status && status !== "all") {
+    filter.status = status;
+  }
+
+  if (dateRange && dateRange !== "all") {
+    const daysMap = { "30d": 30, "90d": 90, "6m": 180, "1y": 365 };
+    if (daysMap[dateRange]) {
+      const cutoff = new Date(Date.now() - daysMap[dateRange] * 86400000);
+      filter.checkInDate = { $gte: cutoff };
+    }
+  }
+
+  if (q && q.trim()) {
+    const regex = new RegExp(q.trim(), "i");
+    const matchingPgs = await PG.find({
+      $or: [{ name: regex }, { city: regex }]
+    }).select("_id");
+    const matchingPgIds = matchingPgs.map(p => p._id.toString());
+
+    if (filter.pg && filter.pg.$in) {
+      // Intersect owner's PG ids with searched PG ids
+      const ownerPgIds = filter.pg.$in.map(id => id.toString());
+      const intersected = ownerPgIds.filter(id => matchingPgIds.includes(id));
+      filter.pg.$in = intersected;
+    } else {
+      filter.pg = { $in: matchingPgIds };
+    }
+  }
+
+  return filter;
+};
+
+// Helper for sending paginated response
+const paginateAndSendBookings = async (baseFilter, req, res, populates) => {
+  try {
+    const filter = await buildBookingFilter(baseFilter, req);
+
+    const page = parseInt(req.query.page) || 1;
+    const limit = Math.min(parseInt(req.query.limit) || 10, 50);
+    const skip = (page - 1) * limit;
+
+    let queryBuilder = Booking.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit);
+    if (populates) {
+      populates.forEach(p => { queryBuilder = queryBuilder.populate(p.path, p.select); });
+    }
+
+    const bookings = await queryBuilder;
+    const totalCount = await Booking.countDocuments(filter);
+
+    res.json({
+      data: bookings,
+      totalCount,
+      page,
+      totalPages: Math.ceil(totalCount / limit) || 1,
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+
 exports.registerBooking = async (req, res) => {
   // start session
   const session = await mongoose.startSession();
@@ -68,10 +135,13 @@ exports.registerBooking = async (req, res) => {
       return res.status(400).json({ message: "Booking already exists" });
     }
 
-    // 🛡️ SECURITY: Calculate amount server-side to prevent price injection
+    // SECURITY: Calculate amount server-side to prevent price injection
     // (Room Price * months) - for simplicity we use 1 month as per your frontend logic
-    const finalAmount = roomType.price;
-
+    // Inclusive day count: 1 Jun → 30 Jun = 30 days = 1 month
+    const dayCount = Math.round((checkOut - checkIn) / (1000 * 60 * 60 * 24)) + 1;
+    const monthsDiff = Math.max(1, Math.round(dayCount / 30));
+    const finalAmount = roomType.price * monthsDiff;
+    
     // create booking
     const booking = await Booking.create(
       [
@@ -89,7 +159,6 @@ exports.registerBooking = async (req, res) => {
 
     // update room type
     // REPLACE the blind update (Lines 94-98) with this atomic one:
-
     // commit transaction
     await session.commitTransaction();
     res.status(201).json(booking[0]);
@@ -100,71 +169,6 @@ exports.registerBooking = async (req, res) => {
   } finally {
     // end session
     session.endSession();
-  }
-};
-
-// Helper to build filters from query string
-const buildBookingFilter = async (baseFilter, req) => {
-  const { status, dateRange, q } = req.query;
-  let filter = { ...baseFilter };
-
-  if (status && status !== "all") {
-    filter.status = status;
-  }
-
-  if (dateRange && dateRange !== "all") {
-    const daysMap = { "30d": 30, "90d": 90, "6m": 180, "1y": 365 };
-    if (daysMap[dateRange]) {
-      const cutoff = new Date(Date.now() - daysMap[dateRange] * 86400000);
-      filter.checkInDate = { $gte: cutoff };
-    }
-  }
-
-  if (q && q.trim()) {
-    const regex = new RegExp(q.trim(), "i");
-    const matchingPgs = await PG.find({
-      $or: [{ name: regex }, { city: regex }]
-    }).select("_id");
-    const matchingPgIds = matchingPgs.map(p => p._id.toString());
-
-    if (filter.pg && filter.pg.$in) {
-       // Intersect owner's PG ids with searched PG ids
-       const ownerPgIds = filter.pg.$in.map(id => id.toString());
-       const intersected = ownerPgIds.filter(id => matchingPgIds.includes(id));
-       filter.pg.$in = intersected;
-    } else {
-       filter.pg = { $in: matchingPgIds };
-    }
-  }
-
-  return filter;
-};
-
-// Helper for sending paginated response
-const paginateAndSendBookings = async (baseFilter, req, res, populates) => {
-  try {
-    const filter = await buildBookingFilter(baseFilter, req);
-    
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
-    const skip = (page - 1) * limit;
-
-    let queryBuilder = Booking.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit);
-    if (populates) {
-      populates.forEach(p => { queryBuilder = queryBuilder.populate(p.path, p.select); });
-    }
-
-    const bookings = await queryBuilder;
-    const totalCount = await Booking.countDocuments(filter);
-
-    res.json({
-      data: bookings,
-      totalCount,
-      page,
-      totalPages: Math.ceil(totalCount / limit) || 1,
-    });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
   }
 };
 
@@ -228,7 +232,7 @@ exports.updateBooking = async (req, res) => {
     }
 
     // if booking is updated
-    // 🛡️ SECURITY: Guests can only update status, Owners can update paymentStatus
+    // SECURITY: Guests can only update status, Owners can update paymentStatus
     const allowedFields = ["status", "paymentStatus"];
     const updateData = {};
     Object.keys(req.body).forEach((key) => {
@@ -257,12 +261,19 @@ exports.updateBooking = async (req, res) => {
       existing.status === "cancelled"
     ) {
       // if room type is not found
-      const roomType = await RoomType.findById(existing.roomType).session(
-        session,
-      );
+      if (!isOwner) {
+        await session.abortTransaction();
+        return res.status(403).json({
+          message: "Only PG owner can restore a cancelled booking"
+        });
+      }
+
+      const roomType = await RoomType.findById(existing.roomType).session(session);
       if (!roomType) {
         await session.abortTransaction();
-        return res.status(404).json({ message: "Room type not found" });
+        return res.status(404).json({
+          message: "Room type not found"
+        });
       }
 
       // if no beds available

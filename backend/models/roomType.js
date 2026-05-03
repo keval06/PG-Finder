@@ -49,4 +49,6 @@ const roomTypeSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+roomTypeSchema.index({ pg: 1, isActive: 1 }); // used in every controller query
+
 module.exports = mongoose.model("RoomType", roomTypeSchema);

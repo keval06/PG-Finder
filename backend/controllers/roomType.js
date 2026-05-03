@@ -20,7 +20,7 @@ exports.createRoomType = async (req, res) => {
 
     //
     const existingRoomTypes = await RoomType.find({
-      pg,
+      pg: req.body.pg,
       isActive: true,
     });
 
@@ -32,9 +32,8 @@ exports.createRoomType = async (req, res) => {
     // check if room type already exists
     if (alreadyAllocated + req.body.availableRooms > pg.room) {
       return res.status(400).json({
-        message: `Only ${
-          pg.room - alreadyAllocated
-        } rooms remaining to allocate`,
+        message: `Only ${pg.room - alreadyAllocated
+          } rooms remaining to allocate`,
       });
     }
 
@@ -112,7 +111,7 @@ exports.getRoomTypesByPg = async (req, res) => {
     const response = roomTypes.map((rt) => ({
       ...rt.toObject(),
       totalBeds: rt.availableRooms * rt.sharingCount,
-      remainingBeds: rt.availableRooms * rt.sharingCount - rt.occupiedBeds,
+      remainingBeds: rt.availableRooms * rt.sharingCount - (rt.occupiedBeds || 0),
     }));
 
     res.json(response);
@@ -144,9 +143,23 @@ exports.updateRoomType = async (req, res) => {
     }
 
     // check if availableRooms is provided
+    if (req.body.sharingCount !== undefined) {
+      const newSharingCount = req.body.sharingCount;
+      const newTotalBeds = roomType.availableRooms * newSharingCount;
+
+      if (newTotalBeds < roomType.occupiedBeds) {
+        return res.status(400).json({
+          message: `Cannot reduce sharing count. ${roomType.occupiedBeds} beds occupied, new capacity would only allow ${newTotalBeds}.`,
+        });
+
+      }
+    }
+
     if (req.body.availableRooms !== undefined) {
       // ?check if beds are available, if 8 bookings, 6 newBeds, where 2 guests stayed
-      const newTotalBeds = req.body.availableRooms * roomType.sharingCount;
+      const newSharingCount = req.body.sharingCount ?? roomType.sharingCount;
+      const newTotalBeds = req.body.availableRooms * newSharingCount;
+
       if (newTotalBeds < roomType.occupiedBeds) {
         return res.status(400).json({
           message: `Cannot reduce. ${roomType.occupiedBeds} beds occupied, new capacity would only allow ${newTotalBeds}.`,
@@ -167,15 +180,14 @@ exports.updateRoomType = async (req, res) => {
 
       if (alreadyAllocated + req.body.availableRooms > roomType.pg.room) {
         return res.status(400).json({
-          message: `Only ${
-            roomType.pg.room - alreadyAllocated
-          } rooms remaining to allocate`,
+          message: `Only ${roomType.pg.room - alreadyAllocated
+            } rooms remaining to allocate`,
         });
       }
     }
 
     // ?update room type
-    // 🛡️ SECURITY: Prevent Mass Assignment on Update
+    // SECURITY: Prevent Mass Assignment on Update
     const allowedFields = [
       "name",
       "sharingCount",
@@ -255,14 +267,16 @@ exports.deleteRoomType = async (req, res) => {
     // if room types left, recalculate minimum price
     if (allRoomTypes.length > 0) {
       const minPrice = Math.min(...allRoomTypes.map((r) => r.price));
-
       await PG.findByIdAndUpdate(roomType.pg._id, { price: minPrice });
-    } else {
+    } 
+    else {
+      // if no room types left, PG.price stays as is — not reset to 0
       await PG.findByIdAndUpdate(roomType.pg._id, { isActive: false });
     }
-    // if no room types left, PG.price stays as is — not reset to 0
 
-    res.json({ message: "Room type deleted", roomType });
+    res.json({
+      message: "Room type deleted"
+    });
   } catch (error) {
     res.status(500).json({
       message: error.message,

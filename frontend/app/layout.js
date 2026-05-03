@@ -13,7 +13,7 @@ import Script from "next/script";
 // ?The layout doesn't know or care which page it is. It just renders it inside the frame.
 
 export const metadata = {
-  title: "PGFinder — Find Your Perfect PG",
+  title: "QuickPG — Find Your Perfect PG",
   description: "Find your perfect PG accommodation",
 };
 

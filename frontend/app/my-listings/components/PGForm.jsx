@@ -154,7 +154,7 @@ export default function PGForm({
     const timer = setTimeout(async () => {
       const res = await fetch(
         `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(searchText)}&format=json&limit=5&countrycodes=in&addressdetails=1`,
-        { headers: { "User-Agent": "PGFinder/1.0" } },
+        { headers: { "User-Agent": "QuickPG/1.0" } },
       );
       const data = await res.json();
       setSuggestions(data);
@@ -199,7 +199,7 @@ export default function PGForm({
     // Reverse geocode: get address from coordinates AND update form fields
     fetch(
       `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&addressdetails=1`,
-      { headers: { "User-Agent": "PGFinder/1.0" } }
+      { headers: { "User-Agent": "QuickPG/1.0" } }
     )
       .then((res) => res.json())
       .then((data) => {

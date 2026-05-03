@@ -30,5 +30,6 @@ const reviewSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
-
+reviewSchema.index({ pg: 1 }); // speeds up $lookup in pg controller
+reviewSchema.index({ user: 1, pg: 1 }, { unique: true }); // also enforces one review per user per PG at DB level
 module.exports = mongoose.model("Review", reviewSchema);

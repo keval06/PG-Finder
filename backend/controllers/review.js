@@ -13,7 +13,11 @@ async function hasBookingOnPG(userId, pgId) {
   const pgObjectId = new mongoose.Types.ObjectId(pgId);
 
   // Debug log — remove after confirming fix
-  const booking = await Booking.findOne({ user: userId, pg: pgObjectId });
+  const booking = await Booking.findOne({
+    user: userId,
+    pg: pgObjectId,
+    status: { $in: ["confirmed", "completed"] },
+  });
   // console.log("[hasBookingOnPG] userId:", userId, "pgId:", pgId, "found:", !!booking);
   return !!booking;
 }
@@ -62,7 +66,17 @@ exports.registerReview = async (req, res) => {
 exports.getReviewsByPg = async (req, res) => {
   try {
     const { pg, page = 1, limit = 5, sort = "newest" } = req.query;
+    if (!pg) {
+      return res.status(400).json({
+        message: "pg is required"
+      });
+    }
 
+    if (!mongoose.Types.ObjectId.isValid(pg)) {
+      return res.status(400).json({
+        message: "Invalid pg"
+      });
+    }
     const pageNum = parseInt(page);
     const limitNum = parseInt(limit);
 

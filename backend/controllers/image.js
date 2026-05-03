@@ -1,6 +1,14 @@
 const Image = require("../models/image.js");
 const s3 = require("../config/s3.js");
 const PG = require("../models/pg.js");
+const mongoose = require("mongoose");
+
+// helper at top of controller
+const deleteS3File = async (url) => {
+  const cleanUrl = url.split("?")[0];
+  const key = decodeURIComponent(cleanUrl.split(".amazonaws.com/")[1]);
+  await s3.deleteObject({ Bucket: process.env.S3_BUCKET, Key: key }).promise();
+};
 
 exports.registerImage = async (req, res) => {
   try {
@@ -15,13 +23,14 @@ exports.registerImage = async (req, res) => {
 
     // 2. Make sure the PG actually exists
     if (!pgDoc) {
+      await deleteS3File(req.file.location);
       return res.status(404).json({ message: "PG not found" });
     }
+
     // 3. Verify that the authenticated user is the owner of the PG
     if (pgDoc.owner.toString() !== req.user._id.toString()) {
-      return res.status(403).json({
-        message: "You are not authorized to upload images for this PG.",
-      });
+      await deleteS3File(req.file.location);
+      return res.status(403).json({ message: "You are not authorized to upload images for this PG." });
     }
 
     const url = req.file.location;
@@ -29,6 +38,7 @@ exports.registerImage = async (req, res) => {
     const existingImage = await Image.findOne({ pg, url });
 
     if (existingImage) {
+      await deleteS3File(req.file.location);
       return res.status(400).json({
         message: "Image already exists",
       });
@@ -53,6 +63,19 @@ exports.getImagesByPg = async (req, res) => {
     const { pgId, category } = req.query;
 
     //* Dynamic filter building — starts with base filter, adds category only if provided.
+
+    //pgId missing check
+    if (!pgId) {
+      return res.status(400).json({
+        message: "pgId is required"
+      });
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(pgId)) {
+      return res.status(400).json({
+        message: "Invalid pgId"
+      });
+    }
     let filter = { pg: pgId };
 
     if (category) {

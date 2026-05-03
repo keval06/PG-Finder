@@ -31,19 +31,15 @@ const nextConfig = {
       },
     ];
   },
-  images:{
-    remotePatterns:[
-      {
-        protocol: "https",
-        hostname: "images.unsplash.com",
-      },
-      {
-        protocol: "https",
-        hostname: "**.amazonaws.com",
-      },
+  images: {
+    remotePatterns: [
+
+      { protocol: "https", hostname: "images.unsplash.com" },
+      { protocol: "https", hostname: "*.amazonaws.com" }, // for S3
+
     ],
-    loader:"custom",
-    loaderFile:"./lib/imageLoader.js"
+    loader: "custom",
+    loaderFile: "./lib/imageLoader.js"
   }
 };
 

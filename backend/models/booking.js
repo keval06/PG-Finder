@@ -40,6 +40,7 @@ const bookingSchema = new mongoose.Schema(
     amount: {
       type: Number,
       required: true,
+      min: [0, "Amount cannot be negative"]
     },
 
     paymentStatus: {
@@ -63,7 +64,7 @@ const bookingSchema = new mongoose.Schema(
   { timestamps: true },
 );
 
-// 🚀 Indexing for fast dashboard loading
+// Indexing for fast dashboard loading
 bookingSchema.index({ user: 1, createdAt: -1 });
 bookingSchema.index({ pg: 1, createdAt: -1 });
 bookingSchema.index({ status: 1 });
