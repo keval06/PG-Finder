@@ -22,4 +22,40 @@ const signupLimiter = rateLimit({
   legacyHeaders: false,
 });
 
-module.exports = { loginLimiter, signupLimiter };
+const nearbyLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 30,
+  message: {
+    message: "Too many requests from this IP, please try again after 15 minutes.",
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+//Every ip, every routes, 200 req. per 15 minutes
+const globalLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 200,
+  message: { message: "Too many requests, please try again later." },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+// rateLimiter.js
+const forgotPasswordLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 5,
+  message: { message: "Too many OTP requests. Try again after 15 minutes." },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+const otpLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  message: { message: "Too many OTP attempts. Try again after 15 minutes." },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+module.exports = { loginLimiter, signupLimiter, nearbyLimiter, globalLimiter, forgotPasswordLimiter, otpLimiter };

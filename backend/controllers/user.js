@@ -27,8 +27,11 @@ exports.registerUser = async (req, res) => {
     const hash = await bcrypt.hash(password, 10);
     const user = await User.create({ name, mobile, email, password: hash });
 
-    res.status(201).json(user);
-  } catch (error) {
+    //? password should never leave server, even hashed
+    const { password : _, ...safeUser} = user.toObject(); 
+    res.status(201).json(safeUser);
+  } 
+  catch (error) {
     console.error("registerUser:", error);
     if (error.code === 11000) {
       return res.status(400).json({ message: "Mobile already registered" });
@@ -61,6 +64,11 @@ exports.getUser = async (req, res) => {
 exports.updateUser = async (req, res) => {
   try {
     const userId = req.params.id;
+    if (req.user._id.toString() !== userId) {
+      return res.status(403).json({ 
+        message: "Not allowed to update another user's profile" 
+      });
+    }
     const { mobile, currentPassword, newPassword } = req.body;
     // ─── GUARD 1: If mobile is being updated, check no other user has it ───
     if (mobile) {
@@ -85,8 +93,8 @@ exports.updateUser = async (req, res) => {
           .status(400)
           .json({ message: "Current password is incorrect." });
       }
-//   // We overwrite req.body.password with the HASHED version
-    //   // So the next step saves the hash, not plain text
+      //   // We overwrite req.body.password with the HASHED version
+      //   // So the next step saves the hash, not plain text
       const passwordRegex =
         /^(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{8,16}$/;
       if (!passwordRegex.test(newPassword)) {

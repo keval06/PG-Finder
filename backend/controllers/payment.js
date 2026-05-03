@@ -1,7 +1,9 @@
 const Razorpay = require("razorpay");
 const Booking = require("../models/booking.js");
 const crypto = require("crypto");
-const RoomType = require("../models/roomType.js")
+const RoomType = require("../models/roomType.js");
+const mongoose = require("mongoose");
+
 
 const razorpay = new Razorpay({
   key_id: process.env.RAZORPAY_KEY_ID,
@@ -14,9 +16,10 @@ exports.createOrder = async (req, res) => {
     const booking = await Booking.findById(bookingId);
     // 1. Fetch with validation
     if (!booking) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Booking not found" });
+      return res.status(404).json({
+        success: false,
+        message: "Booking not found"
+      });
     }
 
     // 2. THE CRITICAL FIX: Ownership Verification
@@ -34,9 +37,10 @@ exports.createOrder = async (req, res) => {
 
     // EDGE CASE: Check if already paid
     if (booking.paymentStatus === "paid") {
-      return res
-        .status(400)
-        .json({ success: false, message: "This booking is already paid." });
+      return res.status(400).json({
+        success: false,
+        message: "This booking is already paid."
+      });
     }
 
     // EDGE CASE: Check if cancelled
@@ -133,10 +137,19 @@ exports.verifyPayment = async (req, res) => {
       .update(body.toString())
       .digest("hex");
 
-    const isAuthentic = crypto.timingSafeEqual(
-      Buffer.from(expectedSignature),
-      Buffer.from(razorpay_signature),
-    );
+    let isAuthentic;
+    try {
+      isAuthentic = crypto.timingSafeEqual(
+        Buffer.from(expectedSignature),
+        Buffer.from(razorpay_signature),
+      );
+    }
+    catch {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid signature",
+      });
+    }
     if (!isAuthentic) {
       // EDGE CASE: Security Alert
       // Logic: Log this specifically. This is likely a tampering attempt.
@@ -153,33 +166,40 @@ exports.verifyPayment = async (req, res) => {
     // 3. Update Database
     // EDGE CASE: Ensure we don't overwrite a status if it was changed by an admin
     // new
-    const updatedRoomType = await RoomType.findOneAndUpdate(
-      {
-        _id: booking.roomType,
-        $expr: {
-          $lt: [
-            "$occupiedBeds",
-            { $multiply: ["$availableRooms", "$sharingCount"] },
-          ],
+    const session = await mongoose.startSession();
+    session.startTransaction();
+    try {
+      const updatedRoomType = await RoomType.findOneAndUpdate(
+        {
+          _id: booking.roomType,
+          $expr: {
+            $lt: ["$occupiedBeds", { $multiply: ["$availableRooms", "$sharingCount"] }],
+          },
         },
-      },
-      { $inc: { occupiedBeds: 1 } },
-      { new: true },
-    );
+        { $inc: { occupiedBeds: 1 } },
+        { new: true, session },
+      );
 
-    if (!updatedRoomType) {
-      return res.status(400).json({
-        success: false,
-        message:
-          "Room is now full. Payment received but bed could not be assigned. Please contact support.",
-      });
+      if (!updatedRoomType) {
+        await session.abortTransaction();
+        return res.status(400).json({
+          success: false,
+          message: "Room is now full. Payment received but bed could not be assigned. Please contact support.",
+        });
+      }
+
+      booking.paymentStatus = "paid";
+      booking.status = "confirmed";
+      booking.razorpayPaymentId = razorpay_payment_id;
+      await booking.save({ session });
+
+      await session.commitTransaction();
+    } catch (err) {
+      await session.abortTransaction();
+      throw err; // caught by outer try/catch
+    } finally {
+      session.endSession();
     }
-
-    booking.paymentStatus = "paid";
-    booking.status = "confirmed";
-    booking.razorpayPaymentId = razorpay_payment_id;
-
-    await booking.save();
 
     res.status(200).json({
       success: true,
@@ -199,69 +219,89 @@ exports.handleWebhook = async (req, res) => {
   const webhookSecret = process.env.RAZORPAY_WEBHOOK_SECRET;
   const signature = req.headers["x-razorpay-signature"];
 
-  // 1. Verify webhook is actually from Razorpay
   const expectedSignature = crypto
     .createHmac("sha256", webhookSecret)
     .update(JSON.stringify(req.body))
     .digest("hex");
 
-  const isAuthentic = crypto.timingSafeEqual(
-    Buffer.from(expectedSignature),
-    Buffer.from(signature),
-  );
+  let isAuthentic;
+  try {
+    isAuthentic = crypto.timingSafeEqual(
+      Buffer.from(expectedSignature),
+      Buffer.from(razorpay_signature),
+    );
+  } 
+  catch {
+    return res.status(400).json({
+      success: false,
+      message: "Invalid signature",
+    });
+  }
 
   if (!isAuthentic) {
     console.warn("INVALID WEBHOOK SIGNATURE");
     return res.status(400).json({ message: "Invalid signature" });
   }
 
-  // 2. Handle the event
-  const event = req.body.event;
-  const paymentEntity = req.body.payload.payment.entity;
+  try {
+    const event = req.body.event;
+    const paymentEntity = req.body.payload.payment.entity;
 
-  if (event === "payment.captured") {
-    const razorpay_order_id = paymentEntity.order_id;
-    const razorpay_payment_id = paymentEntity.id;
+    if (event === "payment.captured") {
+      const razorpay_order_id = paymentEntity.order_id;
+      const razorpay_payment_id = paymentEntity.id;
 
-    const booking = await Booking.findOne({
-      razorpayOrderId: razorpay_order_id,
-    });
+      const booking = await Booking.findOne({ razorpayOrderId: razorpay_order_id });
 
-    if (!booking) {
-      return res.status(404).json({ message: "Booking not found" });
+      if (!booking) {
+        return res.status(404).json({ message: "Booking not found" });
+      }
+
+      if (booking.paymentStatus === "paid") {
+        return res.status(200).json({ message: "Already processed" });
+      }
+
+      const session = await mongoose.startSession();
+      session.startTransaction();
+      try {
+        const updatedRoomType = await RoomType.findOneAndUpdate(
+          {
+            _id: booking.roomType,
+            $expr: {
+              $lt: [
+                "$occupiedBeds",
+                { $multiply: ["$availableRooms", "$sharingCount"] },
+              ],
+            },
+          },
+          { $inc: { occupiedBeds: 1 } },
+          { new: true, session },
+        );
+
+        if (!updatedRoomType) {
+          await session.abortTransaction();
+          console.error("WEBHOOK: Room full for booking", booking._id);
+          return res.status(200).json({ message: "Room full" });
+        }
+
+        booking.paymentStatus = "paid";
+        booking.status = "confirmed";
+        booking.razorpayPaymentId = razorpay_payment_id;
+        await booking.save({ session });
+
+        await session.commitTransaction();
+        console.log("WEBHOOK: Booking confirmed", booking._id);
+      } catch (err) {
+        await session.abortTransaction();
+        throw err;
+      } finally {
+        session.endSession();
+      }
     }
 
-    // Idempotency — don't process if already confirmed
-    if (booking.paymentStatus === "paid") {
-      return res.status(200).json({ message: "Already processed" });
-    }
-
-    const updatedRoomType = await RoomType.findOneAndUpdate(
-      {
-        _id: booking.roomType,
-        $expr: {
-          $lt: [
-            "$occupiedBeds",
-            { $multiply: ["$availableRooms", "$sharingCount"] },
-          ],
-        },
-      },
-      { $inc: { occupiedBeds: 1 } },
-      { new: true },
-    );
-
-    if (!updatedRoomType) {
-      console.error("WEBHOOK: Room full for booking", booking._id);
-      return res.status(400).json({ message: "Room full" });
-    }
-
-    booking.paymentStatus = "paid";
-    booking.status = "confirmed";
-    booking.razorpayPaymentId = razorpay_payment_id;
-    await booking.save();
-
-    console.log("WEBHOOK: Booking confirmed", booking._id);
+    res.status(200).json({ message: "OK" });
+  } catch (error) {
+    console.error("WEBHOOK ERROR:", error);
+    res.status(200).json({ message: "Webhook received" });
   }
-
-  res.status(200).json({ message: "OK" });
 };

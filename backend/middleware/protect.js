@@ -44,7 +44,7 @@ exports.optionalProtect = async (req, res, next) => {
       const decoded = await jwt.verify(token, process.env.JWT_SECRET);
       req.user = await User.findById(decoded.id).select("-password");
     } catch (error) {
-     
+      console.warn("optionalProtect: invalid token ignored:", error.message);
     }
   }
   next();

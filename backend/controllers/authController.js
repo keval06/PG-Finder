@@ -1,6 +1,6 @@
 const User = require("../models/user.js");
-const bcrypt = require("bcryptjs");
 const OTP = require("../models/otp.js");
+const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
 const { sendOtpEmail } = require("../utils/sendOtpEmail.js");
@@ -30,7 +30,6 @@ exports.loginUser = async (req, res) => {
     res.json({
       _id: user._id,
       name: user.name,
-      mobile: user.mobile,
       token,
     });
   } catch (error) {
@@ -53,7 +52,7 @@ exports.forgotPassword = async (req, res) => {
         .json({ message: "If this email exists, an OTP has been sent." });
     }
 
-    
+
     // new — padStart ensures always 4 digits
     const rawOtp = crypto.randomInt(1000, 10000).toString().padStart(4, "0");
     // Hash it before storing
@@ -123,16 +122,26 @@ exports.resetPassword = async (req, res) => {
     // Verify reset token
     let decoded;
     try {
-      decoded = jwt.verify(resetToken, process.env.JWT_SECRET + "_reset");
-    } catch {
-      return res
-        .status(400)
-        .json({ message: "Reset link expired. Request a new OTP." });
+      decoded = jwt.verify(resetToken, process.env.JWT_SECRET_RESET);
+    } 
+    catch {
+      return res.status(400).json({ 
+        message: "Reset link expired. Request a new OTP." 
+      });
     }
 
     const user = await User.findOne({ email: decoded.email });
     if (!user) {
-      return res.status(404).json({ message: "User not found." });
+      return res.status(404).json({ 
+        message: "User not found." 
+      });
+    }
+
+    const passwordRegex = /^(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{8,16}$/;
+    if (!passwordRegex.test(newPassword)) {
+      return res.status(400).json({
+        message: "Password must be 8-16 characters with at least one digit and one special character.",
+      });
     }
 
     // Hash new password

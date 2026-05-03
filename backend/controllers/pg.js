@@ -1,5 +1,6 @@
 const PG = require("../models/pg.js");
 const RoomType = require("../models/roomType.js");
+const Image = require("../models/image.js");
 
 // *This is called Server-Side Filtering. Always filter at database level, not in JS.
 
@@ -8,8 +9,9 @@ const RoomType = require("../models/roomType.js");
 const buildPGQuery = (query) => {
   const filter = {};
 
-  // 🛡️ CENTRALIZED: Ensure we only show active PGs by default
-  filter.isActive = { $ne: false };
+  // CENTRALIZED: Ensure we only show active PGs by default
+  // FIX: $ne: false also matched null/undefined — use strict true
+  filter.isActive = true;
 
   if (query.q) {
     const searchRegex = { $regex: query.q, $options: "i" };
@@ -55,12 +57,12 @@ const buildPGQuery = (query) => {
 // Helper for pagination, sorting, and rating aggregations
 const paginateAndSendPGs = async (filter, req, res) => {
   const { sortField, sortOrder, minRating } = req.query;
-  const sortDir = sortOrder === "desc" ? -1 : 1;
+  const sortDir = (sortOrder === "desc") ? -1 : 1;
   const minRatingNum = Number(minRating) || 0;
 
-    // FIX: always paginate — remove the old unpaginated fallback
+  // FIX: always paginate — remove the old unpaginated fallback
   const page = parseInt(req.query.page) || 1;
-  const limit = parseInt(req.query.limit) || 10;
+  const limit = Math.min(parseInt(req.query.limit) || 10, 50);
   const skip = (page - 1) * limit;
 
   // ALWAYS use aggregation to fetch review stats
@@ -87,13 +89,27 @@ const paginateAndSendPGs = async (filter, req, res) => {
   }
 
   if (sortField === "rating") {
-    pipeline.push({ $sort: { avgRating: sortDir, _id: -1 } });
-  } else if (sortField === "reviews") {
-    pipeline.push({ $sort: { reviewCount: sortDir, _id: -1 } });
-  } else if (sortField === "price") {
-    pipeline.push({ $sort: { price: sortDir, _id: -1 } });
-  } else {
-    pipeline.push({ $sort: { _id: -1 } });
+    pipeline.push({
+      $sort: { avgRating: sortDir, _id: -1 }
+    });
+  }
+  else if (sortField === "reviews") {
+    pipeline.push({
+      $sort:
+        { reviewCount: sortDir, _id: -1 }
+    });
+  }
+  else if (sortField === "price") {
+    pipeline.push({
+      $sort:
+        { price: sortDir, _id: -1 }
+    });
+  }
+  else {
+    pipeline.push({
+      $sort:
+        { _id: -1 }
+    });
   }
 
   pipeline.push({
@@ -104,6 +120,7 @@ const paginateAndSendPGs = async (filter, req, res) => {
   });
 
   const [result] = await PG.aggregate(pipeline);
+
   const totalCount = result.metadata[0]?.totalCount || 0;
 
   const pgs = result.data.map(({ _reviews: _r, ...pg }) => pg);
@@ -121,17 +138,18 @@ exports.registerPG = async (req, res) => {
     const existingPG = await PG.findOne({
       owner: req.user._id,
       name: req.body.name,
+      city: req.body.city,
     });
 
     if (existingPG) {
       return res.status(400).json({
-        message: "PG already exists",
+        message: "You already have a PG with this name in this city",
       });
     }
 
     // This is called: Server-side Trust — never trust client-sent identity fields.
     const pgData = {
-      // 🛡️ SECURITY: Prevent Mass Assignment
+      // SECURITY: Prevent Mass Assignment
       name: req.body.name,
       price: Number(req.body.price),
       address: req.body.address,
@@ -145,14 +163,15 @@ exports.registerPG = async (req, res) => {
       owner: req.user._id,
     };
 
-    // 🌍 Sync with Frontend: Handle both Array [lng, lat] and GeoJSON Object
+    // Sync with Frontend: Handle both Array [lng, lat] and GeoJSON Object
     if (req.body.coordinate) {
       if (
         Array.isArray(req.body.coordinate) &&
         req.body.coordinate.length === 2
       ) {
         pgData.coordinate = { type: "Point", coordinates: req.body.coordinate };
-      } else if (req.body.coordinate.coordinates) {
+      }
+      else if (req.body.coordinate.coordinates) {
         pgData.coordinate = req.body.coordinate; // Already Object format
       }
     }
@@ -160,8 +179,11 @@ exports.registerPG = async (req, res) => {
     const pg = await PG.create(pgData);
 
     res.status(201).json(pg);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+  }
+  catch (error) {
+    res.status(500).json({
+      message: error.message
+    });
   }
 };
 
@@ -171,7 +193,7 @@ exports.getAllPg = async (req, res) => {
   try {
     const filter = buildPGQuery(req.query);
     return await paginateAndSendPGs(filter, req, res);
-  } 
+  }
   catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -225,13 +247,13 @@ exports.getNearbyPGs = async (req, res) => {
     const filter = buildPGQuery(req.query);
     const minRatingNum = Number(minRating) || 0;
 
-    const sortDir = sortOrder === "desc" ? -1 : 1;
+    const sortDir = (sortOrder === "desc") ? -1 : 1;
     const skip = (Number(page) - 1) * Number(limit);
     // ALWAYS aggregate for geo queries too so UI gets ratings
     const pipeline = [
       {
         $geoNear: {
-          near: { type: "Point", coordinates: [Number(lng), Number(lat)] },
+          near: { type: "Point", coordinates: [numLng, numLat] },
           distanceField: "distance",
           maxDistance: radiusInMeters,
           query: filter,
@@ -255,16 +277,33 @@ exports.getNearbyPGs = async (req, res) => {
 
     // Apply minRating filter AFTER computing avgRating
     if (minRatingNum > 0) {
-      pipeline.push({ $match: { avgRating: { $gte: minRatingNum } } });
+      pipeline.push({
+        $match: {
+          avgRating: {
+            $gte: minRatingNum,
+          },
+        },
+      });
     }
 
     // Sort
     if (sortField === "rating") {
-      pipeline.push({ $sort: { avgRating: sortDir, _id: -1 } });
-    } else if (sortField === "reviews") {
-      pipeline.push({ $sort: { reviewCount: sortDir, _id: -1 } });
-    } else if (sortField === "price") {
-      pipeline.push({ $sort: { price: sortDir, _id: -1 } });
+      pipeline.push({
+        $sort:
+          { avgRating: sortDir, _id: -1 }
+      });
+    }
+    else if (sortField === "reviews") {
+      pipeline.push({
+        $sort:
+          { reviewCount: sortDir, _id: -1 }
+      });
+    }
+    else if (sortField === "price") {
+      pipeline.push({
+        $sort:
+          { price: sortDir, _id: -1 }
+      });
     }
     // else: default distance order from $geoNear
 
@@ -285,7 +324,8 @@ exports.getNearbyPGs = async (req, res) => {
       page: Number(page),
       totalPages: Math.ceil(totalCount / Number(limit)) || 1,
     });
-  } catch (error) {
+  }
+  catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
@@ -293,7 +333,11 @@ exports.getNearbyPGs = async (req, res) => {
 // READ single PG detail
 exports.getPg = async (req, res) => {
   try {
-    const pg = await PG.findById(req.params.id);
+    // FIX: inactive PG was reachable via direct ID — now blocked
+    const pg = await PG.findOne({
+      _id: req.params.id,
+      isActive: true
+    });
     if (!pg) {
       return res.status(404).json({
         message: "PG not found",
@@ -306,8 +350,7 @@ exports.getPg = async (req, res) => {
     });
 
     const allocatedRooms = roomTypes.reduce(
-      (sum, rt) => sum + rt.availableRooms,
-      0,
+      (sum, rt) => sum + rt.availableRooms, 0
     );
 
     res.json({
@@ -315,8 +358,11 @@ exports.getPg = async (req, res) => {
       allocatedRooms,
       unallocatedRooms: pg.room - allocatedRooms,
     });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+  }
+  catch (error) {
+    res.status(500).json({
+      message: error.message
+    });
   }
 };
 
@@ -326,14 +372,18 @@ exports.updatePg = async (req, res) => {
     const pg = await PG.findById(req.params.id);
 
     if (!pg) {
-      return res.status(404).json({ message: "PG not found" });
+      return res.status(404).json({
+        message: "PG not found"
+      });
     }
 
     if (pg.owner.toString() !== req.user._id.toString()) {
-      return res.status(403).json({ message: "Not allowed" });
+      return res.status(403).json({
+        message: "Not allowed"
+      });
     }
 
-    // 🛡️ SECURITY: Prevent Mass Assignment (Ignore un-allowed fields)
+    // SECURITY: Prevent Mass Assignment (Ignore un-allowed fields)
     const allowedFields = [
       "name",
       "price",
@@ -348,6 +398,7 @@ exports.updatePg = async (req, res) => {
       "amenities",
       "isActive",
     ];
+
     const updateData = {};
     Object.keys(req.body).forEach((key) => {
       if (allowedFields.includes(key)) {
@@ -355,7 +406,7 @@ exports.updatePg = async (req, res) => {
       }
     });
 
-    // 🌍 Sync with Frontend: Handle both Array [lng, lat] and GeoJSON Object
+    // Sync with Frontend: Handle both Array [lng, lat] and GeoJSON Object
     if (req.body.coordinate) {
       if (
         Array.isArray(req.body.coordinate) &&
@@ -376,8 +427,11 @@ exports.updatePg = async (req, res) => {
     });
 
     res.json(updatedPG);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+  }
+  catch (error) {
+    res.status(500).json({
+      message: error.message
+    });
   }
 };
 
@@ -391,8 +445,117 @@ exports.getMyPgs = async (req, res) => {
     filter.owner = req.user._id; // Force it to only show their PGs
     // run engine
     return await paginateAndSendPGs(filter, req, res);
-  } 
+  }
   catch (error) {
+    res.status(500).json({
+      message: error.message
+    });
+  }
+};
+
+// Lightweight endpoint for map — returns ALL active PGs with minimal fields
+exports.getMapPGs = async (req, res) => {
+  try {
+    const filter = buildPGQuery(req.query); // reuse existing filter builder
+
+    let pgs;
+    if (req.query.lat && req.query.lng) {
+      // Geo filter
+      const numLng = Number(req.query.lng);
+      const numLat = Number(req.query.lat);
+      const radiusInMeters = (Number(req.query.radius) || 5) * 1000;
+
+      pgs = await PG.find({
+        ...filter,
+        coordinate: {
+          $near: {
+            $geometry: { type: "Point", coordinates: [numLng, numLat] },
+            $maxDistance: radiusInMeters,
+          },
+        },
+      })
+        .select("_id name city price coordinate gender")
+        .lean();
+    } else {
+      pgs = await PG.find(filter)
+        .select("_id name city price coordinate gender")
+        .lean();
+    }
+
+    res.json(pgs);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+exports.getLandingData = async (req, res) => {
+  try {
+    // Top 5 cities by PG count
+    const topCitiesAgg = await PG.aggregate([
+      { $match: { isActive: true } },
+      { $group: { _id: "$city", count: { $sum: 1 } } },
+      { $sort: { count: -1 } },
+      { $limit: 5 },
+    ]);
+
+    const cities = topCitiesAgg.map((c) => c._id);
+
+    // Top 5 PGs (by rating) per city
+    const result = await Promise.all(
+      cities.map(async (city) => {
+        const pgs = await PG.aggregate([
+          { $match: { city, isActive: true } },
+          {
+            $lookup: {
+              from: "reviews",
+              localField: "_id",
+              foreignField: "pg",
+              as: "_reviews",
+            },
+          },
+          {
+            $addFields: {
+              avgRating: { $ifNull: [{ $avg: "$_reviews.star" }, 0] },
+              reviewCount: { $size: "$_reviews" },
+            },
+          },
+          { $sort: { avgRating: -1, reviewCount: -1 } },
+          { $limit: 5 },
+          {
+            $project: {
+              name: 1,
+              city: 1,
+              price: 1,
+              gender: 1,
+              avgRating: 1,
+              reviewCount: 1,
+            },
+          },
+        ]);
+
+        // Attach one image per PG
+        const pgsWithImage = await Promise.all(
+          pgs.map(async (pg) => {
+            const img = await Image.findOne({ pg: pg._id }).select("url").lean();
+            return { ...pg, image: img?.url || null };
+          })
+        );
+
+        const totalCount = await PG.countDocuments({ city, isActive: true });
+        return { city, totalCount, pgs: pgsWithImage };
+      })
+    );
+    const totalPGs = await PG.countDocuments({ isActive: true });
+    const totalCities = (await PG.distinct("city", { isActive: true })).length;
+
+    res.json({
+      totals: {
+        pgs: totalPGs,
+        cities: totalCities,
+      },
+      cities: result,
+    });
+  } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };

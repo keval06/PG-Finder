@@ -11,7 +11,9 @@ exports.generateToken = (id)=>{
 exports.generateResetToken = (email) => {
   return jwt.sign(
     { email },
-    process.env.JWT_SECRET + "_reset",
+    process.env.JWT_SECRET_RESET,
     { expiresIn: "15m" }
   );
 };
+
+
