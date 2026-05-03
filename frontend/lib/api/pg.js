@@ -1,28 +1,7 @@
 // frontend/lib/api/pg.js
-const API_URL = require("./apiUrl");
+import { authFetch } from "./authFetch";
 
-// Shared helper: makes authenticated fetch with timeout + error handling
-async function authFetch(url, options = {}) {
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 10000);
-  try {
-    const res = await fetch(url, { ...options, signal: controller.signal });
-    clearTimeout(timeout);
-    const data = await res.json();
-    if (!res.ok) {
-      const err = new Error(data.message || `Request failed (${res.status})`);
-      err.status = res.status;
-      throw err;
-    }
-    return data;
-  } catch (err) {
-    clearTimeout(timeout);
-    if (err.name === "AbortError") {
-      throw new Error("Request timed out. Check your connection.");
-    }
-    throw err;
-  }
-}
+const API_URL = require("./apiUrl");
 
 export const pgApi = {
   // Home Page Listings
@@ -32,7 +11,7 @@ export const pgApi = {
     const url = queryString
       ? `${API_URL}/api/pg?${queryString}`
       : `${API_URL}/api/pg`;
-    // 🛡️ REPLACED fetch with authFetch
+    //  REPLACED fetch with authFetch
     return authFetch(url, { cache: "no-store" });
   },
 
@@ -83,5 +62,16 @@ export const pgApi = {
       },
       body: JSON.stringify(data),
     });
+  },
+
+  getMapData: async (queryString = "") => {
+    const url = queryString
+      ? `${API_URL}/api/pg/map?${queryString}`
+      : `${API_URL}/api/pg/map`;
+    return authFetch(url, { cache: "no-store" });
+  },
+
+  getLanding: async () => {
+    return authFetch(`${API_URL}/api/pg/landing`, { next: { revalidate: 600 } });
   },
 };

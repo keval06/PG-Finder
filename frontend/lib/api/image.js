@@ -1,28 +1,7 @@
 // frontend/lib/api/image.js
-const API_URL = require("./apiUrl");
+import { authFetch } from "./authFetch";
 
-// Shared helper: makes authenticated fetch with timeout + error handling
-async function authFetch(url, options = {}) {
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 15000); // 15s for uploads
-  try {
-    const res = await fetch(url, { ...options, signal: controller.signal });
-    clearTimeout(timeout);
-    const data = await res.json();
-    if (!res.ok) {
-      const err = new Error(data.message || `Request failed (${res.status})`);
-      err.status = res.status;
-      throw err;
-    }
-    return data;
-  } catch (err) {
-    clearTimeout(timeout);
-    if (err.name === "AbortError") {
-      throw new Error("Request timed out. Check your connection.");
-    }
-    throw err;
-  }
-}
+const API_URL = require("./apiUrl");
 
 export const imageApi = {
   // Get all images for a PG
