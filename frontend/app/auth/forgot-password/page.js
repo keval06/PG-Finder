@@ -81,23 +81,23 @@ export default function ForgotPasswordPage() {
     "w-full bg-[#FF385C] text-white py-3.5 rounded-xl font-semibold text-sm hover:bg-[#E31C5F] active:scale-[0.98] transition-all shadow-md shadow-rose-100 disabled:opacity-50 mt-2";
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-white px-4">
+    <div className="flex items-center justify-center min-h-screen bg-white px-4 py-8">
       <div className="bg-white w-full max-w-[440px] rounded-3xl shadow-xl shadow-gray-200/50 overflow-hidden">
         {/* Top Branding Section (Matches Email Design) */}
-        <div className="bg-[#FF385C] p-8 text-center text-white relative">
+        <div className="bg-[#FF385C] p-6 sm:p-8 text-center text-white relative">
           <div className="absolute top-0 right-0 p-4 opacity-10">
-            <ShieldCheck size={120} />
+            <ShieldCheck size={100} className="sm:w-[120px] sm:h-[120px]" />
           </div>
-          <div className="inline-flex items-center justify-center w-12 h-12 bg-white/20 rounded-2xl mb-4 backdrop-blur-sm">
-            <ShieldCheck size={24} className="text-white" />
+          <div className="inline-flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 bg-white/20 rounded-2xl mb-4 backdrop-blur-sm">
+            <ShieldCheck size={20} className="text-white sm:w-6 sm:h-6" />
           </div>
-          <h1 className="text-2xl font-bold tracking-tight">Security Center</h1>
-          <p className="text-rose-100 text-xs mt-1 font-medium uppercase tracking-widest">
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight">Security Center</h1>
+          <p className="text-rose-100 text-[10px] sm:text-xs mt-1 font-medium uppercase tracking-widest">
             QuickPG Authentication
           </p>
         </div>
 
-        <div className="p-8 sm:p-10 flex flex-col gap-8">
+        <div className="p-6 sm:p-10 flex flex-col gap-6 sm:gap-8">
           {/* Stepper Integration */}
           {step < 3 && <StepperBar steps={steps} currentStep={step} />}
 
@@ -202,7 +202,7 @@ export default function ForgotPasswordPage() {
                   <CheckCircle2 size={40} className="text-green-500" />
                 </div>
                 <div className="space-y-2">
-                  <h2 className="text-2xl font-bold text-gray-900">
+                  <h2 className="text-xl sm:text-2xl font-bold text-gray-900">
                     Password Reset!
                   </h2>
                   <p className="text-sm text-gray-500">

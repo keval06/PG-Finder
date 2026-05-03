@@ -70,8 +70,9 @@ export default function BookingPage() {
 
     const a = new Date(checkIn);
     const b = new Date(checkOut);
+    if(b <= a) return 0;
 
-    const days = Math.ceil((b - a) / (1000 * 60 * 60 * 24));
+    const days = Math.ceil((b - a) / (1000 * 60 * 60 * 24)) +1;
     if (days <= 0) return 0;
     // round up — any partial month = full month charged
     return Math.ceil(days / 30);

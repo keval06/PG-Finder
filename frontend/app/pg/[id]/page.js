@@ -45,6 +45,8 @@ export default async function PGDetails({ params }) {
     getRoomTypes(id).catch(() => []),
   ]);
 
+  console.log("DEBUG SSR ROOM TYPES:", roomTypes);
+
   if (!pg || !pg._id) notFound();
 
   const avgRating = reviews.length
@@ -283,7 +285,7 @@ export default async function PGDetails({ params }) {
                 <p className="text-sm text-gray-600 leading-relaxed">
                   No smoking · No parties · Pets not allowed.
                   <br />
-                  Check-in after 10 AM, Check-out by 9 AM.
+
                 </p>
               </div>
             </div>

@@ -41,12 +41,10 @@ async function getPGs(searchParams) {
 }
 
 
-
-
 // ?getAvgRating(pgId) — Calculate Average Rating
 async function getAvgRating(pgId) {
   try {
-    const result = await reviewApi.getByPgIdPaginated(pgId,1, 500);
+    const result = await reviewApi.getByPgIdPaginated(pgId, 1, 500);
 
 
     // reviewApi.getByPgId now returns paginated shape: { reviews, total, ... }
@@ -70,8 +68,22 @@ async function getAvgRating(pgId) {
 export default async function Home({ searchParams }) {
   const resolvedParams = await searchParams;
 
+  // Build query string from ALL search params (q, city, gender, etc.)
+  const mapParams = new URLSearchParams();
+  if (resolvedParams) {
+    Object.entries(resolvedParams).forEach(([k, v]) => {
+      if (k !== "page" && k !== "limit") mapParams.append(k, v); // skip pagination keys
+    });
+  }
+
   // Step A: Get the raw list of PGs
-  const pgResponse = await getPGs(resolvedParams);
+  // Fetch BOTH paginated list AND full map data in parallel
+  const [pgResponse, mapPgs] = await Promise.all([
+    getPGs(resolvedParams),
+    // If user has location filter, use nearby; else show all
+    pgApi.getMapData(mapParams.toString()).catch(() => []),
+
+  ]);
 
   // Step B: Loop over every PG and enrich it
 
@@ -110,6 +122,7 @@ export default async function Home({ searchParams }) {
     <div className="bg-white min-h-screen">
       <HomeClient
         data={data}
+        mapPgs={mapPgs}
         pagination={{
           currentPage: Number(pgResponse.page) || 1,
           totalPages: Number(pgResponse.totalPages) || 1,

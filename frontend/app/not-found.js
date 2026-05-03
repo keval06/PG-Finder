@@ -49,7 +49,7 @@ export default function NotFound() {
 
         {/* Subtle Footer */}
         <p className="mt-12 text-slate-400 text-xs font-medium uppercase tracking-widest transition-opacity hover:opacity-100">
-          Error 404 — PGFinder
+          Error 404 — QuickPG
         </p>
       </div>
     </div>

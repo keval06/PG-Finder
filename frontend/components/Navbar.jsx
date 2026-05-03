@@ -6,6 +6,7 @@ import { Search, User, X, SlidersHorizontal, MapPin } from "lucide-react";
 import { useSearch } from "../app/context/SearchContext";
 import { useAuth } from "../app/context/AuthContext";
 import ConfirmModal from "./ConfirmModal";
+import Link from "next/link";
 
 export default function Navbar() {
   const router = useRouter();
@@ -132,13 +133,20 @@ export default function Navbar() {
       >
         <div className="w-full mx-auto px-6 md:px-10 lg:px-20 h-[80px] flex items-center justify-between gap-4">
           {/* LEFT: LOGO */}
-          <button
-            onClick={() => router.push("/")}
-            className="flex items-center flex-shrink-0"
-          >
-            <img src="/logo.png" alt="PGVista Logo" className="h-12 sm:h-14 w-auto object-contain" />
-          </button>
 
+
+<Link href="/" className="flex items-center gap-2.5 group">
+  <svg width="34" height="34" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg" className="transition-transform group-hover:scale-105">
+    <rect x="6" y="6" width="68" height="68" rx="14" fill="none" stroke="#222222" strokeWidth="5"/>
+    <rect x="20" y="20" width="18" height="18" rx="3" fill="#F5F5F5"/>
+    <rect x="42" y="20" width="18" height="18" rx="3" fill="#F5F5F5"/>
+    <rect x="20" y="42" width="18" height="18" rx="3" fill="#FF385C"/>
+    <rect x="42" y="42" width="18" height="18" rx="3" fill="#F5F5F5"/>
+  </svg>
+  <span className="text-[20px] font-bold tracking-tight text-[#222222]">
+    Quick<span className="text-rose-500">PG</span>
+  </span>
+</Link>
           {/* MIDDLE: SEARCH + FILTER (desktop) */}
           <div className="hidden md:flex flex-1 justify-center max-w-2xl px-4">
            <div className="flex items-center gap-2 w-full max-w-lg relative" onClick={(e) => e.stopPropagation()}>

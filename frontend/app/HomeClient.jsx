@@ -30,6 +30,7 @@ const getLatLng = (coordinate) => {
 
 export default function HomeClient({
   data,
+  mapPgs = [],
   pagination = { currentPage: 1, totalPages: 1, totalCount: 0 },
 }) {
   const { query, setFilterCount } = useSearch();
@@ -71,13 +72,15 @@ export default function HomeClient({
     } else {
       document.body.style.overflow = "";
     }
-    return () => { document.body.style.overflow = ""; };
+    return () => {
+      document.body.style.overflow = "";
+    };
   }, [drawerOpen]);
 
   const [userLocation, setUserLocation] = useState(
     latParam && lngParam
       ? { lat: Number(latParam), lng: Number(lngParam) }
-      : null,
+      : null
   );
   const [radius, setRadius] = useState(radiusParam ? Number(radiusParam) : 5);
   const [isLocationLoading, setIsLocationLoading] = useState(false);
@@ -91,6 +94,11 @@ export default function HomeClient({
       params.append("radius", radius);
     }
     if (query) params.append("q", query);
+    const cityParam = searchParamsUrl.get("city");
+
+    if (cityParam) {
+      params.append("city", cityParam);
+    }
     if (active.selectedPrice) {
       params.append("minprice", active.selectedPrice.min);
       if (isFinite(active.selectedPrice.max)) {
@@ -166,7 +174,9 @@ export default function HomeClient({
       handleNearMeFallback().then((success) => {
         if (!success) {
           setIsLocationLoading(false);
-          setLocationError("Your browser doesn't support location. IP fallback failed.");
+          setLocationError(
+            "Your browser doesn't support location. IP fallback failed."
+          );
         }
       });
       return;
@@ -181,7 +191,9 @@ export default function HomeClient({
           handleNearMeFallback().then((success) => {
             if (!success) {
               setIsLocationLoading(false);
-              setLocationError("Your device returned (0, 0) and IP location failed.");
+              setLocationError(
+                "Your device returned (0, 0) and IP location failed."
+              );
             }
           });
           return;
@@ -198,19 +210,26 @@ export default function HomeClient({
         // This is the "sitting in Bhavnagar, showing Ahmedabad" problem
         if (accuracyMeters > 50000) {
           setLocationError(
-            `Location accuracy is ~${Math.round(accuracyMeters / 1000)}km (WiFi/network-based). ` +
-            `This may point to your ISP's city, not your actual location. ` +
-            `Use the search bar to find PGs in your city instead.`
+            `Location accuracy is ~${Math.round(
+              accuracyMeters / 1000
+            )}km (WiFi/network-based). ` +
+              `This may point to your ISP's city, not your actual location. ` +
+              `Use the search bar to find PGs in your city instead.`
           );
           // Auto-widen radius to cover the inaccuracy
-          setRadius((prev) => Math.max(prev, Math.round(accuracyMeters / 1000)));
+          setRadius((prev) =>
+            Math.max(prev, Math.round(accuracyMeters / 1000))
+          );
         } else if (accuracyMeters > 10000) {
           // 10-50km → moderately imprecise, still usable with wider radius
           setLocationError(
-            `Location is approximate (~${Math.round(accuracyMeters / 1000)}km accuracy). ` +
-            `Search radius has been widened automatically.`
+            `Location is approximate (~${Math.round(
+              accuracyMeters / 1000
+            )}km accuracy). ` + `Search radius has been widened automatically.`
           );
-          setRadius((prev) => Math.max(prev, Math.round(accuracyMeters / 1000)));
+          setRadius((prev) =>
+            Math.max(prev, Math.round(accuracyMeters / 1000))
+          );
         }
         // accuracyMeters <= 10km → good enough, no warning needed
       },
@@ -223,11 +242,13 @@ export default function HomeClient({
               2: "Location unavailable. Check your device's location settings (Windows Settings → Privacy → Location).",
               3: "Location request timed out. Please try again.",
             };
-            setLocationError(errorMessages[err.code] || "Could not get your location.");
+            setLocationError(
+              errorMessages[err.code] || "Could not get your location."
+            );
           }
         });
       },
-      { timeout: 15000, maximumAge: 0, enableHighAccuracy: true },
+      { timeout: 15000, maximumAge: 0, enableHighAccuracy: true }
     );
   };
 
@@ -260,14 +281,14 @@ export default function HomeClient({
           className={
             isMapFullscreen
               ? "fixed inset-0 z-[100] bg-white p-4 pt-24"
-              : `sticky top-[80px] z-0 ${activePin ? 'h-[55vh]' : 'h-[40vh]'} px-3 pt-3 pb-1 transition-all duration-300`
+              : `sticky top-[80px] z-0 ${
+                  activePin ? "h-[55vh]" : "h-[40vh]"
+                } px-3 pt-3 pb-1 transition-all duration-300`
           }
         >
-          <div
-            className="w-full h-full rounded-2xl overflow-hidden border border-gray-200 shadow-sm relative"
-          >
+          <div className="w-full h-full rounded-2xl overflow-hidden border border-gray-200 shadow-sm relative">
             <HomeMap
-              pgs={sorted}
+              pgs={mapPgs}
               userLocation={userLocation}
               defaultMapCenter={defaultMapCenter}
               activePin={activePin}
@@ -280,7 +301,9 @@ export default function HomeClient({
 
         {/* PG listings — scrolls over the map because of z-index and background */}
         <div
-          className={`relative z-10 bg-white flex-1 px-4 sm:px-5 py-4 min-h-[65vh] ${isMapFullscreen ? "hidden" : "block"}`}
+          className={`relative z-10 bg-white flex-1 px-4 sm:px-5 py-4 min-h-[65vh] ${
+            isMapFullscreen ? "hidden" : "block"
+          }`}
         >
           {locationError && (
             <div className="mb-3 flex items-start gap-2.5 text-sm text-amber-800 bg-amber-50 border border-amber-200 rounded-xl px-3.5 py-2.5">
@@ -338,10 +361,14 @@ export default function HomeClient({
         <footer className="relative z-20 bg-slate-900 py-10 px-5 sm:px-8">
           <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="flex items-center">
-              <img src="/logo.png" alt="PGVista Logo" className="h-10 sm:h-11 w-auto object-contain bg-white px-2.5 py-1.5 rounded-xl shadow-sm" />
+              <img
+                src="/logo.png"
+                alt="PGVista Logo"
+                className="h-10 sm:h-11 w-auto object-contain bg-white px-2.5 py-1.5 rounded-xl shadow-sm"
+              />
             </div>
             <p className="text-slate-500 text-xs">
-              © 2026 PGFinder. All rights reserved.
+              © 2026 QuickPG. All rights reserved.
             </p>
             <div className="flex gap-6">
               {["Privacy", "Terms", "Contact"].map((l) => (
@@ -364,7 +391,11 @@ export default function HomeClient({
         <div className="col-span-1" />
 
         {/* Listings - 6 Columns */}
-        <div className={`col-span-6 flex flex-col min-w-0 overflow-y-auto no-scrollbar px-6 py-8 ${isMapFullscreen ? "hidden" : "block"}`}>
+        <div
+          className={`col-span-6 flex flex-col min-w-0 overflow-y-auto no-scrollbar px-6 py-8 ${
+            isMapFullscreen ? "hidden" : "block"
+          }`}
+        >
           {locationError && (
             <div className="mb-3 flex items-start gap-2.5 text-sm text-amber-800 bg-amber-50 border border-amber-200 rounded-xl px-3.5 py-2.5">
               <AlertCircle size={16} className="flex-shrink-0 mt-0.5" />
@@ -419,10 +450,16 @@ export default function HomeClient({
         </div>
 
         {/* Desktop Map - 4 Columns or Fullscreen overlay within grid */}
-        <div className={isMapFullscreen ? "col-span-10 h-full py-10 px-4" : "col-span-4 h-full py-8 pl-4 pr-6"}>
+        <div
+          className={
+            isMapFullscreen
+              ? "col-span-10 h-full py-10 px-4"
+              : "col-span-4 h-full py-8 pl-4 pr-6"
+          }
+        >
           <div className="h-full rounded-3xl overflow-hidden border border-gray-200 shadow-sm relative group">
             <HomeMap
-              pgs={sorted}
+              pgs={mapPgs}
               userLocation={userLocation}
               defaultMapCenter={defaultMapCenter}
               activePin={activePin}

@@ -78,34 +78,27 @@ input[type="radio"] {
 
 /*marker clustering*/
 /* ── Marker Cluster: Google-style blue circles ── */
+/* Marker clustering — clean white pill style */
 .marker-cluster-small,
 .marker-cluster-medium,
-.marker-cluster-large {
-  background: rgba(255, 56, 92, 0.2) !important;
-  border-radius: 50%;
-}
+.marker-cluster-large,
 .marker-cluster-small div,
 .marker-cluster-medium div,
 .marker-cluster-large div {
-  background: #FF385C !important;
-  color: #fff !important;
-  border-radius: 50%;
-  font-size: 13px;
-  font-weight: 600;
-  font-family: 'Inter', sans-serif;
-  width: 34px !important;
-  height: 34px !important;
-  line-height: 34px !important;
-  text-align: center;
-  margin-left: 3px !important;
-  margin-top: 3px !important;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
 }
-.marker-cluster-small { width: 40px !important; height: 40px !important; }
-.marker-cluster-medium { width: 46px !important; height: 46px !important; }
-.marker-cluster-medium div { width: 38px !important; height: 38px !important; line-height: 38px !important; margin-left: 4px !important; margin-top: 4px !important; }
-.marker-cluster-large { width: 52px !important; height: 52px !important; }
-.marker-cluster-large div { width: 42px !important; height: 42px !important; line-height: 42px !important; margin-left: 5px !important; margin-top: 5px !important; }
-/* ── Force Leaflet below modals ── */
+.marker-cluster {
+  background: transparent !important;
+  border: none !important;
+}
+.marker-cluster div {
+  background: transparent !important;
+  margin: 0 !important;
+  width: auto !important;
+  height: auto !important;
+}
 .leaflet-pane,
 .leaflet-control,
 .leaflet-top,
