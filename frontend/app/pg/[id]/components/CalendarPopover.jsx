@@ -150,11 +150,11 @@ export default function CalendarPopover({
   return (
     <div
       ref={popoverRef}
-      className="absolute top-[calc(100%+8px)] right-[-10px] lg:right-0 bg-white border border-[#DDDDDD] rounded-2xl shadow-[0_8px_28px_rgba(0,0,0,0.15)] p-6 z-[100] min-w-[580px]"
+      className="fixed sm:absolute inset-x-2 sm:inset-x-auto top-auto sm:top-[calc(100%+8px)] bottom-2 sm:bottom-auto right-0 bg-white border border-[#DDDDDD] rounded-2xl shadow-[0_8px_28px_rgba(0,0,0,0.15)] p-4 sm:p-6 z-[100] sm:min-w-[580px] max-h-[90vh] overflow-y-auto"
     >
       {/* Stay duration selector — KEY UX */}
       <div className="mb-5 pb-4 border-b border-[#F7F7F7]">
-        <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center justify-between gap-2 flex-wrap">
           <span className="text-[12px] font-bold uppercase tracking-wider text-[#717171]">
             Stay duration
           </span>
@@ -206,7 +206,7 @@ export default function CalendarPopover({
 
       <div className="flex gap-8 justify-center">
         {renderMonth(viewDate)}
-        {renderMonth(nextMonth)}
+        <div className="hidden sm:block">{renderMonth(nextMonth)}</div>
       </div>
 
       {/* Footer */}

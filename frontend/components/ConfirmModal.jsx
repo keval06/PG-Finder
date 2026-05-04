@@ -1,6 +1,5 @@
 import { X, AlertCircle } from "lucide-react";
 import Button from "../app/atoms/Button";
-
 /**
  * ConfirmModal - A reusable bottom-sheet / modal for confirming actions
  *
