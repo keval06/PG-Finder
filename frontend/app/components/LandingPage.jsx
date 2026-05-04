@@ -44,16 +44,16 @@ export default function LandingPage() {
   return (
     <div className="bg-white">
       {/* ────── HERO ────── */}
-      <section className="max-w-[1280px] mx-auto px-6 md:px-10 lg:px-20 pt-12 pb-20">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
+      <section className="max-w-[1280px] mx-auto px-5 sm:px-6 md:px-10 lg:px-20 pt-8 sm:pt-12 pb-12 sm:pb-20">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-12 lg:gap-20 items-center">
           {/* Left — Heading + Search */}
           <div>
-            <p className="inline-flex items-center gap-2 text-[12px] font-bold uppercase tracking-wider text-rose-500 bg-rose-50 px-3 py-1.5 rounded-full mb-6">
+            <p className="inline-flex items-center gap-2 text-[10px] sm:text-[12px] font-bold uppercase tracking-wider text-rose-500 bg-rose-50 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full mb-4 sm:mb-6">
               <span className="w-1.5 h-1.5 bg-rose-500 rounded-full" />
               India&apos;s Trusted PG Platform
             </p>
 
-            <h1 className="text-[40px] md:text-[52px] lg:text-[58px] leading-[1.05] font-semibold tracking-tight text-[#222222] mb-6">
+            <h1 className="text-[32px] sm:text-[40px] md:text-[52px] lg:text-[58px] leading-[1.05] font-semibold tracking-tight text-[#222222] mb-4 sm:mb-6">
               Find your <br />
               perfect{" "}
               <span className="italic font-medium text-rose-500">
@@ -62,7 +62,7 @@ export default function LandingPage() {
               home.
             </h1>
 
-            <p className="text-[17px] text-[#717171] leading-relaxed mb-8 max-w-md">
+            <p className="text-[15px] sm:text-[17px] text-[#717171] leading-relaxed mb-6 sm:mb-8 max-w-md">
               Verified PGs across India. Zero brokerage. Direct owner contact.
               No middlemen, no surprises.
             </p>
@@ -70,9 +70,9 @@ export default function LandingPage() {
             {/* Search bar */}
             <form
               onSubmit={handleSearch}
-              className="flex items-center bg-white border border-[#DDDDDD] rounded-full shadow-[0_2px_8px_rgba(0,0,0,0.08)] hover:shadow-[0_6px_20px_rgba(0,0,0,0.12)] transition-shadow max-w-md"
+              className="flex items-center bg-white border border-[#DDDDDD] rounded-full shadow-[0_2px_8px_rgba(0,0,0,0.08)] hover:shadow-[0_6px_20px_rgba(0,0,0,0.12)] transition-shadow w-full max-w-md"
             >
-              <div className="pl-6 pr-3 text-[#717171]">
+              <div className="pl-4 sm:pl-6 pr-2 sm:pr-3 text-[#717171] flex-shrink-0">
                 <Search size={18} />
               </div>
               <input
@@ -80,25 +80,25 @@ export default function LandingPage() {
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Search city, locality or PG name"
-                className="flex-1 py-4 text-[15px] text-[#222222] placeholder:text-[#A0A0A0] focus:outline-none bg-transparent"
+                className="flex-1 py-3 sm:py-4 text-[14px] sm:text-[15px] min-w-0 text-[#222222] placeholder:text-[#A0A0A0] focus:outline-none bg-transparent"
               />
               <button
                 type="submit"
-                className="bg-rose-500 hover:bg-rose-600 text-white font-semibold px-6 py-2.5 m-1.5 rounded-full transition-colors text-[14px]"
+                className="bg-rose-500 hover:bg-rose-600 text-white font-semibold px-4 sm:px-6 py-2 sm:py-2.5 m-1 sm:m-1.5 rounded-full transition-colors text-[13px] sm:text-[14px] flex-shrink-0"
               >
                 Search
               </button>
             </form>
 
             {/* Stats strip */}
-            <div className="flex items-center gap-8 mt-10 pt-8 border-t border-gray-100">
+            <div className="flex items-center gap-4 sm:gap-8 mt-8 sm:mt-10 pt-6 sm:pt-8 border-t border-gray-100">
               <Stat
                 label="Verified PGs"
                 value={landing.totals.pgs.toLocaleString("en-IN")}
               />
-              <div className="w-px h-10 bg-gray-200" />
+              <div className="w-px h-8 sm:h-10 bg-gray-200" />
               <Stat label="Cities" value={landing.totals.cities} />
-              <div className="w-px h-10 bg-gray-200" />
+              <div className="w-px h-8 sm:h-10 bg-gray-200" />
               <Stat label="Brokerage" value="₹0" />
             </div>
           </div>
@@ -145,8 +145,9 @@ export default function LandingPage() {
       </section>
 
       {/* ────── WHY US — 3 small features (concise) ────── */}
-      <section className="max-w-[1280px] mx-auto px-6 md:px-10 lg:px-20 pb-20">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <section className="max-w-[1280px] mx-auto px-5 sm:px-6 md:px-10 lg:px-20 pb-12 sm:pb-20">
+        {" "}
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6">
           <Feature
             icon={<ShieldCheck size={20} />}
             title="Zero Brokerage"
@@ -166,13 +167,13 @@ export default function LandingPage() {
       </section>
 
       {/* ────── TOP CITIES + TOP PGs ────── */}
-      <section className="max-w-[1280px] mx-auto px-6 md:px-10 lg:px-20 pb-24">
-        <div className="flex items-end justify-between mb-10">
+      <section className="max-w-[1280px] mx-auto px-5 sm:px-6 md:px-10 lg:px-20 pb-16 sm:pb-24">
+        <div className="flex items-end justify-between mb-6 sm:mb-10">
           <div>
             <p className="text-[12px] font-bold uppercase tracking-wider text-rose-500 mb-2">
               Explore
             </p>
-            <h2 className="text-[32px] md:text-[36px] font-semibold tracking-tight text-[#222222]">
+            <h2 className="text-[24px] sm:text-[32px] md:text-[36px] font-semibold tracking-tight text-[#222222]">
               Top cities &amp; top homes
             </h2>
           </div>
@@ -194,7 +195,7 @@ export default function LandingPage() {
             ))}
           </div>
         ) : (
-          <div className="space-y-16">
+          <div className="space-y-10 sm:space-y-16">
             {landing.cities.map((cityData) => (
               <CityBlock key={cityData.city} data={cityData} />
             ))}
@@ -203,18 +204,18 @@ export default function LandingPage() {
       </section>
 
       {/* ────── CTA STRIP ────── */}
-      <section className="bg-[#222222] py-16">
-        <div className="max-w-[1280px] mx-auto px-6 md:px-10 lg:px-20 text-center">
-          <h3 className="text-[32px] md:text-[40px] font-semibold text-white tracking-tight mb-4">
+      <section className="bg-[#222222] py-12 sm:py-16">
+        <div className="max-w-[1280px] mx-auto px-5 sm:px-6 md:px-10 lg:px-20 text-center">
+          <h3 className="text-[24px] sm:text-[32px] md:text-[40px] font-semibold text-white tracking-tight mb-3 sm:mb-4">
             Your next home is one search away.
           </h3>
-          <p className="text-[#A0A0A0] text-[16px] mb-8 max-w-xl mx-auto">
+          <p className="text-[#A0A0A0] text-[14px] sm:text-[16px] mb-6 sm:mb-8 max-w-xl mx-auto px-2">
             Join thousands of tenants who found their perfect PG without paying
             a single rupee in brokerage.
           </p>
           <Link
             href="/home"
-            className="inline-flex items-center gap-2 bg-white hover:bg-gray-100 text-[#222222] font-semibold px-8 py-3.5 rounded-full transition-colors text-[15px]"
+            className="inline-flex items-center gap-2 bg-white hover:bg-gray-100 text-[#222222] font-semibold px-6 sm:px-8 py-3 sm:py-3.5 rounded-full transition-colors text-[14px] sm:text-[15px]"
           >
             Browse PGs <ArrowRight size={16} />
           </Link>
@@ -223,7 +224,8 @@ export default function LandingPage() {
 
       {/* ────── FOOTER ────── */}
       <footer className="border-t border-gray-200 py-8">
-        <div className="max-w-[1280px] mx-auto px-6 md:px-10 lg:px-20 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="max-w-[1280px] mx-auto px-5 sm:px-6 md:px-10 lg:px-20 flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4">
+
           <p className="text-[13px] text-[#717171]">
             © 2026 QuickPG. All rights reserved.
           </p>
@@ -249,10 +251,11 @@ export default function LandingPage() {
 function Stat({ label, value }) {
   return (
     <div>
-      <p className="text-[22px] md:text-[26px] font-semibold text-[#222222] leading-none mb-1.5">
+     <p className="text-[18px] sm:text-[22px] md:text-[26px] font-semibold text-[#222222] leading-none mb-1 sm:mb-1.5">
         {value}
       </p>
-      <p className="text-[12px] uppercase tracking-wider text-[#717171] font-medium">
+      <p className="text-[10px] sm:text-[12px] uppercase tracking-wider text-[#717171] font-medium whitespace-nowrap">
+
         {label}
       </p>
     </div>
@@ -261,7 +264,8 @@ function Stat({ label, value }) {
 
 function Feature({ icon, title, description }) {
   return (
-    <div className="bg-white border border-gray-100 rounded-2xl p-6 hover:border-gray-200 hover:shadow-[0_4px_16px_rgba(0,0,0,0.06)] transition-all">
+    <div className="bg-white border border-gray-100 rounded-2xl p-5 sm:p-6 hover:border-gray-200 hover:shadow-[0_4px_16px_rgba(0,0,0,0.06)] transition-all">
+
       <div className="w-10 h-10 rounded-full bg-rose-50 text-rose-500 flex items-center justify-center mb-4">
         {icon}
       </div>
@@ -280,10 +284,9 @@ function CityBlock({ data }) {
     <div>
       <div className="flex items-end justify-between mb-5">
         <div>
-          <h3 className="text-[24px] md:text-[28px] font-semibold text-[#222222] tracking-tight">
-            {data.city.charAt(0).toUpperCase() + data.city.slice(1)}
+          <h3 className="text-[20px] sm:text-[24px] md:text-[28px] font-semibold text-[#222222] tracking-tight">            {data.city.charAt(0).toUpperCase() + data.city.slice(1)}
           </h3>
-          <p className="text-[14px] text-[#717171] mt-0.5">
+         <p className="text-[12px] sm:text-[14px] text-[#717171] mt-0.5">
             {data.totalCount} verified PGs
           </p>
         </div>
@@ -295,7 +298,8 @@ function CityBlock({ data }) {
         </Link>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-5">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4 md:gap-5">
+
         {data.pgs.map((pg) => (
           <CityPGCard key={pg._id} pg={pg} />
         ))}
