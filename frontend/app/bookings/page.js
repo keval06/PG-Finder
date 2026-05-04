@@ -194,8 +194,8 @@ export default function MyBookingsPage() {
           </div>
 
           {/* Status tabs + Search + Date */}
-          <div className="flex items-center justify-between gap-4 flex-wrap bg-slate-50/50 p-2 rounded-2xl border border-gray-100">
-            <div className="flex items-center gap-1 bg-white shadow-sm border border-[#DDDDDD] rounded-xl p-1">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-slate-50/50 p-2 rounded-2xl border border-gray-100">
+            <div className="flex items-center gap-1 bg-white shadow-sm border border-[#DDDDDD] rounded-xl p-1 overflow-x-auto scrollbar-hide w-full sm:w-auto">
               {TABS.map((t) => (
                 <button
                   key={t.key}
@@ -203,11 +203,7 @@ export default function MyBookingsPage() {
                     setStatusTab(t.key);
                     setPage(1);
                   }}
-                  className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
-                    statusTab === t.key
-                      ? "bg-[#FF385C] text-white shadow-md shadow-rose-200"
-                      : "text-[#717171] hover:text-[#222222] hover:bg-slate-50"
-                  }`}
+                 className={`px-2.5 sm:px-4 py-2 rounded-lg text-sm font-semibold transition-all flex-shrink-0 ${statusTab === t.key ? "bg-[#FF385C] text-white shadow-md shadow-rose-200" : "text-[#717171] hover:text-[#222222] hover:bg-slate-50"}`}
                 >
                   {t.label}
                   {statusTab === t.key && totalCount > 0 && !loading && (

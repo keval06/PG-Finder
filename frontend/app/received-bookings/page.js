@@ -183,20 +183,20 @@ export default function ReceivedBookingsPage() {
   return (
     <>
       <div className="bg-white min-h-screen pb-20 selection:bg-rose-100">
-        <div className="max-w-[1280px] mx-auto px-6 md:px-10 lg:px-20 py-6">
-          <div className="flex flex-col gap-8">
+        <div className="max-w-[1280px] mx-auto px-4 sm:px-6 md:px-10 lg:px-20 py-4 sm:py-6">
+          <div className="flex flex-col gap-4 sm:gap-8">
             <div className="flex items-center justify-between py-4">
               <div className="flex flex-col gap-2">
                 <BackButton />
-                <h1 className="text-2xl md:text-3xl font-semibold tracking-tight text-[#222222]">
+                <h1 className="text-xl sm:text-2xl md:text-3xl font-semibold tracking-tight text-[#222222]">
                   Received Bookings
                 </h1>
                 <p className="text-base text-[#717171]">
                   {loading
                     ? "Updating..."
                     : query.trim()
-                    ? `${totalCount} matching "${query}"`
-                    : `${totalCount} booking${totalCount !== 1 ? "s" : ""} managed`}
+                      ? `${totalCount} matching "${query}"`
+                      : `${totalCount} booking${totalCount !== 1 ? "s" : ""} managed`}
                 </p>
               </div>
               <button
@@ -206,77 +206,71 @@ export default function ReceivedBookingsPage() {
                 My Listings <ChevronRight size={16} strokeWidth={2.5} />
               </button>
             </div>
-
-              {/* Status tabs + Date range */}
-              <div className="flex items-center justify-between gap-4 flex-wrap bg-slate-50/50 p-2 rounded-2xl border border-gray-100">
-                <div className="flex items-center gap-1 bg-white shadow-sm border border-[#DDDDDD] rounded-xl p-1">
-                  {STATUS_TABS.map((t) => (
-                    <button
-                      key={t.key}
-                      onClick={() => {
-                        setStatusTab(t.key);
-                        setPage(1);
-                      }}
-                      className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
-                        statusTab === t.key
-                          ? "bg-[#FF385C] text-white shadow-md shadow-rose-200"
-                          : "text-[#717171] hover:text-[#222222] hover:bg-slate-50"
-                      }`}
-                    >
-                      {t.label}
-                      {statusTab === t.key && totalCount > 0 && !loading && (
-                        <span className="ml-2 text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-white/20 text-white">
-                          {totalCount}
-                        </span>
-                      )}
-                    </button>
-                  ))}
-                </div>
-
-                <div className="flex items-center gap-2 flex-1 sm:flex-initial">
-                  <div className="relative flex-1 sm:w-64">
-                    <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#717171]" />
-                    <input
-                      type="text"
-                      placeholder="Search PG name or city…"
-                      value={query}
-                      onChange={(e) => {
-                        setQuery(e.target.value);
-                        setPage(1);
-                      }}
-                      className="w-full pl-9 pr-4 py-2.5 bg-white border border-[#DDDDDD] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-rose-50 focus:border-rose-400 transition-all shadow-sm"
-                    />
-                  </div>
-                  
-                  <CustomSelect
-                    value={dateRange}
-                    onChange={(val) => {
-                      setDateRange(val);
+            {/* Status tabs + Date range */}
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-slate-50/50 p-2 rounded-2xl border border-gray-100">
+              <div className="flex items-center gap-1 bg-white shadow-sm border border-[#DDDDDD] rounded-xl p-1 overflow-x-auto scrollbar-hide w-full sm:w-auto">
+                {STATUS_TABS.map((t) => (
+                  <button
+                    key={t.key}
+                    onClick={() => {
+                      setStatusTab(t.key);
                       setPage(1);
                     }}
-                    options={DATE_OPTIONS}
-                    className="sm:w-40 h-[42px]"
-                  />
-                </div>
+                    className={`px-2.5 sm:px-4 py-2 rounded-lg text-sm font-semibold transition-all flex-shrink-0 ${statusTab === t.key ? "bg-[#FF385C] text-white shadow-md shadow-rose-200" : "text-[#717171] hover:text-[#222222] hover:bg-slate-50"}`}
+                  >
+                    {t.label}
+                    {statusTab === t.key && totalCount > 0 && !loading && (
+                      <span className="ml-2 text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-white/20 text-white">
+                        {totalCount}
+                      </span>
+                    )}
+                  </button>
+                ))}
               </div>
 
-              {/* toast */}
-              {toast && (
-                <div
-                  className={`flex items-center gap-3 px-6 py-4 rounded-2xl text-sm font-bold animate-[fadeIn_0.2s_ease-out] border shadow-sm ${
-                    toast.type === "success"
-                      ? "bg-emerald-50 text-emerald-700 border-emerald-100"
-                      : "bg-red-50 text-red-600 border-red-100"
-                  }`}
-                >
-                  {toast.type === "success" ? (
-                    <CheckCircle2 size={18} className="text-emerald-500" />
-                  ) : (
-                    <XCircle size={18} className="text-red-500" />
-                  )}
-                  {toast.text}
+              <div className="flex items-center gap-2 w-full sm:flex-initial">
+                <div className="relative flex-1 sm:w-64">
+                  <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#717171]" />
+                  <input
+                    type="text"
+                    placeholder="Search PG name or city…"
+                    value={query}
+                    onChange={(e) => {
+                      setQuery(e.target.value);
+                      setPage(1);
+                    }}
+                    className="w-full pl-9 pr-4 py-2.5 bg-white border border-[#DDDDDD] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-rose-50 focus:border-rose-400 transition-all shadow-sm"
+                  />
                 </div>
-              )}
+
+                <CustomSelect
+                  value={dateRange}
+                  onChange={(val) => {
+                    setDateRange(val);
+                    setPage(1);
+                  }}
+                  options={DATE_OPTIONS}
+                  className="sm:w-40 h-[42px]"
+                />
+              </div>
+            </div>
+
+            {/* toast */}
+            {toast && (
+              <div
+                className={`flex items-center gap-3 px-6 py-4 rounded-2xl text-sm font-bold animate-[fadeIn_0.2s_ease-out] border shadow-sm ${toast.type === "success"
+                  ? "bg-emerald-50 text-emerald-700 border-emerald-100"
+                  : "bg-red-50 text-red-600 border-red-100"
+                  }`}
+              >
+                {toast.type === "success" ? (
+                  <CheckCircle2 size={18} className="text-emerald-500" />
+                ) : (
+                  <XCircle size={18} className="text-red-500" />
+                )}
+                {toast.text}
+              </div>
+            )}
 
             {/* content */}
             {loading ? (
@@ -380,15 +374,14 @@ function ReceivedCard({ booking: b, onConfirm, onCancel }) {
   return (
     <div
       onClick={() => router.push(`/pg/${b.pg?._id}`)}
-      className={`bg-white border rounded-2xl overflow-hidden cursor-pointer transition-all ${
-        isCancelled
-          ? "opacity-50 border-[#DDDDDD]"
-          : "border-[#DDDDDD] hover:shadow-[0_6px_16px_rgba(0,0,0,0.12)] hover:border-gray-300"
-      }`}
+      className={`bg-white border rounded-2xl overflow-hidden cursor-pointer transition-all ${isCancelled
+        ? "opacity-50 border-[#DDDDDD]"
+        : "border-[#DDDDDD] hover:shadow-[0_6px_16px_rgba(0,0,0,0.12)] hover:border-gray-300"
+        }`}
     >
       <div className="p-5 sm:p-6">
         {/* row 1: pg name + status */}
-        <div className="flex items-start justify-between gap-3 mb-5">
+        <div className="flex items-start justify-between gap-2 mb-3 sm:mb-5">
           <div className="min-w-0">
             <h2 className="text-[17px] font-semibold text-[#222222] truncate leading-tight">
               {b.pg?.name || "PG"}
@@ -407,7 +400,7 @@ function ReceivedCard({ booking: b, onConfirm, onCancel }) {
         </div>
 
         {/* row 2: guest info */}
-        <div className="flex items-center gap-4 mb-6 bg-[#FFFFFF] border border-[#DDDDDD] rounded-xl px-4 py-3">
+        <div className="flex items-center gap-3 mb-4 sm:mb-6 bg-[#FFFFFF] border border-[#DDDDDD] rounded-xl px-3 sm:px-4 py-2.5 sm:py-3">
           <div className="w-10 h-10 rounded-full bg-rose-50 border border-rose-100 flex items-center justify-center text-rose-500 font-bold text-sm flex-shrink-0">
             {b.user?.name?.[0]?.toUpperCase() || "?"}
           </div>
@@ -422,7 +415,7 @@ function ReceivedCard({ booking: b, onConfirm, onCancel }) {
         </div>
 
         {/* row 3: details grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+        <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 mb-4 sm:mb-6">
           <div className="bg-white border border-[#DDDDDD] rounded-xl px-3 py-2.5">
             <p className="text-[10px] font-bold uppercase text-[#717171] mb-1 tracking-wider">Room</p>
             <p className="text-sm font-semibold text-[#222222] capitalize flex items-center gap-2">
@@ -452,7 +445,7 @@ function ReceivedCard({ booking: b, onConfirm, onCancel }) {
         </div>
 
         {/* row 4: amount + actions */}
-        <div className="flex items-center justify-between pt-5 border-t border-[#DDDDDD]">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pt-4 sm:pt-5 border-t border-[#DDDDDD]">
           <div className="flex items-baseline gap-1">
             <span className="text-lg font-bold text-[#222222] flex items-center gap-0.5">
               <IndianRupee size={16} strokeWidth={2.5} />
@@ -462,11 +455,11 @@ function ReceivedCard({ booking: b, onConfirm, onCancel }) {
           </div>
 
           {!isCancelled && (
-            <div className="flex gap-3">
+            <div className="flex gap-2 sm:gap-3 w-full sm:w-auto">
               {isPending && onConfirm && (
                 <button
                   onClick={onConfirm}
-                  className="flex items-center gap-2 text-xs font-semibold px-5 py-2.5 rounded-xl border border-rose-200 text-rose-500 bg-rose-50 hover:bg-rose-100 transition-colors"
+                  className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 text-xs font-semibold px-3 sm:px-5 py-2 sm:py-2.5 rounded-xl border border-rose-200 text-rose-500 bg-rose-50 hover:bg-rose-100 transition-colors"
                 >
                   <CheckCircle2 size={14} /> Confirm
                 </button>
@@ -474,7 +467,7 @@ function ReceivedCard({ booking: b, onConfirm, onCancel }) {
               {onCancel && (
                 <button
                   onClick={onCancel}
-                  className="flex items-center gap-2 text-xs font-semibold px-5 py-2.5 rounded-xl border border-[#DDDDDD] text-[#717171] bg-white hover:bg-slate-50 transition-colors"
+                  className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 text-xs font-semibold px-3 sm:px-5 py-2 sm:py-2.5 rounded-xl border border-[#DDDDDD] text-[#717171] bg-white hover:bg-slate-50 transition-colors"
                 >
                   <XCircle size={14} /> Cancel
                 </button>
