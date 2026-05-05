@@ -45,10 +45,14 @@ function formatFullDate(d) {
   const suffix = (day) => {
     if (day > 3 && day < 21) return "th";
     switch (day % 10) {
-      case 1: return "st";
-      case 2: return "nd";
-      case 3: return "rd";
-      default: return "th";
+      case 1:
+        return "st";
+      case 2:
+        return "nd";
+      case 3:
+        return "rd";
+      default:
+        return "th";
     }
   };
 
@@ -75,15 +79,13 @@ export default function MyBookingsPage() {
   const [totalCount, setTotalCount] = useState(0);
   const ITEMS_PER_PAGE = 5;
 
-
-
   // ─── fetch bookings
   const fetchBookings = useCallback(async () => {
     setLoading(true);
     try {
       const token = localStorage.getItem("token");
       if (!token) return;
-      
+
       const params = new URLSearchParams();
       if (statusTab !== "all") params.append("status", statusTab);
       if (dateRange !== "all") params.append("dateRange", dateRange);
@@ -91,7 +93,10 @@ export default function MyBookingsPage() {
       params.append("page", page);
       params.append("limit", ITEMS_PER_PAGE);
 
-      const response = await bookingApi.getUserBookings(token, params.toString());
+      const response = await bookingApi.getUserBookings(
+        token,
+        params.toString(),
+      );
       setBookings(Array.isArray(response.data) ? response.data : []);
       setTotalPages(response.totalPages || 1);
       setTotalCount(response.totalCount || 0);
@@ -181,8 +186,8 @@ export default function MyBookingsPage() {
                 {loading
                   ? "Updating..."
                   : query.trim()
-                  ? `${totalCount} matching "${query}"`
-                  : `${totalCount} booking${totalCount !== 1 ? "s" : ""} placed`}
+                    ? `${totalCount} matching "${query}"`
+                    : `${totalCount} booking${totalCount !== 1 ? "s" : ""} placed`}
               </p>
             </div>
             <button
@@ -203,7 +208,7 @@ export default function MyBookingsPage() {
                     setStatusTab(t.key);
                     setPage(1);
                   }}
-                 className={`px-2.5 sm:px-4 py-2 rounded-lg text-sm font-semibold transition-all flex-shrink-0 ${statusTab === t.key ? "bg-[#FF385C] text-white shadow-md shadow-rose-200" : "text-[#717171] hover:text-[#222222] hover:bg-slate-50"}`}
+                  className={`px-2.5 sm:px-4 py-2 rounded-lg text-sm font-semibold transition-all flex-shrink-0 ${statusTab === t.key ? "bg-[#FF385C] text-white shadow-md shadow-rose-200" : "text-[#717171] hover:text-[#222222] hover:bg-slate-50"}`}
                 >
                   {t.label}
                   {statusTab === t.key && totalCount > 0 && !loading && (
@@ -217,7 +222,10 @@ export default function MyBookingsPage() {
 
             <div className="flex items-center gap-2 flex-1 sm:flex-initial">
               <div className="relative flex-1 sm:w-64">
-                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#717171]" />
+                <Search
+                  size={14}
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-[#717171]"
+                />
                 <input
                   type="text"
                   placeholder="Search PG name or city…"
@@ -229,7 +237,7 @@ export default function MyBookingsPage() {
                   className="w-full pl-9 pr-4 py-2.5 bg-white border border-[#DDDDDD] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-rose-50 focus:border-rose-400 transition-all shadow-sm"
                 />
               </div>
-              
+
               <CustomSelect
                 value={dateRange}
                 onChange={(val) => {
@@ -247,7 +255,10 @@ export default function MyBookingsPage() {
               <div className="flex justify-center py-20">
                 <div className="w-6 h-6 border-2 border-rose-500 border-t-transparent rounded-full animate-spin" />
               </div>
-            ) : bookings.length === 0 && statusTab === "all" && dateRange === "all" && !query.trim() ? (
+            ) : bookings.length === 0 &&
+              statusTab === "all" &&
+              dateRange === "all" &&
+              !query.trim() ? (
               <EmptyState
                 icon={Bed}
                 title="No bookings yet"
@@ -286,7 +297,11 @@ export default function MyBookingsPage() {
                   data={bookings}
                   itemsPerPage={ITEMS_PER_PAGE}
                   renderItem={(b) => (
-                    <BookingCard key={b._id} b={b} onCancel={() => setCancelTarget(b)} />
+                    <BookingCard
+                      key={b._id}
+                      b={b}
+                      onCancel={() => setCancelTarget(b)}
+                    />
                   )}
                   page={page}
                   onPageChange={setPage}
@@ -319,23 +334,28 @@ function BookingCard({ b, onCancel }) {
   const router = useRouter();
 
   return (
-    <div 
+    <div
       className={`bg-white border rounded-2xl overflow-hidden transition-all cursor-pointer ${
-        isCancelled 
-          ? "opacity-50 border-[#DDDDDD]" 
+        isCancelled
+          ? "opacity-50 border-[#DDDDDD]"
           : "border-[#DDDDDD] hover:shadow-[0_6px_16px_rgba(0,0,0,0.12)] hover:border-gray-300"
       }`}
     >
       <div className="p-5 sm:p-6">
         {/* PG Info Header */}
         <div className="flex items-start justify-between gap-3 mb-5 ">
-          <div className="min-w-0 cursor-pointer group" onClick={() => router.push(`/pg/${b.pg?._id}`)}>
+          <div
+            className="min-w-0 cursor-pointer group"
+            onClick={() => router.push(`/pg/${b.pg?._id}`)}
+          >
             <h2 className="text-[17px] font-semibold text-[#222222] truncate leading-tight group-hover:text-rose-500 transition-colors">
               {b.pg?.name || "PG Listing"}
             </h2>
             <div className="flex items-center gap-1.5 text-[15px] text-[#484848] mt-1">
               <MapPin size={14} className="text-gray-400 shrink-0" />
-              <span className="truncate capitalize">{b.pg?.city || "Location not specified"}</span>
+              <span className="truncate capitalize">
+                {b.pg?.city || "Location not specified"}
+              </span>
             </div>
           </div>
           <div className="flex flex-col items-end gap-1.5">
@@ -349,28 +369,37 @@ function BookingCard({ b, onCancel }) {
         {/* Details Grid */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
           <div className="bg-white border border-[#DDDDDD] rounded-xl px-3 py-2.5">
-            <p className="text-[10px] font-bold uppercase text-[#717171] mb-1">Room Type</p>
+            <p className="text-[10px] font-bold uppercase text-[#717171] mb-1">
+              Room Type
+            </p>
             <p className="text-sm font-semibold text-[#222222] capitalize flex items-center gap-2">
               <Bed size={14} className="text-rose-500" />
               {b.roomType?.name || "Standard"}
             </p>
           </div>
           <div className="bg-white border border-[#DDDDDD] rounded-xl px-3 py-2.5">
-            <p className="text-[10px] font-bold uppercase text-[#717171] mb-1">Capacity</p>
+            <p className="text-[10px] font-bold uppercase text-[#717171] mb-1">
+              Capacity
+            </p>
             <p className="text-sm font-semibold text-[#222222] flex items-center gap-2">
               <Users size={14} className="text-rose-500" />
               {b.roomType?.sharingCount || "1"}-sharing
             </p>
           </div>
           <div className="bg-white border border-[#DDDDDD] rounded-xl px-3 py-2.5">
-            <p className="text-[10px] font-bold uppercase text-[#717171] mb-1">Stay Period</p>
+            <p className="text-[10px] font-bold uppercase text-[#717171] mb-1">
+              Stay Period
+            </p>
             <p className="text-sm font-semibold text-[#222222] flex items-center gap-2">
               <Calendar size={14} className="text-rose-500" />
-              {formatDate(b.checkInDate).replace(/ \d{4}$/, "")} → {formatDate(b.checkOutDate).replace(/ \d{4}$/, "")}
+              {formatDate(b.checkInDate).replace(/ \d{4}$/, "")} →{" "}
+              {formatDate(b.checkOutDate).replace(/ \d{4}$/, "")}
             </p>
           </div>
           <div className="bg-white border border-[#DDDDDD] rounded-xl px-3 py-2.5">
-            <p className="text-[10px] font-bold uppercase text-[#717171] mb-1 tracking-wider">Payment</p>
+            <p className="text-[10px] font-bold uppercase text-[#717171] mb-1 tracking-wider">
+              Payment
+            </p>
             <StatusBadge type="payment" status={b.paymentStatus} />
           </div>
         </div>
@@ -378,13 +407,17 @@ function BookingCard({ b, onCancel }) {
         {/* Footer Actions */}
         <div className="flex items-center justify-between pt-5 border-t border-[#DDDDDD]">
           <div className="flex flex-col">
-            <span className="text-[10px] font-bold uppercase text-[#717171] tracking-widest">Total Amount</span>
+            <span className="text-[10px] font-bold uppercase text-[#717171] tracking-widest">
+              Total Amount
+            </span>
             <div className="flex items-baseline gap-1 mt-0.5">
               <span className="text-lg font-bold text-[#222222] flex items-center gap-0.5">
                 <IndianRupee size={16} strokeWidth={2.5} />
                 {(b.totalPrice || b.amount)?.toLocaleString("en-IN")}
               </span>
-              <span className="text-[10px] font-bold uppercase text-[#717171]">all inclusive</span>
+              <span className="text-[10px] font-bold uppercase text-[#717171]">
+                all inclusive
+              </span>
             </div>
           </div>
 
@@ -397,7 +430,10 @@ function BookingCard({ b, onCancel }) {
                 View PG
               </button>
               <button
-                onClick={onCancel}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onCancel();
+                }}
                 className="flex items-center gap-2 text-xs font-semibold px-5 py-2.5 rounded-xl border border-rose-100 text-rose-500 bg-white hover:bg-rose-50 transition-all shadow-sm"
               >
                 <XCircle size={14} /> Cancel

@@ -458,7 +458,7 @@ function ReceivedCard({ booking: b, onConfirm, onCancel }) {
             <div className="flex gap-2 sm:gap-3 w-full sm:w-auto">
               {isPending && onConfirm && (
                 <button
-                  onClick={onConfirm}
+                  onClick={(e) => {e.stopPropagation(); onConfirm();}}
                   className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 text-xs font-semibold px-3 sm:px-5 py-2 sm:py-2.5 rounded-xl border border-rose-200 text-rose-500 bg-rose-50 hover:bg-rose-100 transition-colors"
                 >
                   <CheckCircle2 size={14} /> Confirm
@@ -466,7 +466,7 @@ function ReceivedCard({ booking: b, onConfirm, onCancel }) {
               )}
               {onCancel && (
                 <button
-                  onClick={onCancel}
+                  onClick={(e) =>{e.stopPropagation(); onCancel();}}
                   className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 text-xs font-semibold px-3 sm:px-5 py-2 sm:py-2.5 rounded-xl border border-[#DDDDDD] text-[#717171] bg-white hover:bg-slate-50 transition-colors"
                 >
                   <XCircle size={14} /> Cancel
