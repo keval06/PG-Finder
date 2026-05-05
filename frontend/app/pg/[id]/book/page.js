@@ -70,9 +70,9 @@ export default function BookingPage() {
 
     const a = new Date(checkIn);
     const b = new Date(checkOut);
-    if(b <= a) return 0;
+    if (b <= a) return 0;
 
-    const days = Math.ceil((b - a) / (1000 * 60 * 60 * 24)) +1;
+    const days = Math.ceil((b - a) / (1000 * 60 * 60 * 24)) + 1;
     if (days <= 0) return 0;
     // round up — any partial month = full month charged
     return Math.ceil(days / 30);
@@ -262,16 +262,16 @@ export default function BookingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-white px-4 pt-20 sm:pt-24 pb-24 sm:pb-8">
-      <div className="max-w-lg mx-auto">
+    <div className="min-h-screen bg-white px-3 sm:px-4 pt-16 sm:pt-24 pb-28 sm:pb-8">
+      <div className="w-full max-w-lg mx-auto">
         {/* back */}
         <BackButton className="mb-4 sm:mb-6" />
 
-        {/* stepper */}
+        {/* stepper */}<div className="fixed bottom-0 left-0 right-0 sm:hidden bg-white/95 backdrop-blur-md border-t border-slate-200 px-4 py-3 z-40 flex gap-3"></div>
         <StepperBar steps={STEPS} currentStep={step} />
 
         {/* card */}
-        <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+        <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-6 shadow-sm">
           {/* STEP 1 — Room Selection */}
           {step === 0 && (
             <div>
@@ -282,7 +282,7 @@ export default function BookingPage() {
                 Choose the room that suits you
               </p>
 
-              <div className="flex flex-col gap-3 max-h-[400px] overflow-y-auto pr-1">
+              <div className="flex flex-col gap-3 max-h-[55vh] sm:max-h-[400px] overflow-y-auto pr-1">
                 {loadingRooms ? (
                   <div className="flex flex-col gap-3">
                     {[1, 2, 3].map((i) => (
@@ -322,7 +322,7 @@ export default function BookingPage() {
 
               <div className="flex flex-col gap-4 relative">
                 {/* Premium Date Selector */}
-                <div 
+                <div
                   onClick={() => setShowCalendar(true)}
                   className="border border-[#DDDDDD] rounded-xl cursor-pointer overflow-hidden shadow-sm transition-colors"
                 >
@@ -345,7 +345,7 @@ export default function BookingPage() {
                 {/* Calendar Popover */}
                 {showCalendar && (
                   <div className="absolute top-0 left-0 w-full z-[100]">
-                    <CalendarPopover 
+                    <CalendarPopover
                       checkIn={checkIn}
                       checkOut={checkOut}
                       setCheckIn={setCheckIn}
@@ -468,18 +468,17 @@ export default function BookingPage() {
         </div>
 
         {/* mobile sticky bottom nav */}
-        <div className="fixed bottom-0 left-0 right-0 sm:hidden bg-white/95 backdrop-blur-md border-t border-slate-200 px-4 py-3 z-40 flex gap-3">
-          {step > 0 && (
-            <button
-              onClick={() => {
-                setStep((s) => s - 1);
-                setError("");
-              }}
-              className="flex-1 py-2.5 rounded-xl border border-slate-200 text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors"
-            >
-              Back
-            </button>
-          )}
+        <div className="fixed bottom-0 left-0 right-0 sm:hidden bg-white/95 backdrop-blur-md border-t border-slate-200 px-3 py-3 z-40 flex gap-3">          {step > 0 && (
+          <button
+            onClick={() => {
+              setStep((s) => s - 1);
+              setError("");
+            }}
+            className="flex-1 py-2.5 rounded-xl border border-slate-200 text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors"
+          >
+            Back
+          </button>
+        )}
           {step < 2 ? (
             <button
               disabled={step === 0 ? !step1Valid : !step2Valid}
@@ -492,7 +491,7 @@ export default function BookingPage() {
             <button
               disabled={submitting}
               onClick={handleSubmit}
-              className="flex-1 py-2.5 rounded-xl bg-[#FF385C] text-white text-sm font-semibold hover:bg-[#E31C5F] transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-sm shadow-rose-500/20"
+              className="w-full flex items-center justify-center py-2.5 rounded-xl bg-[#FF385C] text-white text-sm font-semibold hover:bg-[#E31C5F] transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-sm shadow-rose-500/20"
             >
               {submitting ? "Booking…" : "Confirm Booking"}
             </button>

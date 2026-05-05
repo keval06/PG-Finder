@@ -17,6 +17,7 @@ import ReviewsSection from "./components/ReviewsSection";
 import BookingStickyCard from "./components/BookingStickyCard";
 import OwnerEditButton from "./OwnerEditButton";
 import BackButton from "../../../components/BackButton";
+import MobileBookingSection from "./components/MobileBookingSection";
 
 async function getPG(id) {
   return await pgApi.getById(id);
@@ -55,20 +56,18 @@ export default async function PGDetails({ params }) {
 
   const bathroomRatio =
     pg.bathroom && pg.room
-      ? `${pg.bathroom} (${
-          pg.bathroom >= pg.room
-            ? "Attached"
-            : `1:${Math.round(pg.room / pg.bathroom)}`
-        })`
+      ? `${pg.bathroom} (${pg.bathroom >= pg.room
+        ? "Attached"
+        : `1:${Math.round(pg.room / pg.bathroom)}`
+      })`
       : "—";
 
   const toiletRatio =
     pg.toilet && pg.room
-      ? `${pg.toilet} (${
-          pg.toilet >= pg.room
-            ? "Attached"
-            : `1:${Math.round(pg.room / pg.toilet)}`
-        })`
+      ? `${pg.toilet} (${pg.toilet >= pg.room
+        ? "Attached"
+        : `1:${Math.round(pg.room / pg.toilet)}`
+      })`
       : "—";
 
   const totalBeds = roomTypes.reduce(
@@ -263,15 +262,20 @@ export default async function PGDetails({ params }) {
               />
             </div>
 
+            {/* Mobile Booking Section - Shows calendar + sticky bar on mobile */}
+            <div className="lg:hidden">
+              <MobileBookingSection pg={pg} />
+            </div>
+
           </div>
 
           {/* RIGHT: STICKY BOOKING CARD */}
-          <div className="lg:col-span-5 relative">
-            <div className="lg:sticky lg:top-28">
-              <BookingStickyCard 
-                pg={pg} 
-                avgRating={avgRating} 
-                reviewCount={reviews.length} 
+          <div className="lg:col-span-5 relative ">
+            <div className="hidden lg:block lg:sticky lg:top-28 ">
+              <BookingStickyCard
+                pg={pg}
+                avgRating={avgRating}
+                reviewCount={reviews.length}
               />
 
               {/* Policy Footer under card */}

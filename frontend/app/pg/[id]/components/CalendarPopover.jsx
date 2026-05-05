@@ -24,6 +24,7 @@ export default function CalendarPopover({
   setCheckIn,
   setCheckOut,
   onClose,
+  inline = false,
 }) {
   const [viewDate, setViewDate] = useState(new Date());
   const [months, setMonths] = useState(() => {
@@ -42,7 +43,11 @@ export default function CalendarPopover({
 
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (popoverRef.current && !popoverRef.current.contains(event.target)) {
+      if (
+        !inline &&
+        popoverRef.current &&
+        !popoverRef.current.contains(event.target)
+      ) {
         onClose();
       }
     };
@@ -150,7 +155,15 @@ export default function CalendarPopover({
   return (
     <div
       ref={popoverRef}
-      className="fixed sm:absolute inset-x-2 sm:inset-x-auto top-auto sm:top-[calc(100%+8px)] bottom-2 sm:bottom-auto right-0 bg-white border border-[#DDDDDD] rounded-2xl shadow-[0_8px_28px_rgba(0,0,0,0.15)] p-4 sm:p-6 z-[100] sm:min-w-[580px] max-h-[90vh] overflow-y-auto"
+      className={`
+  ${
+    inline
+      ? "relative w-full"
+      : "fixed sm:absolute inset-x-2 sm:inset-x-auto bottom-2 sm:bottom-auto"
+  }
+  right-0 bg-white border border-[#DDDDDD] rounded-2xl shadow-[0_8px_28px_rgba(0,0,0,0.15)] 
+  p-4 sm:p-6 sm:min-w-[580px] max-h-[90vh] overflow-hidden
+`}
     >
       {/* Stay duration selector — KEY UX */}
       <div className="mb-5 pb-4 border-b border-[#F7F7F7]">
@@ -212,32 +225,7 @@ export default function CalendarPopover({
       {/* Footer */}
       <div className="mt-6 pt-4 border-t border-[#F7F7F7] flex justify-between items-center gap-4">
         <div className="text-[13px] text-[#717171]">
-          {checkIn && checkOut ? (
-            <>
-              <span className="font-semibold text-[#222222]">
-                {checkIn &&
-                  new Date(checkIn).toLocaleDateString("en-IN", {
-                    day: "numeric",
-                    month: "short",
-                    year: "numeric",
-                  })}
-              </span>
-              {" → "}
-              <span className="font-semibold text-[#222222]">
-                {checkOut &&
-                  new Date(checkOut).toLocaleDateString("en-IN", {
-                    day: "numeric",
-                    month: "short",
-                    year: "numeric",
-                  })}
-              </span>
-              <span className="ml-2 text-[#FF385C] font-semibold">
-                ({months} {months === 1 ? "month" : "months"})
-              </span>
-            </>
-          ) : (
-            <span>Pick a check-in date</span>
-          )}
+          {checkIn && checkOut ? "" : <span>Pick a check-in date</span>}
         </div>
         <div className="flex items-center gap-3">
           <button
