@@ -90,7 +90,7 @@ const isSameYear = () => {
               </div>
               <div className="flex items-center gap-1 text-[14px] text-[#222222] mt-0.5">
                 <span>
-                  {months}{months === 1 ? "month" : `months`} · {dateRange}
+                  {months}{months === 1 ? " month" : ` months`} · {dateRange}
                 </span>
               </div>
             </div>
