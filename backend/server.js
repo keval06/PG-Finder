@@ -51,7 +51,7 @@ app.use("/api/payment/webhook",
 
 // Middleware
 // Optional: Also limit URL encoded data if used
-// app.use("/api", globalLimiter);
+app.use("/api", globalLimiter);
 app.use(express.json({ limit: "10kb" }));
 app.use(express.urlencoded({ limit: "10kb", extended: true }));
 
