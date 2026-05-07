@@ -44,15 +44,12 @@ exports.registerImage = async (req, res) => {
       });
     }
 
-    // console.log("FILE:", req.file);
-    // console.log("BODY:", req.body);
     const image = await Image.create({
       pg,
       url,
       category,
     });
-    // console.log("SAVED:", image);
-    res.status(201).json(image);
+\    res.status(201).json(image);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -113,7 +110,6 @@ exports.deleteImage = async (req, res) => {
     // "%20" -> "-" => Decoding
     const key = decodeURIComponent(cleanUrl.split(".amazonaws.com/")[1]);
 
-    // console.log("KEY:", key); // should be: images/1774114223162 - amenities.jpg
     // *Without .promise():
     //   s3.deleteObject() returns an AWS Request object, not a Promise
     await s3

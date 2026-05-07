@@ -16,12 +16,14 @@ const upload = multer({
   storage: multerS3({
     s3: s3,
     bucket: process.env.S3_BUCKET,
-    contentType: multerS3.AUTO_CONTENT_TYPE,
+    contentType: (req, file, cb) => {
+      cb(null, file.mimetype);
+    },
     key: (req, file, cb) => {
-      cb(
-        null,
-        `images/${Date.now()}-${file.originalname.replace(/\s+/g, "-")}`,
-      );
+      const ext = file.originalname.split(".").pop().toLowerCase();
+      const safeExt = ["jpg", "jpeg", "png", "webp", "gif"].includes(ext) ? ext : "jpg";
+      const key = `images/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${safeExt}`;
+      cb(null, key);
     },
   }),
   // SECURITY ADDITION: Enforce strict limits
