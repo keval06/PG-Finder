@@ -49,7 +49,7 @@ exports.registerImage = async (req, res) => {
       url,
       category,
     });
-\    res.status(201).json(image);
+    res.status(201).json(image);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
