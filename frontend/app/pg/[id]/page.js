@@ -46,7 +46,7 @@ export default async function PGDetails({ params }) {
     getRoomTypes(id).catch(() => []),
   ]);
 
-  console.log("DEBUG SSR ROOM TYPES:", roomTypes);
+  // console.log("DEBUG SSR ROOM TYPES:", roomTypes);
 
   if (!pg || !pg._id) notFound();
 
@@ -168,7 +168,7 @@ export default async function PGDetails({ params }) {
                 Welcome to {pg.name}. Experience a blend of comfort and modern
                 living in the heart of {pg.city}. Our space is designed for
                 individuals seeking a professional and vibrant environment.
-                Located at {pg.address}, you'll have easy access to local
+                Located at {pg.address}, you&#39;ll have easy access to local
                 transport and amenities.
               </p>
             </div>
