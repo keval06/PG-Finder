@@ -18,7 +18,6 @@ async function hasBookingOnPG(userId, pgId) {
     pg: pgObjectId,
     status: { $in: ["confirmed", "completed"] },
   });
-  // console.log("[hasBookingOnPG] userId:", userId, "pgId:", pgId, "found:", !!booking);
   return !!booking;
 }
 

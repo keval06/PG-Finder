@@ -290,7 +290,7 @@ exports.handleWebhook = async (req, res) => {
         await booking.save({ session });
 
         await session.commitTransaction();
-        console.log("WEBHOOK: Booking confirmed", booking._id);
+        // console.log("WEBHOOK: Booking confirmed", booking._id);
       } catch (err) {
         await session.abortTransaction();
         throw err;
