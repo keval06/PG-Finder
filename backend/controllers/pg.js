@@ -46,6 +46,7 @@ const buildPGQuery = (query) => {
   if (query.minprice || query.maxprice) {
     filter.price = {};
     if (query.minprice) filter.price.$gte = Number(query.minprice);
+
     if (query.maxprice && query.maxprice !== "Infinity") {
       filter.price.$lte = Number(query.maxprice);
     }
@@ -67,8 +68,11 @@ const paginateAndSendPGs = async (filter, req, res) => {
 
   // ALWAYS use aggregation to fetch review stats
   const pipeline = [
+    // Stage 1
     { $match: filter },
+    // Stage 2
     {
+      //LEFT JOIN: for each PG, attach all its reviews as _reviews array. PG with no reviews → _reviews: [].
       $lookup: {
         from: "reviews",
         localField: "_id",
@@ -76,18 +80,32 @@ const paginateAndSendPGs = async (filter, req, res) => {
         as: "_reviews",
       },
     },
+    // Stage 3
     {
       $addFields: {
-        avgRating: { $ifNull: [{ $avg: "$_reviews.star" }, 0] },
+        avgRating:
+        {
+          $ifNull: [
+            { $avg: "$_reviews.star" },
+            0
+          ]
+        },
         reviewCount: { $size: "$_reviews" },
       },
     },
   ];
 
+  // stage 4
   if (minRatingNum > 0) {
-    pipeline.push({ $match: { avgRating: { $gte: minRatingNum } } });
+    pipeline.push({
+      $match:
+      {
+        avgRating: { $gte: minRatingNum }
+      }
+    });
   }
 
+  // Stage 5
   if (sortField === "rating") {
     pipeline.push({
       $sort: { avgRating: sortDir, _id: -1 }
@@ -103,7 +121,7 @@ const paginateAndSendPGs = async (filter, req, res) => {
     pipeline.push({
       $sort:
         { price: sortDir, _id: -1 }
-    });
+    }); 
   }
   else {
     pipeline.push({
@@ -165,10 +183,7 @@ exports.registerPG = async (req, res) => {
 
     // Sync with Frontend: Handle both Array [lng, lat] and GeoJSON Object
     if (req.body.coordinate) {
-      if (
-        Array.isArray(req.body.coordinate) &&
-        req.body.coordinate.length === 2
-      ) {
+      if (Array.isArray(req.body.coordinate) && req.body.coordinate.length === 2) {
         pgData.coordinate = { type: "Point", coordinates: req.body.coordinate };
       }
       else if (req.body.coordinate.coordinates) {
@@ -187,7 +202,6 @@ exports.registerPG = async (req, res) => {
   }
 };
 
-
 // READ all PGs with filtering + pagination
 exports.getAllPg = async (req, res) => {
   try {
@@ -195,6 +209,46 @@ exports.getAllPg = async (req, res) => {
     return await paginateAndSendPGs(filter, req, res);
   }
   catch (error) {
+    res.status(500).json({
+      message: error.message
+    });
+  }
+};
+
+// READ suggestions with accurate city aggregation counts
+exports.getSuggestions = async (req, res) => {
+  try {
+    const { q } = req.query;
+    if (!q) return res.status(200).json({ data: [] });
+
+    const searchRegex = { $regex: q, $options: "i" };
+
+    const suggestions = await PG.aggregate([
+      {
+        $match: {
+          isActive: true,
+          $or: [{ name: searchRegex }, { city: searchRegex }]
+        }
+      },
+      {
+        $group: {
+          _id: "$city",
+          count: { $sum: 1 }
+        }
+      },
+      {
+        $project: {
+          _id: 0,
+          city: "$_id",
+          count: 1
+        }
+      },
+      { $sort: { count: -1 } },
+      { $limit: 5 }
+    ]);
+
+    res.status(200).json({ data: suggestions });
+  } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
@@ -244,11 +298,12 @@ exports.getNearbyPGs = async (req, res) => {
     }
 
     const radiusInMeters = Number(radius) * 1000;
+
     const filter = buildPGQuery(req.query);
     const minRatingNum = Number(minRating) || 0;
-
     const sortDir = (sortOrder === "desc") ? -1 : 1;
     const skip = (Number(page) - 1) * Number(limit);
+
     // ALWAYS aggregate for geo queries too so UI gets ratings
     const pipeline = [
       {
@@ -326,21 +381,27 @@ exports.getNearbyPGs = async (req, res) => {
     });
   }
   catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({
+      message: error.message
+    });
   }
 };
 
 // READ single PG detail
 exports.getPg = async (req, res) => {
   try {
-    // FIX: inactive PG was reachable via direct ID — now blocked
-    const pg = await PG.findOne({
-      _id: req.params.id,
-      isActive: true
-    });
+    // Allow owners to see their own inactive listings
+    const pg = await PG.findById(req.params.id);
     if (!pg) {
-      return res.status(404).json({
+      return res.status(404).json({ 
         message: "PG not found",
+      });
+    }
+
+    const isOwner = req.user && pg.owner.toString() === req.user._id.toString();
+    if (!pg.isActive && !isOwner) {
+      return res.status(404).json({ 
+        message: "PG not found" 
       });
     }
 
@@ -379,7 +440,7 @@ exports.updatePg = async (req, res) => {
 
     if (pg.owner.toString() !== req.user._id.toString()) {
       return res.status(403).json({
-        message: "Not allowed"
+        message: "Restricted Access"
       });
     }
 
@@ -408,23 +469,25 @@ exports.updatePg = async (req, res) => {
 
     // Sync with Frontend: Handle both Array [lng, lat] and GeoJSON Object
     if (req.body.coordinate) {
-      if (
-        Array.isArray(req.body.coordinate) &&
-        req.body.coordinate.length === 2
-      ) {
+      if (Array.isArray(req.body.coordinate) && req.body.coordinate.length === 2) {
         updateData.coordinate = {
           type: "Point",
           coordinates: req.body.coordinate,
         };
-      } else if (req.body.coordinate.coordinates) {
+      }
+      else if (req.body.coordinate.coordinates) {
         updateData.coordinate = req.body.coordinate; // Already Object format
       }
     }
 
-    const updatedPG = await PG.findByIdAndUpdate(req.params.id, updateData, {
-      new: true,
-      runValidators: true,
-    });
+    const updatedPG = await PG.findByIdAndUpdate(
+      req.params.id,
+      updateData,
+      {
+        new: true,
+        runValidators: true,
+      }
+    );
 
     res.json(updatedPG);
   }
@@ -441,7 +504,15 @@ exports.getMyPgs = async (req, res) => {
   try {
     //1. Read URL filters (price, rating, etc)
     const filter = buildPGQuery(req.query);
-    // 2. FORCE the owner ID
+    // 2. Handle status filter: all / active / inactive
+    const status = req.query.status || "all";
+    if (status === "active") {
+      filter.isActive = true;
+    } else if (status === "inactive") {
+      filter.isActive = false;
+    } else {
+      delete filter.isActive; // "all" — owner sees everything
+    }
     filter.owner = req.user._id; // Force it to only show their PGs
     // run engine
     return await paginateAndSendPGs(filter, req, res);
@@ -473,10 +544,10 @@ exports.getMapPGs = async (req, res) => {
             $maxDistance: radiusInMeters,
           },
         },
-      })
-        .select("_id name city price coordinate gender")
-        .lean();
-    } else {
+      }).select("_id name city price coordinate gender")
+        .lean();  //.lean() returns plain JS objects instead of Mongoose documents, read-only features
+    } 
+    else {
       pgs = await PG.find(filter)
         .select("_id name city price coordinate gender")
         .lean();
@@ -490,6 +561,7 @@ exports.getMapPGs = async (req, res) => {
 
 exports.getLandingData = async (req, res) => {
   try {
+    // Step 1 — Top Cities
     // Top 5 cities by PG count
     const topCitiesAgg = await PG.aggregate([
       { $match: { isActive: true } },
@@ -500,6 +572,7 @@ exports.getLandingData = async (req, res) => {
 
     const cities = topCitiesAgg.map((c) => c._id);
 
+    //step 2 - top pgs per city
     // Top 5 PGs (by rating) per city
     const result = await Promise.all(
       cities.map(async (city) => {
@@ -533,7 +606,7 @@ exports.getLandingData = async (req, res) => {
           },
         ]);
 
-        // Attach one image per PG
+        // step-3 Attach one image per PG
         const pgsWithImage = await Promise.all(
           pgs.map(async (pg) => {
             const img = await Image.findOne({ pg: pg._id }).select("url").lean();

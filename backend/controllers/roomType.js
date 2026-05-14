@@ -7,27 +7,28 @@ exports.createRoomType = async (req, res) => {
   try {
     //*1 find pg
     const pg = await PG.findById(req.body.pg);
+
     if (!pg) {
-      return res.status(404).json({ message: "PG not found" });
+      return res.status(404).json({
+        message: "PG not found"
+      });
     }
 
     //?2 check if owner, user is attached from protect middleware
     //* Always .toString() both sides when comparing ObjectIds
 
     if (pg.owner.toString() !== req.user._id.toString()) {
-      return res.status(403).json({ message: "Not allowed" });
+      return res.status(403).json({
+        message: "Not allowed"
+      });
     }
 
-    //
     const existingRoomTypes = await RoomType.find({
       pg: req.body.pg,
       isActive: true,
     });
 
-    const alreadyAllocated = existingRoomTypes.reduce(
-      (sum, rt) => sum + rt.availableRooms,
-      0,
-    );
+    const alreadyAllocated = existingRoomTypes.reduce((sum, rt) => sum + rt.availableRooms, 0);
 
     // check if room type already exists
     if (alreadyAllocated + req.body.availableRooms > pg.room) {
@@ -38,7 +39,7 @@ exports.createRoomType = async (req, res) => {
     }
 
     // ?If all checks pass — create the room type. req.body has all the fields (pg, name, price, sharingCount, availableRooms...). Mongoose schema validators run on create.
-    // 🛡️ SECURITY: Explicit fields for Room Type creation
+    // SECURITY: Explicit fields for Room Type creation
     const roomTypeData = {
       pg: req.body.pg,
       name: req.body.name,
@@ -59,13 +60,17 @@ exports.createRoomType = async (req, res) => {
     const minPrice = Math.min(...allRoomTypes.map((r) => r.price));
 
     // 3. Update the PG
-    await PG.findByIdAndUpdate(req.body.pg, {
-      isActive: true,
-      price: minPrice,
-    });
+    await PG.findByIdAndUpdate(
+      req.body.pg,
+      {
+        isActive: true,
+        price: minPrice,
+      }
+    );
 
     res.status(201).json(roomType);
-  } catch (error) {
+  } 
+  catch (error) {
     res.status(500).json({
       message: error.message,
     });
@@ -79,12 +84,16 @@ exports.getRoomTypesByPg = async (req, res) => {
 
     // check if pgId is provided
     if (!pgId) {
-      return res.status(400).json({ message: "pgId is required" });
+      return res.status(400).json({ 
+        message: "pgId is required" 
+      });
     }
 
     // check if pgId is valid
     if (!mongoose.Types.ObjectId.isValid(pgId)) {
-      return res.status(400).json({ message: "Invalid pgId" });
+      return res.status(400).json({ 
+        message: "Invalid pgId" 
+      });
     }
 
     // get room types
@@ -93,14 +102,16 @@ exports.getRoomTypesByPg = async (req, res) => {
     const pg = await PG.findById(pgId);
 
     const isOwner =
-      req.user && pg?.owner
+      (req.user && pg?.owner)
         ? pg.owner.toString() === req.user._id.toString()
         : false;
 
     const query = { pg: new mongoose.Types.ObjectId(pgId) };
+
     if (!isOwner) {
       query.isActive = true; // Hide inactive rooms from public
     }
+
     const roomTypes = await RoomType.find(query).populate(
       "pg",
       "name city room",
@@ -129,20 +140,27 @@ exports.updateRoomType = async (req, res) => {
 
     // check if room type exists
     if (!roomType) {
-      return res.status(404).json({ message: "Room type not found" });
+      return res.status(404).json({ 
+        message: "Room type not found" 
+      });
     }
 
     // check if pg exists
     if (!roomType.pg) {
-      return res.status(404).json({ message: "Associated PG not found" });
+      return res.status(404).json({ 
+        message: "Associated PG not found" 
+      });
     }
 
     // check if owner
     if (roomType.pg.owner.toString() !== req.user._id.toString()) {
-      return res.status(403).json({ message: "Not allowed" });
+      return res.status(403).json({ 
+        message: "Not allowed" 
+      });
     }
 
     // check if availableRooms is provided
+    // sharingCount change
     if (req.body.sharingCount !== undefined) {
       const newSharingCount = req.body.sharingCount;
       const newTotalBeds = roomType.availableRooms * newSharingCount;
@@ -151,7 +169,6 @@ exports.updateRoomType = async (req, res) => {
         return res.status(400).json({
           message: `Cannot reduce sharing count. ${roomType.occupiedBeds} beds occupied, new capacity would only allow ${newTotalBeds}.`,
         });
-
       }
     }
 
@@ -234,18 +251,25 @@ exports.deleteRoomType = async (req, res) => {
   try {
     // find room type
     const roomType = await RoomType.findById(req.params.id).populate("pg");
+
     if (!roomType) {
-      return res.status(404).json({ message: "Room type not found" });
+      return res.status(404).json({ 
+        message: "Room type not found" 
+      });
     }
 
     // check if pg exists
     if (!roomType.pg) {
-      return res.status(404).json({ message: "Associated PG not found" });
+      return res.status(404).json({ 
+        message: "Associated PG not found" 
+      });
     }
 
     // check if owner
     if (roomType.pg.owner.toString() !== req.user._id.toString()) {
-      return res.status(403).json({ message: "Not allowed" });
+      return res.status(403).json({ 
+        message: "Not allowed" 
+      });
     }
 
     // after — block if occupied, soft delete otherwise
@@ -268,7 +292,7 @@ exports.deleteRoomType = async (req, res) => {
     if (allRoomTypes.length > 0) {
       const minPrice = Math.min(...allRoomTypes.map((r) => r.price));
       await PG.findByIdAndUpdate(roomType.pg._id, { price: minPrice });
-    } 
+    }
     else {
       // if no room types left, PG.price stays as is — not reset to 0
       await PG.findByIdAndUpdate(roomType.pg._id, { isActive: false });
@@ -277,7 +301,8 @@ exports.deleteRoomType = async (req, res) => {
     res.json({
       message: "Room type deleted"
     });
-  } catch (error) {
+  } 
+  catch (error) {
     res.status(500).json({
       message: error.message,
     });

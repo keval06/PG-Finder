@@ -8,6 +8,5 @@ const { registerUser, getUser, updateUser } = require("../controllers/user.js");
 router.post("/signup", signupLimiter, registerUser);
 router.get("/", protect, getUser);
 router.patch("/:id",protect, updateUser);
-// router.post("login", loginUser);
 
 module.exports = router;

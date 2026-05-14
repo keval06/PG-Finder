@@ -5,24 +5,28 @@ const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
 const { sendOtpEmail } = require("../utils/sendOtpEmail.js");
 const {
-  generateResetToken,
   generateToken,
+  generateResetToken,
 } = require("../utils/generateToken.js");
 
 exports.loginUser = async (req, res) => {
   try {
     const { mobile, password } = req.body;
 
-    const user = await User.findOne({ mobile: mobile });
+    const user = await User.findOne({ mobile });
 
     if (!user) {
-      return res.status(400).json({ message: "Invalid credentials" });
+      return res.status(400).json({
+        message: "Invalid credentials",
+      });
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
 
     if (!isMatch) {
-      return res.status(400).json({ message: "Invalid credentials" });
+      return res.status(400).json({
+        message: "Invalid credentials",
+      });
     }
     // STEP 4: Create a JWT token with the user's ID inside
     const token = generateToken(user._id);
@@ -34,7 +38,7 @@ exports.loginUser = async (req, res) => {
     });
   } catch (error) {
     res.status(500).json({
-      message: error.message,
+      message: "Something went wrong",
     });
   }
 };
@@ -46,15 +50,27 @@ exports.forgotPassword = async (req, res) => {
 
     const user = await User.findOne({ email });
     if (!user) {
-      // Security: don't reveal if email exists or not
-      return res
-        .status(200)
-        .json({ message: "If this email exists, an OTP has been sent." });
+      return res.status(404).json({
+        message: "No account found with this email.",
+      });
     }
 
+    // Cooldown — prevent OTP spam (max 1 per 60 seconds per email)
+    const recentOtp = await OTP.findOne({
+      email,
+      isUsed: false,
+      createdAt: { $gt: new Date(Date.now() - 60 * 1000) },
+    });
+    if (recentOtp) {
+      return res.status(429).json({
+        message:
+          "OTP already sent. Please wait 60 seconds before requesting again.",
+      });
+    }
 
     // new — padStart ensures always 4 digits
     const rawOtp = crypto.randomInt(1000, 10000).toString().padStart(4, "0");
+
     // Hash it before storing
     const hashedOtp = await bcrypt.hash(rawOtp, 10);
 
@@ -71,10 +87,13 @@ exports.forgotPassword = async (req, res) => {
     // Send email
     await sendOtpEmail(email, rawOtp);
 
-    res.status(200).json({ message: "OTP sent to your email." });
+    res.status(200).json({
+      message: "OTP sent to your email.",
+    });
   } catch (error) {
-    console.error("FORGOT PASSWORD ERROR:", error);
-    res.status(500).json({ message: "Failed to send OTP. Try again." });
+    res.status(500).json({
+      message: "Failed to send OTP. Try again.",
+    });
   }
 };
 
@@ -88,16 +107,20 @@ exports.verifyOtp = async (req, res) => {
       email,
       isUsed: false,
       expiresAt: { $gt: new Date() },
-    }).sort({ createdAt: -1 });
+    }).sort({ createdAt: -1 }); //two valid OTPs exist, Sort descending → get latest.
 
     if (!otpRecord) {
-      return res.status(400).json({ message: "OTP expired or invalid." });
+      return res.status(400).json({
+        message: "OTP expired or invalid.",
+      });
     }
 
     // Compare
     const isMatch = await bcrypt.compare(otp, otpRecord.otp);
     if (!isMatch) {
-      return res.status(400).json({ message: "Incorrect OTP." });
+      return res.status(400).json({
+        message: "Incorrect OTP.",
+      });
     }
 
     // Mark as used
@@ -109,8 +132,9 @@ exports.verifyOtp = async (req, res) => {
 
     res.status(200).json({ resetToken });
   } catch (error) {
-    console.error("VERIFY OTP ERROR:", error);
-    res.status(500).json({ message: "Verification failed." });
+    res.status(500).json({
+      message: "Verification failed.",
+    });
   }
 };
 
@@ -120,27 +144,28 @@ exports.resetPassword = async (req, res) => {
     const { resetToken, newPassword } = req.body;
 
     // Verify reset token
+    // Separates known JWT errors (400)
     let decoded;
     try {
       decoded = jwt.verify(resetToken, process.env.JWT_SECRET_RESET);
-    } 
-    catch {
-      return res.status(400).json({ 
-        message: "Reset link expired. Request a new OTP." 
+    } catch {
+      return res.status(400).json({
+        message: "Reset link expired. Request a new OTP.",
       });
     }
 
     const user = await User.findOne({ email: decoded.email });
     if (!user) {
-      return res.status(404).json({ 
-        message: "User not found." 
+      return res.status(404).json({
+        message: "User not found.",
       });
     }
 
     const passwordRegex = /^(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{8,16}$/;
     if (!passwordRegex.test(newPassword)) {
       return res.status(400).json({
-        message: "Password must be 8-16 characters with at least one digit and one special character.",
+        message:
+          "Password must be 8-16 characters with at least one digit and one special character.",
       });
     }
 
@@ -149,9 +174,12 @@ exports.resetPassword = async (req, res) => {
     user.password = hashedPassword;
     await user.save();
 
-    res.status(200).json({ message: "Password reset successful." });
+    res.status(200).json({
+      message: "Password reset successful.",
+    });
   } catch (error) {
-    console.error("RESET PASSWORD ERROR:", error);
-    res.status(500).json({ message: "Failed to reset password." });
+    res.status(500).json({
+      message: "Failed to reset password.",
+    });
   }
 };

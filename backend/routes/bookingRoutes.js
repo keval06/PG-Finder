@@ -10,10 +10,9 @@ const {
 } = require("../controllers/booking.js");
 
 
-router.post("/", protect, registerBooking);
-router.get("/my", protect, getMyBookings); //user  
-router.get("/received", protect, getReceivedBookings); //owner  
-router.patch("/:id", protect, updateBooking);
-// router.post("login", loginUser);
+router.post("/", protect, registerBooking);            //Guest creates booking
+router.get("/my", protect, getMyBookings);              //Guest sees own bookings
+router.get("/received", protect, getReceivedBookings); //Owner sees bookings on their PGs
+router.patch("/:id", protect, updateBooking);         //Guest cancels / Owner confirms
 
 module.exports = router;
