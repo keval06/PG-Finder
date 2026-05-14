@@ -36,9 +36,11 @@ export const pgApi = {
   },
 
   // PG Details (Verified: /api/pg/:id)
-  getById: async (id) => {
-    // 🛡️ REPLACED fetch with authFetch
-    return authFetch(`${API_URL}/api/pg/${id}`, { cache: "no-store" });
+  getById: async (id, token) => {
+    return authFetch(`${API_URL}/api/pg/${id}`, { 
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+      cache: "no-store" 
+    });
   },
 
   // Create & Update

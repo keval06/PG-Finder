@@ -5,12 +5,11 @@ const API_URL = require("./apiUrl");
 
 export const imageApi = {
   // Get all images for a PG
-  getByPgId: async (pgId) => {
-    const res = await fetch(`${API_URL}/api/image?pgId=${pgId}`, {
-      next: { revalidate: 600 },
-    });
-    if (!res.ok) return [];
-    return res.json();
+  getByPgId: async (pgId, token) => {
+    return authFetch(`${API_URL}/api/image?pgId=${pgId}`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+      cache: "no-store",
+    }).catch(() => []);
   },
 
   // Upload a new image

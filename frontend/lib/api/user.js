@@ -14,6 +14,16 @@ export const userApi = {
   },
 
   // Update Profile (Verified: /api/user/:id)
+  getMe: async (name, token) => {
+    const res = await authFetch(`${API_URL}/api/user?name=${encodeURIComponent(name)}`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return res;
+  },
+
   update: async (id, data, token) => {
     return authFetch(`${API_URL}/api/user/${id}`, {
       method: "PATCH",

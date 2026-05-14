@@ -31,7 +31,7 @@ export default function CustomSelect({
     <div className={`relative ${className}`} ref={containerRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="h-full w-full flex items-center justify-between gap-2 bg-white border border-[#DDDDDD] text-[#222222] text-sm rounded-xl px-4 py-2 hover:border-[#222222] transition-all shadow-sm"
+        className="h-full w-full flex items-center justify-between gap-2 bg-white border border-[#DDDDDD] text-[#222222] text-base rounded-xl px-4 py-2 hover:border-[#222222] transition-all shadow-sm"
       >
         <span className="font-medium">{selectedOption?.label || value}</span>
         <ChevronDown
@@ -49,7 +49,7 @@ export default function CustomSelect({
                 onChange(opt.value);
                 setIsOpen(false);
               }}
-              className={`px-4 py-2 text-sm cursor-pointer transition-colors font-medium
+              className={`px-4 py-2 text-base cursor-pointer transition-colors font-medium
                 ${value === opt.value ? "bg-gray-50 text-[#FF385C]" : "text-[#222222] hover:bg-gray-50"}
               `}
             >

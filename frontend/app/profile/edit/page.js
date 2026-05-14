@@ -2,12 +2,13 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useAuth } from "../../context/AuthContext";
-import { userApi } from "../../../lib/api/user";
+import { useAuth } from "@/context/AuthContext";
+import { userApi } from "@/lib/api/user";
 
 import {
   User,
   Phone,
+  Mail,
   Lock,
   Eye,
   EyeOff,
@@ -15,8 +16,8 @@ import {
   XCircle,
   ArrowLeft,
 } from "lucide-react";
-import Button from "../../atoms/Button";
-import ConfirmModal from "../../../components/ConfirmModal";
+import Button from "@/atoms/Button";
+import ConfirmModal from "@/components/ConfirmModal";
 import Link from "next/link";
 
 export default function EditProfilePage() {
@@ -24,6 +25,7 @@ export default function EditProfilePage() {
   const { user, ready, updateUser } = useAuth(); // ← ready flag
 
   const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
   const [mobile, setMobile] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -45,16 +47,37 @@ export default function EditProfilePage() {
   //? Pre-filling the Form
   useEffect(() => {
     // wait until AuthContext has finished reading localStorage
-    if (!ready) return; // ?← guard #1: wait for localStorage to load
+    if (!ready) return;
 
     if (!user) {
-      router.replace("/auth/login"); //? ← guard #2: not logged in → replace history
+      router.replace("/auth/login");
       return;
     }
 
     setName(user.name || "");
-    setMobile(String(user.mobile || "")); //? React input value must be a STRING: "9876543210"
-  }, [ready, user]); // depends on both — fires once ready=true
+    setEmail(user.email || "");
+    setMobile(String(user.mobile || ""));
+
+    const fetchUserDetails = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        if (!token) return;
+        const users = await userApi.getMe(user.name, token);
+        const currentUser = Array.isArray(users) ? users.find(u => u._id === user._id) : users;
+        
+        if (currentUser) {
+          setEmail(currentUser.email || "");
+          setMobile(currentUser.mobile ? String(currentUser.mobile) : "");
+          // Update the context so it persists without having to fetch again
+          updateUser(currentUser); 
+        }
+      } catch (err) {
+        console.error("Failed to fetch full user details", err);
+      }
+    };
+
+    fetchUserDetails();
+  }, [ready, user?._id]); // depend on _id so it runs once when user is loaded
 
   const passwordsMatch = password === confirmPassword;
   const showMatchIndicator = confirmPassword.length > 0;
@@ -73,6 +96,14 @@ export default function EditProfilePage() {
       setMessage({
         type: "error",
         text: "Mobile number must be exactly 10 digits",
+      });
+      return;
+    }
+
+    if (email && !/^\S+@\S+\.\S+$/.test(email)) {
+      setMessage({
+        type: "error",
+        text: "Please enter a valid email address",
       });
       return;
     }
@@ -113,6 +144,7 @@ export default function EditProfilePage() {
     const body = {};
 
     if (name !== user.name) body.name = name;
+    if (email !== (user.email || "")) body.email = email;
     if (mobile !== String(user.mobile)) body.mobile = mobile;
     // new
     if (password) {
@@ -194,7 +226,7 @@ export default function EditProfilePage() {
           <ArrowLeft size={16} /> Back
         </button>
 
-        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-10 flex flex-col gap-6">
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 sm:p-10 flex flex-col gap-6">
           {/* header */}
           <div className="text-center">
             <div className="bg-rose-50 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-5 border border-rose-100">
@@ -237,6 +269,9 @@ export default function EditProfilePage() {
                 <User size={15} className={iconClass} />
                 <input
                   type="text"
+                  id="name"
+                  name="name"
+                  autoComplete="name"
                   placeholder="Full Name"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
@@ -251,6 +286,27 @@ export default function EditProfilePage() {
               )}
             </div>
 
+            {/* Email */}
+            <div>
+              <label className="text-xs font-medium text-slate-500 mb-1.5 block">
+                Email Address
+              </label>
+              <div className="relative flex items-center border border-slate-200 rounded-xl bg-slate-50 focus-within:bg-white focus-within:border-rose-400 focus-within:ring-2 focus-within:ring-rose-50 transition-all">
+                <Mail size={15} className={iconClass} />
+                <input
+                  type="email"
+                  id="email"
+                  name="email"
+                  autoComplete="email"
+                  placeholder="your@exxxxxxxxxxxxxxxxxxxxxxxxxxSSmail.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className={inputClass}
+                  required
+                />
+              </div>
+            </div>
+
             {/* Mobile */}
             <div>
               <label className="text-xs font-medium text-slate-500 mb-1.5 block">
@@ -260,6 +316,9 @@ export default function EditProfilePage() {
                 <Phone size={15} className={iconClass} />
                 <input
                   type="tel"
+                  id="mobile"
+                  name="mobile"
+                  autoComplete="tel"
                   placeholder="10-digit mobile number"
                   value={mobile}
                   onChange={(e) =>
@@ -286,6 +345,9 @@ export default function EditProfilePage() {
                   <Lock size={15} className={iconClass} />
                   <input
                     type={showCurrentPassword ? "text" : "password"}
+                    id="currentPassword"
+                    name="currentPassword"
+                    autoComplete="current-password"
                     placeholder="Enter current password"
                     value={currentPassword}
                     onChange={(e) => setCurrentPassword(e.target.value)}
@@ -321,6 +383,9 @@ export default function EditProfilePage() {
                   <Lock size={15} className={iconClass} />
                   <input
                     type={showPassword ? "text" : "password"}
+                    id="newPassword"
+                    name="newPassword"
+                    autoComplete="new-password"
                     placeholder="New password (min 8 characters)"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
@@ -351,6 +416,9 @@ export default function EditProfilePage() {
                   <Lock size={15} className={iconClass} />
                   <input
                     type={showConfirm ? "text" : "password"}
+                    id="confirmPassword"
+                    name="confirmPassword"
+                    autoComplete="new-password"
                     placeholder="Confirm new password"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
@@ -415,6 +483,15 @@ export default function EditProfilePage() {
               • Name →{" "}
               <span className="font-semibold text-slate-900">
                 {pendingBody.name}
+              </span>
+            </p>
+          )}
+
+          {pendingBody?.email && (
+            <p>
+              • Email →{" "}
+              <span className="font-semibold text-slate-900">
+                {pendingBody.email}
               </span>
             </p>
           )}
