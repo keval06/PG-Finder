@@ -2,19 +2,27 @@ const nodemailer = require("nodemailer");
 
 const transporter = nodemailer.createTransport({
   host: "smtp.resend.com",
-  port: 465,
+  port: 465,              //SMTPS (SMTP over SSL)
   secure: true,
   auth: {
     user: "resend",
     pass: process.env.RESEND_API_KEY,
   }
 });
-
+/**Why transporter is module-level (not inside function)?
+SMTP connection pool is expensive to create. Module-level = created once when server starts, reused for every email. If inside sendOtpEmail() → new connection per email → slow + wasteful. 
+	Implicit SSL/TLS (Immediately connects via SSL/TLS)*/
 exports.sendOtpEmail = async (email, otp) => {
   await transporter.sendMail({
     from: `"QuickPG" <noreply@quickpg.in>`,
+    replyTo: `"QuickPG (Do Not Reply)" <noreply@quickpg.in>`,
     to: email,
     subject: "Your QuickPG Password Reset OTP",
+    headers: {
+      "Auto-Submitted": "auto-generated",
+      "X-Auto-Response-Suppress": "All",
+      "Precedence": "bulk",
+    },
     html: `
  <div style="font-family: 'Inter', Arial, sans-serif; max-width: 480px; margin: auto; background: #ffffff; border: 1px solid #DDDDDD; border-radius: 16px; overflow: hidden;">
 
@@ -77,7 +85,7 @@ exports.sendOtpEmail = async (email, otp) => {
 </div>
 
 <p style="margin: 0; color: #717171; font-size: 13px; line-height: 1.6;">
-  Need help? Reply to this email or visit 
+  Need help? Visit 
   <a href="https://quickpg.in" style="color: #FF385C; text-decoration: none; font-weight: 500;">
     quickpg.in
   </a>

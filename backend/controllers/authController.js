@@ -16,15 +16,15 @@ exports.loginUser = async (req, res) => {
     const user = await User.findOne({ mobile });
 
     if (!user) {
-      return res.status(400).json({
-        message: "Invalid credentials",
+      return res.status(400).json({ 
+        message: "Invalid credentials" 
       });
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
 
     if (!isMatch) {
-      return res.status(400).json({
+      return res.status(400).json({ 
         message: "Invalid credentials",
       });
     }
@@ -36,7 +36,8 @@ exports.loginUser = async (req, res) => {
       name: user.name,
       token,
     });
-  } catch (error) {
+  } 
+  catch (error) {
     res.status(500).json({
       message: "Something went wrong",
     });
@@ -50,8 +51,8 @@ exports.forgotPassword = async (req, res) => {
 
     const user = await User.findOne({ email });
     if (!user) {
-      return res.status(404).json({
-        message: "No account found with this email.",
+      return res.status(404).json({ 
+        message: "No account found with this email."\n",Try Using Different Email",
       });
     }
 
@@ -63,8 +64,7 @@ exports.forgotPassword = async (req, res) => {
     });
     if (recentOtp) {
       return res.status(429).json({
-        message:
-          "OTP already sent. Please wait 60 seconds before requesting again.",
+        message: "OTP already sent. Please wait 60 seconds before requesting again.",
       });
     }
 
@@ -87,12 +87,13 @@ exports.forgotPassword = async (req, res) => {
     // Send email
     await sendOtpEmail(email, rawOtp);
 
-    res.status(200).json({
-      message: "OTP sent to your email.",
+    res.status(200).json({ 
+      message: "OTP sent to your email." 
     });
-  } catch (error) {
-    res.status(500).json({
-      message: "Failed to send OTP. Try again.",
+  } 
+  catch (error) {
+    res.status(500).json({ 
+      message: "Failed to send OTP. Try again." 
     });
   }
 };
@@ -107,19 +108,19 @@ exports.verifyOtp = async (req, res) => {
       email,
       isUsed: false,
       expiresAt: { $gt: new Date() },
-    }).sort({ createdAt: -1 }); //two valid OTPs exist, Sort descending → get latest.
+    }).sort({ createdAt: -1 });   //two valid OTPs exist, Sort descending → get latest. 
 
     if (!otpRecord) {
-      return res.status(400).json({
-        message: "OTP expired or invalid.",
+      return res.status(400).json({ 
+        message: "OTP expired or invalid." 
       });
     }
 
     // Compare
     const isMatch = await bcrypt.compare(otp, otpRecord.otp);
     if (!isMatch) {
-      return res.status(400).json({
-        message: "Incorrect OTP.",
+      return res.status(400).json({ 
+        message: "Incorrect OTP." 
       });
     }
 
@@ -131,9 +132,10 @@ exports.verifyOtp = async (req, res) => {
     const resetToken = generateResetToken(email);
 
     res.status(200).json({ resetToken });
-  } catch (error) {
-    res.status(500).json({
-      message: "Verification failed.",
+  } 
+  catch (error) {
+    res.status(500).json({ 
+      message: "Verification failed." 
     });
   }
 };
@@ -142,30 +144,30 @@ exports.verifyOtp = async (req, res) => {
 exports.resetPassword = async (req, res) => {
   try {
     const { resetToken, newPassword } = req.body;
-
+ 
     // Verify reset token
     // Separates known JWT errors (400)
     let decoded;
     try {
       decoded = jwt.verify(resetToken, process.env.JWT_SECRET_RESET);
-    } catch {
-      return res.status(400).json({
-        message: "Reset link expired. Request a new OTP.",
+    } 
+    catch {
+      return res.status(400).json({ 
+        message: "Reset link expired. Request a new OTP." 
       });
     }
 
     const user = await User.findOne({ email: decoded.email });
     if (!user) {
-      return res.status(404).json({
-        message: "User not found.",
+      return res.status(404).json({ 
+        message: "User not found." 
       });
     }
 
     const passwordRegex = /^(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{8,16}$/;
     if (!passwordRegex.test(newPassword)) {
       return res.status(400).json({
-        message:
-          "Password must be 8-16 characters with at least one digit and one special character.",
+        message: "Password must be 8-16 characters with at least one digit and one special character.",
       });
     }
 
@@ -174,12 +176,13 @@ exports.resetPassword = async (req, res) => {
     user.password = hashedPassword;
     await user.save();
 
-    res.status(200).json({
-      message: "Password reset successful.",
+    res.status(200).json({ 
+      message: "Password reset successful." 
     });
-  } catch (error) {
-    res.status(500).json({
-      message: "Failed to reset password.",
+  } 
+  catch (error) {
+    res.status(500).json({ 
+      message: "Failed to reset password." 
     });
   }
 };

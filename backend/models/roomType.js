@@ -32,6 +32,7 @@ const roomTypeSchema = new mongoose.Schema(
       type: Number,
       required: true,
       min: [0, "Price cannot be negative"],
+      max: [100000, "Price cannot exceed ₹1,00,000"]
     },
 
     isActive: {
