@@ -3,23 +3,23 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
 import { useRouter } from "next/navigation";
-import { SlidersHorizontal, Plus, Home as HomeIcon, Bed } from "lucide-react";
+import { SlidersHorizontal, Plus, Home as HomeIcon, Bed, Eye, EyeOff, LayoutList } from "lucide-react";
 import ListingCard from "./components/ListingCard";
-import FilterPanel from "../../components/FilterPanel";
-import SortBtn from "../../components/SortBtn";
-import ConfirmModal from "../../components/ConfirmModal";
-import PaginationWrapper from "../../components/PaginationWrapper";
-import { usePGFilters, buildFilterParams } from "../hooks/usePGFilters";
-import { pgApi } from "../../lib/api/pg";
-import { reviewApi } from "../../lib/api/review";
-import { roomTypeApi } from "../../lib/api/roomType";
-import { imageApi } from "../../lib/api/image";
-import Button from "../atoms/Button";
-import EmptyState from "../atoms/EmptyState";
-import Badge from "../atoms/Badge";
-import { useSearch } from "../context/SearchContext";
+import FilterPanel from "@/components/FilterPanel";
+import SortBtn from "@/components/SortBtn";
+import ConfirmModal from "@/components/ConfirmModal";
+import PaginationWrapper from "@/components/PaginationWrapper";
+import { usePGFilters, buildFilterParams } from "@/hooks/usePGFilters";
+import { pgApi } from "@/lib/api/pg";
+import { reviewApi } from "@/lib/api/review";
+import { roomTypeApi } from "@/lib/api/roomType";
+import { imageApi } from "@/lib/api/image";
+import Button from "@/atoms/Button";
+import EmptyState from "@/atoms/EmptyState";
+import Badge from "@/atoms/Badge";
+import { useSearch } from "@/context/SearchContext";
 import dynamic from "next/dynamic";
-import BackButton from "../../components/BackButton";
+import BackButton from "@/components/BackButton";
 const PGForm = dynamic(() => import("./components/PGForm"), { ssr: false });
 
 
@@ -40,6 +40,7 @@ export default function MyListingsClient() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
+  const [statusFilter, setStatusFilter] = useState("all"); // "all" | "active" | "inactive"
   const ITEMS_PER_PAGE = 5;
 
   const {
@@ -65,7 +66,7 @@ export default function MyListingsClient() {
   // Reset pagination to page 1 when any filter changes
   useEffect(() => {
     setPage(1);
-  }, [active, sortField, sortOrder, query]);
+  }, [active, sortField, sortOrder, query, statusFilter]);
 
   // Lock body scroll when filter drawer is open
   useEffect(() => {
@@ -93,7 +94,7 @@ export default function MyListingsClient() {
     }, 300);
     
     return () => clearTimeout(timeoutId);
-  }, [ready, user, page, active, sortField, sortOrder, query]);
+  }, [ready, user, page, active, sortField, sortOrder, query, statusFilter]);
 
   const fetchMyPGs = async () => {
     setLoading(true);
@@ -107,6 +108,7 @@ export default function MyListingsClient() {
       const params = buildFilterParams({
         active, query, sortField, sortOrder, page, limit: ITEMS_PER_PAGE
       });
+      if (statusFilter !== "all") params.append("status", statusFilter);
 
       const response = await pgApi.getOwnerPgs(token, params.toString());
       const pgsData = response.data || [];
@@ -214,31 +216,64 @@ export default function MyListingsClient() {
     <div className="bg-white min-h-screen pb-20 selection:bg-rose-100">
       <div className="max-w-[1280px] mx-auto px-6 md:px-10 lg:px-20 py-6">
         <div className="flex flex-col gap-8">
-          <div className="flex items-center justify-between py-4">
-            <div className="flex flex-col gap-2">
-              <BackButton />
-              <h1 className="text-2xl md:text-3xl font-semibold tracking-tight text-[#222222]">
-                My Listings
-              </h1>
-              <p className="text-base text-[#717171]">
-                Manage your {sorted.length} properties
-              </p>
-            </div>
-            
-            <div className="flex items-center gap-3">
-              <div className="hidden sm:flex items-center gap-2">
-                <SortBtn label="Price" field="price" {...{ sortField, sortOrder, onToggle: toggleSort }} />
-                <SortBtn label="Rating" field="rating" {...{ sortField, sortOrder, onToggle: toggleSort }} />
-                <SortBtn label="Reviews" field="reviews" {...{ sortField, sortOrder, onToggle: toggleSort }} />
+          <div className="flex flex-col gap-4 py-4">
+            {/* Row 1: Title + Add button */}
+            <div className="flex items-start justify-between">
+              <div className="flex flex-col gap-1">
+                <BackButton />
+                <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-[#222222]">
+                  My Listings
+                </h1>
+                <p className="text-sm text-[#717171]">
+                  Manage your {totalCount} {totalCount === 1 ? "property" : "properties"}
+                </p>
               </div>
               <Button
                 variant={createOpen ? "primary" : "outline"}
                 onClick={() => setCreateOpen(!createOpen)}
                 icon={Plus}
-                className="!rounded-xl h-11 text-sm font-semibold border-[#DDDDDD] hover:shadow-sm"
+                className="!rounded-xl h-10 text-sm font-semibold border-[#DDDDDD] hover:shadow-sm flex-shrink-0"
               >
-                Add New PG
+                <span className="hidden sm:inline">Add New PG</span>
+                <span className="sm:hidden">Add</span>
               </Button>
+            </div>
+
+            {/* Row 2: Status toggle + Sort buttons */}
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mt-2">
+              {/* Status Filters - 1st line on mobile, left on desktop */}
+              <div className="flex items-center bg-slate-100 rounded-xl p-1 gap-1 self-start shadow-sm">
+                {[
+                  { key: "all", label: "All", icon: LayoutList },
+                  { key: "active", label: "Active", icon: Eye },
+                  { key: "inactive", label: "Inactive", icon: EyeOff },
+                ].map(({ key, label, icon: Icon }) => (
+                  <button
+                    key={key}
+                    onClick={() => setStatusFilter(key)}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${
+                      statusFilter === key
+                        ? "bg-white text-[#222222] shadow-sm"
+                        : "text-slate-500 hover:text-slate-800"
+                    }`}
+                  >
+                    <Icon size={14} className={statusFilter === key ? "text-rose-500" : "text-slate-400"} />
+                    {label}
+                  </button>
+                ))}
+              </div>
+              
+              {/* Sort Buttons - 2nd line on mobile, right on desktop */}
+              <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1 sm:pb-0 -mx-1 px-1 sm:mx-0 sm:px-0">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest sm:hidden">
+                  Sort
+                </span>
+                <div className="flex items-center gap-2 flex-nowrap">
+                  <SortBtn label="Price" field="price" {...{ sortField, sortOrder, onToggle: toggleSort }} />
+                  <SortBtn label="Rating" field="rating" {...{ sortField, sortOrder, onToggle: toggleSort }} />
+                  <SortBtn label="Reviews" field="reviews" {...{ sortField, sortOrder, onToggle: toggleSort }} />
+                </div>
+              </div>
             </div>
           </div>
 

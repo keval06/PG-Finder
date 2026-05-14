@@ -1,7 +1,7 @@
 "use client";
 
 import { ChevronRight } from "lucide-react";
-import PGCardBase from "../../../components/PGCardBase";
+import PGCardBase from "@/components/PGCardBase";
 
 export default function ListingCard({ pg }) {
   return (
