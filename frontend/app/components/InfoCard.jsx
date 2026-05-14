@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { imageApi } from "../../lib/api/image";
+import { imageApi } from "@/lib/api/image";
 
 
 export default function InfoCard({ activePin, avg, count, setActivePin }) {

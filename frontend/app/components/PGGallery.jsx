@@ -10,7 +10,7 @@ import {
   Trash2,
   ImagePlus,
 } from "lucide-react";
-import { GALLERY_CATEGORIES, CATEGORY_LABELS } from "../../lib/constants";
+import { GALLERY_CATEGORIES, CATEGORY_LABELS } from "@/lib/constants";
 import useLightbox from "../hooks/useLightbox";
 
 export default function PGGallery({ images, onDelete, onUpload, uploading }) {

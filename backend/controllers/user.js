@@ -64,12 +64,15 @@ exports.getUser = async (req, res) => {
 exports.updateUser = async (req, res) => {
   try {
     const userId = req.params.id;
+
     if (req.user._id.toString() !== userId) {
       return res.status(403).json({ 
         message: "Not allowed to update another user's profile" 
       });
     }
-    const { mobile, currentPassword, newPassword } = req.body;
+
+    const { mobile, email, currentPassword, newPassword } = req.body;
+
     // ─── GUARD 1: If mobile is being updated, check no other user has it ───
     if (mobile) {
       const existingUser = await User.findOne({ mobile });
@@ -78,9 +81,15 @@ exports.updateUser = async (req, res) => {
       }
     }
 
+    // ─── GUARD 1b: If email is being updated, check no other user has it ───
+    if (email) {
+      const existingEmail = await User.findOne({ email });
+      if (existingEmail && existingEmail._id.toString() !== userId) {
+        return res.status(400).json({ message: "Email already in use" });
+      }
+    }
+
     // ─── GUARD 2: If password is being updated, hash it before saving ───
-
-
     let hashedNewPassword = null;
     if (newPassword) {
       // Verify current password first
@@ -97,6 +106,7 @@ exports.updateUser = async (req, res) => {
       //   // So the next step saves the hash, not plain text
       const passwordRegex =
         /^(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{8,16}$/;
+
       if (!passwordRegex.test(newPassword)) {
         return res.status(400).json({
           message:
@@ -106,8 +116,8 @@ exports.updateUser = async (req, res) => {
       hashedNewPassword = await bcrypt.hash(newPassword, 10);
     }
 
-    // 🛡️ SECURITY: build updateData dynamically to support PARTIAL updates
-    const allowedFields = ["name", "mobile"];
+    // SECURITY: build updateData dynamically to support PARTIAL updates
+    const allowedFields = ["name", "mobile", "email"];
     const updateData = {};
 
     Object.keys(req.body).forEach((key) => {
@@ -137,13 +147,16 @@ exports.updateUser = async (req, res) => {
     }
 
     res.json(updatedUser);
-  } catch (error) {
-    console.error("updateUser:", error);
+  } 
+  catch (error) {
     if (error.code === 11000) {
-      return res.status(400).json({ message: "Mobile already in use" });
+      return res.status(400).json({ 
+        message: "Mobile already in use" 
+      });
     }
-    res
-      .status(500)
-      .json({ message: "Something went wrong. Please try again." });
+
+    res.status(500).json({ 
+      message: "Something went wrong. Please try again." 
+    });
   }
 };

@@ -4,12 +4,12 @@ import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useSearch } from "../context/SearchContext";
 import { useAuth } from "../context/AuthContext";
-import BackButton from "../../components/BackButton";
-import StatusBadge from "../../components/StatusBadge";
-import ConfirmModal from "../../components/ConfirmModal";
-import PaginationWrapper from "../../components/PaginationWrapper";
-import { bookingApi } from "../../lib/api/booking";
-import CustomSelect from "../../components/CustomSelect";
+import BackButton from "@/components/BackButton";
+import StatusBadge from "@/components/StatusBadge";
+import ConfirmModal from "@/components/ConfirmModal";
+import PaginationWrapper from "@/components/PaginationWrapper";
+import { bookingApi } from "@/lib/api/booking";
+import CustomSelect from "@/components/CustomSelect";
 import EmptyState from "../atoms/EmptyState";
 
 import {
@@ -27,11 +27,13 @@ import {
 
 // ──────────────── helpers ───────────────────────────────────
 function formatDate(d) {
-  return new Date(d).toLocaleDateString("en-IN", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  });
+  if (!d) return "—";
+  const date = new Date(d);
+  if (isNaN(date.getTime())) return "—";
+  const day = date.getDate();
+  const month = date.toLocaleDateString("en-IN", { month: "short" });
+  const year = date.getFullYear().toString().slice(-2);
+  return `${day} ${month} '${year}`;
 }
 
 function formatFullDate(d) {
@@ -157,11 +159,11 @@ export default function MyBookingsPage() {
   // ─── local filtering removed (now remote) ───
 
   const TABS = [
-    { key: "all", label: "All" },
-    { key: "confirmed", label: "Confirmed" },
-    { key: "pending", label: "Pending" },
-    { key: "cancelled", label: "Cancelled" },
-    { key: "completed", label: "Completed" },
+    { value: "all", label: "All" },
+    { value: "confirmed", label: "Confirmed" },
+    { value: "pending", label: "Pending" },
+    { value: "cancelled", label: "Cancelled" },
+    { value: "completed", label: "Completed" },
   ];
 
   const RANGES = [
@@ -198,30 +200,10 @@ export default function MyBookingsPage() {
             </button>
           </div>
 
-          {/* Status tabs + Search + Date */}
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-slate-50/50 p-2 rounded-2xl border border-gray-100">
-            <div className="flex items-center gap-1 bg-white shadow-sm border border-[#DDDDDD] rounded-xl p-1 overflow-x-auto scrollbar-hide w-full sm:w-auto">
-              {TABS.map((t) => (
-                <button
-                  key={t.key}
-                  onClick={() => {
-                    setStatusTab(t.key);
-                    setPage(1);
-                  }}
-                  className={`px-2.5 sm:px-4 py-2 rounded-lg text-sm font-semibold transition-all flex-shrink-0 ${statusTab === t.key ? "bg-[#FF385C] text-white shadow-md shadow-rose-200" : "text-[#717171] hover:text-[#222222] hover:bg-slate-50"}`}
-                >
-                  {t.label}
-                  {statusTab === t.key && totalCount > 0 && !loading && (
-                    <span className="ml-2 text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-white/20 text-white">
-                      {totalCount}
-                    </span>
-                  )}
-                </button>
-              ))}
-            </div>
-
-            <div className="flex items-center gap-2 flex-1 sm:flex-initial">
-              <div className="relative flex-1 sm:w-64">
+          <div className="flex flex-col lg:flex-row flex-wrap items-start lg:items-center justify-between gap-3 bg-slate-50/50 p-2 rounded-2xl border border-gray-100">
+            {/* Search - Top on mobile, Middle on desktop */}
+            <div className="order-1 lg:order-2 flex items-center gap-2 w-full lg:w-auto">
+              <div className="relative w-full lg:w-64">
                 <Search
                   size={14}
                   className="absolute left-3 top-1/2 -translate-y-1/2 text-[#717171]"
@@ -234,19 +216,62 @@ export default function MyBookingsPage() {
                     setQuery(e.target.value);
                     setPage(1);
                   }}
-                  className="w-full pl-9 pr-4 py-2.5 bg-white border border-[#DDDDDD] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-rose-50 focus:border-rose-400 transition-all shadow-sm"
+                  className="w-full pl-9 pr-4 py-2.5 bg-white border border-[#DDDDDD] rounded-xl text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-rose-50 focus:border-rose-400 transition-all shadow-sm"
                 />
               </div>
+            </div>
 
-              <CustomSelect
-                value={dateRange}
-                onChange={(val) => {
-                  setDateRange(val);
-                  setPage(1);
-                }}
-                options={RANGES}
-                className="sm:w-40 h-[42px]"
-              />
+            {/* Filter Section - Status and Date Dropdowns */}
+            <div className="order-2 lg:order-1 flex flex-row items-center gap-2 w-full lg:w-auto">
+              {/* Status Selector */}
+              <div className="flex-1 sm:flex-none min-w-0">
+                {/* Mobile View Dropdown */}
+                <div className="flex sm:hidden w-full">
+                  <CustomSelect
+                    value={statusTab}
+                    onChange={(val) => {
+                      setStatusTab(val);
+                      setPage(1);
+                    }}
+                    options={TABS}
+                    className="w-full h-[44px]"
+                  />
+                </div>
+
+                {/* Desktop View Tabs */}
+                <div className="hidden sm:flex items-center gap-1 bg-white shadow-sm border border-[#DDDDDD] rounded-xl p-1 overflow-x-auto scrollbar-hide">
+                  {TABS.map((t) => (
+                    <button
+                      key={t.value}
+                      onClick={() => {
+                        setStatusTab(t.value);
+                        setPage(1);
+                      }}
+                      className={`px-4 py-2 rounded-lg text-base sm:text-sm font-semibold transition-all flex-shrink-0 ${statusTab === t.value ? "bg-[#FF385C] text-white shadow-md shadow-rose-200" : "text-[#717171] hover:text-[#222222] hover:bg-slate-50"}`}
+                    >
+                      {t.label}
+                      {statusTab === t.value && totalCount > 0 && !loading && (
+                        <span className="ml-2 text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-white/20 text-white">
+                          {totalCount}
+                        </span>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Date Selector */}
+              <div className="flex-1 sm:flex-none min-w-0">
+                <CustomSelect
+                  value={dateRange}
+                  onChange={(val) => {
+                    setDateRange(val);
+                    setPage(1);
+                  }}
+                  options={RANGES}
+                  className="w-full sm:w-40 h-[44px]"
+                />
+              </div>
             </div>
           </div>
 
@@ -392,8 +417,7 @@ function BookingCard({ b, onCancel }) {
             </p>
             <p className="text-sm font-semibold text-[#222222] flex items-center gap-2">
               <Calendar size={14} className="text-rose-500" />
-              {formatDate(b.checkInDate).replace(/ \d{4}$/, "")} →{" "}
-              {formatDate(b.checkOutDate).replace(/ \d{4}$/, "")}
+              {formatDate(b.checkInDate)} → {formatDate(b.checkOutDate)}
             </p>
           </div>
           <div className="bg-white border border-[#DDDDDD] rounded-xl px-3 py-2.5">

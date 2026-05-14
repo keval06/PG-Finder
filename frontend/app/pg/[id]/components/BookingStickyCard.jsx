@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Star } from "lucide-react";
-import { useAuth } from "../../../context/AuthContext";
+import { useAuth } from "@/context/AuthContext";
 import CalendarPopover from "./CalendarPopover";
 
 export default function BookingStickyCard({ pg, avgRating, reviewCount }) {

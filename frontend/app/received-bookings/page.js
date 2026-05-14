@@ -2,15 +2,15 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { useAuth } from "../context/AuthContext";
-import BackButton from "../../components/BackButton";
-import StatusBadge from "../../components/StatusBadge";
-import ConfirmModal from "../../components/ConfirmModal";
-import PaginationWrapper from "../../components/PaginationWrapper";
-import { bookingApi } from "../../lib/api/booking";
-import { useSearch } from "../context/SearchContext";
-import CustomSelect from "../../components/CustomSelect";
-import EmptyState from "../atoms/EmptyState";
+import { useAuth } from "@/context/AuthContext";
+import BackButton from "@/components/BackButton";
+import StatusBadge from "@/components/StatusBadge";
+import ConfirmModal from "@/components/ConfirmModal";
+import PaginationWrapper from "@/components/PaginationWrapper";
+import { bookingApi } from "@/lib/api/booking";
+import { useSearch } from "@/context/SearchContext";
+import CustomSelect from "@/components/CustomSelect";
+import EmptyState from "@/atoms/EmptyState";
 
 import {
   MapPin,
@@ -44,10 +44,14 @@ function formatFullDate(d) {
   const suffix = (day) => {
     if (day > 3 && day < 21) return "th";
     switch (day % 10) {
-      case 1: return "st";
-      case 2: return "nd";
-      case 3: return "rd";
-      default: return "th";
+      case 1:
+        return "st";
+      case 2:
+        return "nd";
+      case 3:
+        return "rd";
+      default:
+        return "th";
     }
   };
 
@@ -87,7 +91,10 @@ export default function ReceivedBookingsPage() {
       params.append("page", page);
       params.append("limit", ITEMS_PER_PAGE);
 
-      const response = await bookingApi.getOwnerBookings(token, params.toString());
+      const response = await bookingApi.getOwnerBookings(
+        token,
+        params.toString(),
+      );
       const bookingList = Array.isArray(response.data) ? response.data : [];
 
       setBookings(bookingList);
@@ -207,8 +214,8 @@ export default function ReceivedBookingsPage() {
               </button>
             </div>
             {/* Status tabs + Date range */}
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-slate-50/50 p-2 rounded-2xl border border-gray-100">
-              <div className="flex items-center gap-1 bg-white shadow-sm border border-[#DDDDDD] rounded-xl p-1 overflow-x-auto scrollbar-hide w-full sm:w-auto">
+            <div className="flex flex-col lg:flex-row flex-wrap items-start lg:items-center justify-between gap-3 bg-slate-50/50 p-2 rounded-2xl border border-gray-100">
+              <div className="flex items-center gap-1 bg-white shadow-sm border border-[#DDDDDD] rounded-xl p-1 overflow-x-auto scrollbar-hide w-full lg:w-auto">
                 {STATUS_TABS.map((t) => (
                   <button
                     key={t.key}
@@ -228,9 +235,12 @@ export default function ReceivedBookingsPage() {
                 ))}
               </div>
 
-              <div className="flex items-center gap-2 w-full sm:flex-initial">
-                <div className="relative flex-1 sm:w-64">
-                  <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#717171]" />
+              <div className="flex flex-row items-center gap-2 w-full lg:flex-initial">
+                <div className="relative flex-1 sm:flex-none sm:w-64 min-w-0">
+                  <Search
+                    size={14}
+                    className="absolute left-3 top-1/2 -translate-y-1/2 text-[#717171]"
+                  />
                   <input
                     type="text"
                     placeholder="Search PG name or city…"
@@ -243,25 +253,28 @@ export default function ReceivedBookingsPage() {
                   />
                 </div>
 
-                <CustomSelect
-                  value={dateRange}
-                  onChange={(val) => {
-                    setDateRange(val);
-                    setPage(1);
-                  }}
-                  options={DATE_OPTIONS}
-                  className="sm:w-40 h-[42px]"
-                />
+                <div className="flex-1 sm:flex-none min-w-0">
+                  <CustomSelect
+                    value={dateRange}
+                    onChange={(val) => {
+                      setDateRange(val);
+                      setPage(1);
+                    }}
+                    options={DATE_OPTIONS}
+                    className="w-full sm:w-40 h-[42px]"
+                  />
+                </div>
               </div>
             </div>
 
             {/* toast */}
             {toast && (
               <div
-                className={`flex items-center gap-3 px-6 py-4 rounded-2xl text-sm font-bold animate-[fadeIn_0.2s_ease-out] border shadow-sm ${toast.type === "success"
-                  ? "bg-emerald-50 text-emerald-700 border-emerald-100"
-                  : "bg-red-50 text-red-600 border-red-100"
-                  }`}
+                className={`flex items-center gap-3 px-6 py-4 rounded-2xl text-sm font-bold animate-[fadeIn_0.2s_ease-out] border shadow-sm ${
+                  toast.type === "success"
+                    ? "bg-emerald-50 text-emerald-700 border-emerald-100"
+                    : "bg-red-50 text-red-600 border-red-100"
+                }`}
               >
                 {toast.type === "success" ? (
                   <CheckCircle2 size={18} className="text-emerald-500" />
@@ -277,7 +290,10 @@ export default function ReceivedBookingsPage() {
               <div className="flex justify-center py-20">
                 <div className="w-6 h-6 border-2 border-rose-500 border-t-transparent rounded-full animate-spin" />
               </div>
-            ) : bookings.length === 0 && statusTab === "all" && dateRange === "all" && !query.trim() ? (
+            ) : bookings.length === 0 &&
+              statusTab === "all" &&
+              dateRange === "all" &&
+              !query.trim() ? (
               <EmptyState
                 icon={Bed}
                 title="No bookings yet"
@@ -313,12 +329,20 @@ export default function ReceivedBookingsPage() {
                       booking={b}
                       onConfirm={
                         b.status === "pending"
-                          ? () => setActionTarget({ booking: b, newStatus: "confirmed" })
+                          ? () =>
+                              setActionTarget({
+                                booking: b,
+                                newStatus: "confirmed",
+                              })
                           : undefined
                       }
                       onCancel={
                         b.status !== "cancelled"
-                          ? () => setActionTarget({ booking: b, newStatus: "cancelled" })
+                          ? () =>
+                              setActionTarget({
+                                booking: b,
+                                newStatus: "cancelled",
+                              })
                           : undefined
                       }
                     />
@@ -374,10 +398,11 @@ function ReceivedCard({ booking: b, onConfirm, onCancel }) {
   return (
     <div
       onClick={() => router.push(`/pg/${b.pg?._id}`)}
-      className={`bg-white border rounded-2xl overflow-hidden cursor-pointer transition-all ${isCancelled
-        ? "opacity-50 border-[#DDDDDD]"
-        : "border-[#DDDDDD] hover:shadow-[0_6px_16px_rgba(0,0,0,0.12)] hover:border-gray-300"
-        }`}
+      className={`bg-white border rounded-2xl overflow-hidden cursor-pointer transition-all ${
+        isCancelled
+          ? "opacity-50 border-[#DDDDDD]"
+          : "border-[#DDDDDD] hover:shadow-[0_6px_16px_rgba(0,0,0,0.12)] hover:border-gray-300"
+      }`}
     >
       <div className="p-5 sm:p-6">
         {/* row 1: pg name + status */}
@@ -417,21 +442,27 @@ function ReceivedCard({ booking: b, onConfirm, onCancel }) {
         {/* row 3: details grid */}
         <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 mb-4 sm:mb-6">
           <div className="bg-white border border-[#DDDDDD] rounded-xl px-3 py-2.5">
-            <p className="text-[10px] font-bold uppercase text-[#717171] mb-1 tracking-wider">Room</p>
+            <p className="text-[10px] font-bold uppercase text-[#717171] mb-1 tracking-wider">
+              Room
+            </p>
             <p className="text-sm font-semibold text-[#222222] capitalize flex items-center gap-2">
               <Bed size={14} className="text-rose-500" />
               {b.roomType?.name || "—"}
             </p>
           </div>
           <div className="bg-white border border-[#DDDDDD] rounded-xl px-3 py-2.5">
-            <p className="text-[10px] font-bold uppercase text-[#717171] mb-1 tracking-wider">Sharing</p>
+            <p className="text-[10px] font-bold uppercase text-[#717171] mb-1 tracking-wider">
+              Sharing
+            </p>
             <p className="text-sm font-semibold text-[#222222] flex items-center gap-2">
               <Users size={14} className="text-rose-500" />
               {b.roomType?.sharingCount || "—"}-sharing
             </p>
           </div>
           <div className="bg-white border border-[#DDDDDD] rounded-xl px-3 py-2.5">
-            <p className="text-[10px] font-bold uppercase text-[#717171] mb-1 tracking-wider">Dates</p>
+            <p className="text-[10px] font-bold uppercase text-[#717171] mb-1 tracking-wider">
+              Dates
+            </p>
             <p className="text-sm font-semibold text-[#222222] flex items-center gap-2">
               <Calendar size={14} className="text-rose-500" />
               {formatDate(b.checkInDate).replace(/ \d{4}$/, "")} →{" "}
@@ -439,7 +470,9 @@ function ReceivedCard({ booking: b, onConfirm, onCancel }) {
             </p>
           </div>
           <div className="bg-white border border-[#DDDDDD] rounded-xl px-3 py-2.5">
-            <p className="text-[10px] font-bold uppercase text-[#717171] mb-1 tracking-wider">Payment</p>
+            <p className="text-[10px] font-bold uppercase text-[#717171] mb-1 tracking-wider">
+              Payment
+            </p>
             <StatusBadge type="payment" status={b.paymentStatus} />
           </div>
         </div>
@@ -451,14 +484,19 @@ function ReceivedCard({ booking: b, onConfirm, onCancel }) {
               <IndianRupee size={16} strokeWidth={2.5} />
               {b.amount?.toLocaleString("en-IN")}
             </span>
-            <span className="text-[10px] font-bold uppercase text-[#717171]">total</span>
+            <span className="text-[10px] font-bold uppercase text-[#717171]">
+              total
+            </span>
           </div>
 
           {!isCancelled && (
             <div className="flex gap-2 sm:gap-3 w-full sm:w-auto">
               {isPending && onConfirm && (
                 <button
-                  onClick={(e) => {e.stopPropagation(); onConfirm();}}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onConfirm();
+                  }}
                   className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 text-xs font-semibold px-3 sm:px-5 py-2 sm:py-2.5 rounded-xl border border-rose-200 text-rose-500 bg-rose-50 hover:bg-rose-100 transition-colors"
                 >
                   <CheckCircle2 size={14} /> Confirm
@@ -466,7 +504,10 @@ function ReceivedCard({ booking: b, onConfirm, onCancel }) {
               )}
               {onCancel && (
                 <button
-                  onClick={(e) =>{e.stopPropagation(); onCancel();}}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onCancel();
+                  }}
                   className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 text-xs font-semibold px-3 sm:px-5 py-2 sm:py-2.5 rounded-xl border border-[#DDDDDD] text-[#717171] bg-white hover:bg-slate-50 transition-colors"
                 >
                   <XCircle size={14} /> Cancel

@@ -130,10 +130,10 @@ const pgSchema = new mongoose.Schema(
   { timestamps: true },
 );
 
-// Indexes for scalable filtering
-pgSchema.index({ city: 1, gender: 1, price: 1, isActive: 1 });
-pgSchema.index({ amenities: 1 });
-pgSchema.index({ coordinate: "2dsphere" }); //? Near Me / radius search
+// Indexes for scalable filtering, 
+pgSchema.index({ city: 1, gender: 1, price: 1, isActive: 1 });    // home page filter,  Order matters
+pgSchema.index({ amenities: 1 });                                // amenity filter
+pgSchema.index({ coordinate: "2dsphere" });                     //? Near Me / radius search
 
 // for getMyPgs — owner dashboard always filters by owner + isActive
 pgSchema.index({ owner: 1, isActive: 1 });

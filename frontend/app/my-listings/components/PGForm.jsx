@@ -3,7 +3,7 @@
 // NEW MAP
 import { useState, useCallback, useEffect } from "react";
 import { XCircle, Plus, Trash2, MapPin } from "lucide-react";
-import Button from "../../atoms/Button";
+import Button from "@/atoms/Button";
 import {
   MapContainer,
   TileLayer,
@@ -49,7 +49,7 @@ import {
   ROOM_TYPE_NAMES,
   GENDER_LABELS,
   FOOD_LABELS,
-} from "../../../lib/constants";
+} from "@/lib/constants";
 
 import { memo } from "react";
 

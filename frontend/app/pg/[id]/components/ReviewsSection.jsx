@@ -2,9 +2,9 @@
 
 import { useState, useEffect } from "react";
 import { ChevronLeft, ChevronRight, Pencil, Trash2, Star } from "lucide-react";
-import { reviewApi } from "../../../../lib/api/review";
-import { useAuth } from "../../../context/AuthContext";
-import ConfirmModal from "../../../../components/ConfirmModal";
+import { reviewApi } from "@/lib/api/review";
+import { useAuth } from "@/context/AuthContext";
+import ConfirmModal from "@/components/ConfirmModal";
 
 import { useRouter } from "next/navigation";
 

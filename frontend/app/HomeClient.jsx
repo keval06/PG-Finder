@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useMemo } from "react";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { useSearch } from "./context/SearchContext";
 import PGCard from "../components/PGCard";
@@ -255,10 +255,12 @@ export default function HomeClient({
   const displayCount =
     pagination.totalCount > 0 ? pagination.totalCount : sorted.length;
 
-  const firstPGWithCoord = mapPgs.find((p) => getLatLng(p.coordinate));
-  const defaultMapCenter = firstPGWithCoord
-    ? getLatLng(firstPGWithCoord.coordinate)
-    : { lat: 23.0225, lng: 72.5714 };
+  const defaultMapCenter = useMemo(() => {
+    const firstPGWithCoord = mapPgs.find((p) => getLatLng(p.coordinate));
+    return firstPGWithCoord
+      ? getLatLng(firstPGWithCoord.coordinate)
+      : { lat: 23.0225, lng: 72.5714 };
+  }, [mapPgs]);
 
   return (
     <>
@@ -280,8 +282,8 @@ export default function HomeClient({
         <div
           className={
             isMapFullscreen
-              ? "fixed inset-0 z-[100] bg-white p-4 pt-24"
-              : `sticky top-[80px] z-0 ${
+              ? "fixed top-[132px] md:top-[80px] left-0 right-0 bottom-0 z-[40] bg-white p-4 md:p-6"
+              : `sticky top-[132px] md:top-[80px] z-0 ${
                   activePin ? "h-[55vh]" : "h-[40vh]"
                 } px-3 pt-3 pb-1 transition-all duration-300`
           }
@@ -360,65 +362,59 @@ export default function HomeClient({
         {/* Footer — mobile only, after listings, above sticky map */}
         <footer className="relative z-20 bg-slate-900 py-10 px-5 sm:px-8">
           <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div className="flex items-center">
-              // With:
-              <div className="flex items-center gap-2">
-                <svg
-                  width="28"
-                  height="28"
-                  viewBox="0 0 80 80"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <rect
-                    x="6"
-                    y="6"
-                    width="68"
-                    height="68"
-                    rx="14"
-                    fill="none"
-                    stroke="white"
-                    strokeWidth="5"
-                  />
-                  <rect
-                    x="20"
-                    y="20"
-                    width="18"
-                    height="18"
-                    rx="3"
-                    fill="rgba(255,255,255,0.2)"
-                  />
-                  <rect
-                    x="42"
-                    y="20"
-                    width="18"
-                    height="18"
-                    rx="3"
-                    fill="rgba(255,255,255,0.2)"
-                  />
-                  <rect
-                    x="20"
-                    y="42"
-                    width="18"
-                    height="18"
-                    rx="3"
-                    fill="#FF385C"
-                  />
-                  <rect
-                    x="42"
-                    y="42"
-                    width="18"
-                    height="18"
-                    rx="3"
-                    fill="rgba(255,255,255,0.2)"
-                  />
-                </svg>
-                <span className="text-white font-bold text-[16px] tracking-tight">
-                  Quick<span className="text-rose-400">PG</span>
-                </span>
-              </div>
-              No other issues. Layout, responsiveness, map logic all
-              clean.Sonnet 4.6Session: 75% · resets in 4h 42mWeekly: 66% ·
-              resets in 2d 8h
+            <div className="flex items-center gap-2">
+              <svg
+                width="28"
+                height="28"
+                viewBox="0 0 80 80"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <rect
+                  x="6"
+                  y="6"
+                  width="68"
+                  height="68"
+                  rx="14"
+                  fill="none"
+                  stroke="white"
+                  strokeWidth="5"
+                />
+                <rect
+                  x="20"
+                  y="20"
+                  width="18"
+                  height="18"
+                  rx="3"
+                  fill="rgba(255,255,255,0.2)"
+                />
+                <rect
+                  x="42"
+                  y="20"
+                  width="18"
+                  height="18"
+                  rx="3"
+                  fill="rgba(255,255,255,0.2)"
+                />
+                <rect
+                  x="20"
+                  y="42"
+                  width="18"
+                  height="18"
+                  rx="3"
+                  fill="#FF385C"
+                />
+                <rect
+                  x="42"
+                  y="42"
+                  width="18"
+                  height="18"
+                  rx="3"
+                  fill="rgba(255,255,255,0.2)"
+                />
+              </svg>
+              <span className="text-white font-bold text-[16px] tracking-tight">
+                Quick<span className="text-rose-400">PG</span>
+              </span>
             </div>
             <p className="text-slate-500 text-xs">
               © 2026 QuickPG. All rights reserved.

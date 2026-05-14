@@ -24,4 +24,5 @@ const imageSchema = new mongoose.Schema(
 );
 
 imageSchema.index({ pg: 1, category: 1 });
+
 module.exports = mongoose.model("Image", imageSchema);

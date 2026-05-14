@@ -1,8 +1,8 @@
 const Razorpay = require("razorpay");
-const Booking = require("../models/booking.js");
 const crypto = require("crypto");
-const RoomType = require("../models/roomType.js");
 const mongoose = require("mongoose");
+const Booking = require("../models/booking.js");
+const RoomType = require("../models/roomType.js");
 
 
 const razorpay = new Razorpay({
@@ -96,10 +96,12 @@ exports.verifyPayment = async (req, res) => {
 
     // 1. Fetch Booking
     const booking = await Booking.findById(bookingId);
+
     if (!booking) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Booking record not found" });
+      return res.status(404).json({
+        success: false,
+        message: "Booking record not found"
+      });
     }
 
     // Verify the order ID matches what we stored — prevents cross-order signature replay
@@ -138,6 +140,7 @@ exports.verifyPayment = async (req, res) => {
       .digest("hex");
 
     let isAuthentic;
+
     try {
       isAuthentic = crypto.timingSafeEqual(
         Buffer.from(expectedSignature),
@@ -228,9 +231,9 @@ exports.handleWebhook = async (req, res) => {
   try {
     isAuthentic = crypto.timingSafeEqual(
       Buffer.from(expectedSignature),
-      Buffer.from(razorpay_signature),
+      Buffer.from(signature),
     );
-  } 
+  }
   catch {
     return res.status(400).json({
       success: false,
@@ -291,16 +294,21 @@ exports.handleWebhook = async (req, res) => {
 
         await session.commitTransaction();
         // console.log("WEBHOOK: Booking confirmed", booking._id);
-      } catch (err) {
+      } 
+      catch (err) {
         await session.abortTransaction();
         throw err;
-      } finally {
+      } 
+      finally {
         session.endSession();
       }
     }
 
-    res.status(200).json({ message: "OK" });
-  } catch (error) {
+    res.status(200).json({ 
+      message: "OK" 
+    });
+  } 
+  catch (error) {
     console.error("WEBHOOK ERROR:", error);
     res.status(200).json({ message: "Webhook received" });
   }

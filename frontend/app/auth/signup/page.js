@@ -14,7 +14,7 @@ import {
   XCircle,
   Mail,
 } from "lucide-react";
-import { userApi } from "../../../lib/api/user";
+import { userApi } from "@/lib/api/user";
 
 export default function SignupPage() {
   // The steering wheel

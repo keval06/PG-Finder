@@ -12,8 +12,8 @@ import {
   CheckCircle2,
   ShieldCheck,
 } from "lucide-react";
-import { authApi } from "../../../lib/api/auth";
-import StepperBar from "../../pg/[id]/book/components/StepperBar"; // Reusing your component
+import { authApi } from "@/lib/api/auth";
+import StepperBar from "@/app/pg/[id]/book/components/StepperBar"; // Reusing your component
 
 export default function ForgotPasswordPage() {
   const router = useRouter();

@@ -2,18 +2,18 @@
 
 import { useState, useEffect } from "react";
 import { useRouter, notFound } from "next/navigation";
-import { useAuth } from "../../context/AuthContext";
-import { pgApi } from "../../../lib/api/pg";
-import { imageApi } from "../../../lib/api/image";
-import { roomTypeApi } from "../../../lib/api/roomType";
-import PGGallery from "../../components/PGGallery";
-import ConfirmModal from "../../../components/ConfirmModal";
-import Button from "../../atoms/Button";
-import Badge from "../../atoms/Badge";
+import { useAuth } from "@/context/AuthContext";
+import { pgApi } from "@/lib/api/pg";
+import { imageApi } from "@/lib/api/image";
+import { roomTypeApi } from "@/lib/api/roomType";
+import PGGallery from "@/app/components/PGGallery";
+import ConfirmModal from "@/components/ConfirmModal";
+import Button from "@/atoms/Button";
+import Badge from "@/atoms/Badge";
 import dynamic from "next/dynamic";
 const PGForm = dynamic(() => import("../components/PGForm"), { ssr: false });
-import BackButton from "../../../components/BackButton";
-import { reviewApi } from "../../../lib/api/review";
+import BackButton from "@/components/BackButton";
+import { reviewApi } from "@/lib/api/review";
 import EditModal from "../components/EditModal";
 
 import {
@@ -42,7 +42,7 @@ import {
   GENDER_LABELS,
   FOOD_LABELS,
   ROOM_DETAIL_ICONS,
-} from "../../../lib/constants";
+} from "@/lib/constants";
 
 export default function EditListingClient({ pgId }) {
   const { user, ready } = useAuth();
@@ -81,9 +81,9 @@ export default function EditListingClient({ pgId }) {
     setLoading(true);
     try {
       const [pgData, imgData, rtData, reviewRes] = await Promise.all([
-        pgApi.getById(pgId),
-        imageApi.getByPgId(pgId),
-        roomTypeApi.getByPgId(pgId),
+        pgApi.getById(pgId, token()),
+        imageApi.getByPgId(pgId, token()),
+        roomTypeApi.getByPgId(pgId, token()),
         reviewApi.getByPgId(pgId).catch(() => []),
       ]);
 
@@ -260,14 +260,14 @@ export default function EditListingClient({ pgId }) {
       ? `${pg.toilet} (${pg.toilet >= pg.room ? "Attached" : `1:${Math.round(pg.room / pg.toilet)}`})`
       : "—";
   const totalBeds = roomTypes.reduce(
-    (s, rt) => s + rt.availableRooms * rt.sharingCount,
+    (s, rt) => rt.isActive !== false ? s + rt.availableRooms * rt.sharingCount : s,
     0,
   );
   const freeBeds = roomTypes.reduce(
     (s, rt) =>
-      s +
-      (rt.remainingBeds ??
-        rt.availableRooms * rt.sharingCount - (rt.occupiedBeds || 0)),
+      rt.isActive !== false 
+        ? s + (rt.remainingBeds ?? (rt.availableRooms * rt.sharingCount - (rt.occupiedBeds || 0)))
+        : s,
     0,
   );
 
@@ -478,12 +478,19 @@ export default function EditListingClient({ pgId }) {
                     return (
                       <div
                         key={rt._id}
-                        className="p-5 border border-gray-200 rounded-2xl bg-white shadow-sm hover:border-gray-300 transition-all"
+                        className={`p-5 border border-gray-200 rounded-2xl bg-white shadow-sm hover:border-gray-300 transition-all ${
+                          rt.isActive === false ? "opacity-60 bg-slate-50" : ""
+                        }`}
                       >
                         <div className="flex items-center justify-between mb-3">
                           <div>
-                            <p className="text-base font-bold text-[#222222] capitalize">
+                            <p className="text-base font-bold text-[#222222] capitalize flex items-center gap-2">
                               {rt.name}
+                              {rt.isActive === false && (
+                                <Badge variant="slate" className="!lowercase">
+                                  Deactivated
+                                </Badge>
+                              )}
                             </p>
                             <p className="text-xs text-gray-500 font-medium">
                               {rt.sharingCount}-sharing · {rt.availableRooms}{" "}
@@ -677,8 +684,8 @@ export default function EditListingClient({ pgId }) {
         title={inactive ? "Publish Listing?" : "Deactivate Listing?"}
         description={
           inactive
-            ? "This will make your PG visible to all students."
-            : "Students will no longer be able to find or book this PG."
+            ? "This will make your PG visible to all users."
+            : "Users will no longer be able to find or book this PG."
         }
         confirmText={inactive ? "Yes, Publish" : "Yes, Deactivate"}
         variant={inactive ? "primary" : "danger"}

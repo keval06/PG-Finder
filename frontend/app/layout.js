@@ -1,7 +1,7 @@
 import { Suspense } from "react";
-import Navbar from "../components/Navbar";
-import { SearchProvider } from "./context/SearchContext";
-import { AuthProvider } from "./context/AuthContext";
+import Navbar from "@/components/Navbar.jsx";
+import { SearchProvider } from "@/context/SearchContext";
+import { AuthProvider } from "@/context/AuthContext";
 import "./globals.css";
 import MapProvider from "../components/MapProvider";
 import Script from "next/script";

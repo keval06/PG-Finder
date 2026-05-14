@@ -1,6 +1,6 @@
 "use client";
 import { useRouter } from "next/navigation";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "@/context/AuthContext";
 import { Pencil } from "lucide-react";
 
 export default function OwnerEditButton({ pgOwnerId, pgId }) {

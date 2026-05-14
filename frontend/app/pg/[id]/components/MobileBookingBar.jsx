@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { Check } from "lucide-react";
-import { useAuth } from "../../../context/AuthContext";
+import { useAuth } from "@/context/AuthContext";
 
 export default function MobileBookingBar({ pg, checkIn, checkOut }) {
   const { user, ready } = useAuth();
