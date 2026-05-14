@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef } from "react";
 import { MapContainer, TileLayer, Marker, useMap } from "react-leaflet";
 import { Maximize, X } from "lucide-react";
-import InfoCard from "../../components/InfoCard";
+import InfoCard from "@/app/components/InfoCard";
 import L from "leaflet";
 import MarkerClusterGroup from "react-leaflet-cluster";
 import "leaflet/dist/leaflet.css";
@@ -70,11 +70,32 @@ function MapEffect({
     }
   }, [map, userLocation]);
 
-  // Fit bounds when shouldFitBounds flag is set (initial load only)
+  const prevCenter = useRef(defaultMapCenter);
+
+  // Intelligently pan the map:
+  // 1. Always on initial load (shouldFitBounds)
+  // 2. Or if the default map center changes by > 10km (indicating a city search)
   useEffect(() => {
     if (!map || !defaultMapCenter) return;
-    map.setView(defaultMapCenter,userLocation ? 13 :11, { animate: true });
-  }, [map, userLocation, defaultMapCenter]);
+
+    if (shouldFitBounds) {
+      map.setView(defaultMapCenter, userLocation ? 13 : 11, { animate: true });
+      prevCenter.current = defaultMapCenter;
+      return;
+    }
+
+    if (prevCenter.current) {
+      const dist = map.distance(
+        [prevCenter.current.lat, prevCenter.current.lng],
+        [defaultMapCenter.lat, defaultMapCenter.lng]
+      );
+      // 10km threshold -> means they searched a new city or location
+      if (dist > 10000) {
+        map.setView(defaultMapCenter, 11, { animate: true });
+      }
+    }
+    prevCenter.current = defaultMapCenter;
+  }, [map, userLocation, defaultMapCenter, shouldFitBounds]);
 
   return null;
 }

@@ -12,7 +12,7 @@ import {
   ShieldCheck,
   Zap,
 } from "lucide-react";
-import { pgApi } from "../../lib/api/pg";
+import { pgApi } from "@/lib/api/pg";
 
 export default function LandingPage() {
   const router = useRouter();
@@ -225,7 +225,6 @@ export default function LandingPage() {
       {/* ────── FOOTER ────── */}
       <footer className="border-t border-gray-200 py-8">
         <div className="max-w-[1280px] mx-auto px-5 sm:px-6 md:px-10 lg:px-20 flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4">
-
           <p className="text-[13px] text-[#717171]">
             © 2026 QuickPG. All rights reserved.
           </p>
@@ -251,11 +250,10 @@ export default function LandingPage() {
 function Stat({ label, value }) {
   return (
     <div>
-     <p className="text-[18px] sm:text-[22px] md:text-[26px] font-semibold text-[#222222] leading-none mb-1 sm:mb-1.5">
+      <p className="text-[18px] sm:text-[22px] md:text-[26px] font-semibold text-[#222222] leading-none mb-1 sm:mb-1.5">
         {value}
       </p>
       <p className="text-[10px] sm:text-[12px] uppercase tracking-wider text-[#717171] font-medium whitespace-nowrap">
-
         {label}
       </p>
     </div>
@@ -265,7 +263,6 @@ function Stat({ label, value }) {
 function Feature({ icon, title, description }) {
   return (
     <div className="bg-white border border-gray-100 rounded-2xl p-5 sm:p-6 hover:border-gray-200 hover:shadow-[0_4px_16px_rgba(0,0,0,0.06)] transition-all">
-
       <div className="w-10 h-10 rounded-full bg-rose-50 text-rose-500 flex items-center justify-center mb-4">
         {icon}
       </div>
@@ -284,9 +281,11 @@ function CityBlock({ data }) {
     <div>
       <div className="flex items-end justify-between mb-5">
         <div>
-          <h3 className="text-[20px] sm:text-[24px] md:text-[28px] font-semibold text-[#222222] tracking-tight">            {data.city.charAt(0).toUpperCase() + data.city.slice(1)}
+          <h3 className="text-[20px] sm:text-[24px] md:text-[28px] font-semibold text-[#222222] tracking-tight">
+            {" "}
+            {data.city.charAt(0).toUpperCase() + data.city.slice(1)}
           </h3>
-         <p className="text-[12px] sm:text-[14px] text-[#717171] mt-0.5">
+          <p className="text-[12px] sm:text-[14px] text-[#717171] mt-0.5">
             {data.totalCount} verified PGs
           </p>
         </div>
@@ -299,7 +298,6 @@ function CityBlock({ data }) {
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4 md:gap-5">
-
         {data.pgs.map((pg) => (
           <CityPGCard key={pg._id} pg={pg} />
         ))}

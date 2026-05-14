@@ -1,9 +1,9 @@
 "use client";
 
 import { SlidersHorizontal, MapPin, X } from "lucide-react";
-import SortBtn from "../../../components/SortBtn";
-import Button from "../../atoms/Button";
-import CustomSelect from "../../../components/CustomSelect";
+import SortBtn from "@/components/SortBtn";
+import Button from "@/atoms/Button";
+import CustomSelect from "@/components/CustomSelect";
 
 export default function HomeHeader({
   setDrawerOpen,

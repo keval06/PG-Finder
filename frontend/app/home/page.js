@@ -2,9 +2,9 @@
 // ?It's the data fetcher and assembler before anything reaches the browser.
 // Server does the heavy lifting (API calls, data assembly)
 // Client just displays and handles user interaction
-import { pgApi } from "../../lib/api/pg";
-import { imageApi } from "../../lib/api/image";
-import { reviewApi } from "../../lib/api/review";
+import { pgApi } from "@/lib/api/pg";
+import { imageApi } from "@/lib/api/image";
+import { reviewApi } from "@/lib/api/review";
 
 import HomeClient from "../HomeClient";
 
