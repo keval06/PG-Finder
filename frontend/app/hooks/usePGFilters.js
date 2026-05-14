@@ -3,6 +3,7 @@
 // ?const { sorted, fp, ... } = usePGFilters()
 
 import { useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { useSearch } from "../context/SearchContext";
 
 const EMPTY_DRAFT = {
@@ -13,14 +14,61 @@ const EMPTY_DRAFT = {
   minRating: 0,
 };
 
+// Known price presets — used to reconstruct selectedPrice from URL params
+const PRICE_PRESETS = [
+  { label: "Under ₹5,000", min: 0, max: 5000 },
+  { label: "₹5,000 – ₹10,000", min: 5000, max: 10000 },
+  { label: "₹10,000 – ₹15,000", min: 10000, max: 15000 },
+  { label: "Above ₹15,000", min: 15000, max: Infinity },
+];
+
+/**
+ * Hydrate filter state from URL search params.
+ * Called once on mount (useState initializer) so that when
+ * the user navigates back, the filter badge & panel reflect the URL.
+ */
+function hydrateFromURL(searchParams) {
+  const initial = { ...EMPTY_DRAFT };
+
+  // Price — match against known presets using min/max from URL
+  const minP = searchParams.get("minprice");
+  const maxP = searchParams.get("maxprice");
+  if (minP !== null) {
+    const minVal = Number(minP);
+    const maxVal = maxP !== null ? Number(maxP) : Infinity;
+    const match = PRICE_PRESETS.find((p) => p.min === minVal && p.max === maxVal);
+    initial.selectedPrice = match || { label: `₹${minVal}–₹${maxVal}`, min: minVal, max: maxVal };
+  }
+
+  // Gender — comma-separated
+  const gender = searchParams.get("gender");
+  if (gender) initial.genderFilter = gender.split(",");
+
+  // Food — comma-separated
+  const food = searchParams.get("food");
+  if (food) initial.foodFilter = food.split(",");
+
+  // Amenities — comma-separated
+  const amenities = searchParams.get("amenities");
+  if (amenities) initial.selectedAmenities = amenities.split(",");
+
+  // Min rating
+  const rating = searchParams.get("minRating");
+  if (rating) initial.minRating = Number(rating);
+
+  return initial;
+}
+
 export function usePGFilters(data = [], query = "", mode = "local") {
   const { drawerOpen, setDrawerOpen } = useSearch();
+  const searchParams = useSearchParams();
 
-  const [draft, setDraft] = useState(EMPTY_DRAFT); //? reset draft
-  const [active, setActive] = useState(EMPTY_DRAFT); //? reset active
+  // Hydrate from URL on first mount — so back-navigation restores filter state
+  const [draft, setDraft] = useState(() => hydrateFromURL(searchParams));
+  const [active, setActive] = useState(() => hydrateFromURL(searchParams));
 
-  const [sortField, setSortField] = useState(null); //?"price"|"rating"|"reviews"|null
-  const [sortOrder, setSortOrder] = useState("asc"); //? "asc" | "desc"
+  const [sortField, setSortField] = useState(() => searchParams.get("sortField") || null);
+  const [sortOrder, setSortOrder] = useState(() => searchParams.get("sortOrder") || "asc");
 
   const applyFilters = () => {
     setActive({ ...draft }); //?→ Spread creates a COPY — safe and independent ✅

@@ -4,8 +4,8 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Eye, EyeOff, Phone, Lock, AlertCircle } from "lucide-react";
-import { useAuth } from "../../context/AuthContext";
-import { authApi } from "../../../lib/api/auth";
+import { useAuth } from "@/context/AuthContext";
+import { authApi } from "@/lib/api/auth";
 
 export default function LoginPage() {
   const router = useRouter();
