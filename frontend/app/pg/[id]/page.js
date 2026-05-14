@@ -1,9 +1,9 @@
 import { notFound } from "next/navigation";
-import PGGallery from "../../components/PGGallery";
-import { pgApi } from "../../../lib/api/pg";
-import { imageApi } from "../../../lib/api/image";
-import { reviewApi } from "../../../lib/api/review";
-import { roomTypeApi } from "../../../lib/api/roomType";
+import PGGallery from "@/app/components/PGGallery";
+import { pgApi } from "@/lib/api/pg";
+import { imageApi } from "@/lib/api/image";
+import { reviewApi } from "@/lib/api/review";
+import { roomTypeApi } from "@/lib/api/roomType";
 import PGLocationMapWrapper from "./components/PGLocationMapWrapper";
 import {
   AMENITY_ICONS,
@@ -11,12 +11,12 @@ import {
   FOOD_LABELS,
   POLICY_ICONS,
   ROOM_DETAIL_ICONS,
-} from "../../../lib/constants";
+} from "@/lib/constants";
 import { MapPin, Star, ShieldCheck, Info, Calendar } from "lucide-react";
 import ReviewsSection from "./components/ReviewsSection";
 import BookingStickyCard from "./components/BookingStickyCard";
 import OwnerEditButton from "./OwnerEditButton";
-import BackButton from "../../../components/BackButton";
+import BackButton from "@/components/BackButton";
 import MobileBookingSection from "./components/MobileBookingSection";
 
 async function getPG(id) {

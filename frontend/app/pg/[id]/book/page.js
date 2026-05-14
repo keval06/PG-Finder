@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter, useParams, useSearchParams } from "next/navigation";
-import { useAuth } from "../../../context/AuthContext";
+import { useAuth } from "@/context/AuthContext";
 import {
   Check,
   ChevronRight,
@@ -14,10 +14,10 @@ import {
 } from "lucide-react";
 import StepperBar from "./components/StepperBar";
 import RoomCard from "./components/RoomCard";
-import BackButton from "../../../../components/BackButton";
+import BackButton from "@/components/BackButton";
 import CalendarPopover from "../components/CalendarPopover";
-import { roomTypeApi } from "../../../../lib/api/roomType";
-import { bookingApi } from "../../../../lib/api/booking";
+import { roomTypeApi } from "@/lib/api/roomType";
+import { bookingApi } from "@/lib/api/booking";
 
 const STEPS = ["Room", "Dates", "Confirm"];
 
@@ -95,13 +95,16 @@ export default function BookingPage() {
       const token = localStorage.getItem("token");
 
       // Step 1: Create booking record (status: pending)
-      const booking = await bookingApi.create({
-        pg: pgId,
-        roomType: selectedRoom._id,
-        checkInDate: checkIn,
-        checkOutDate: checkOut,
-        amount: totalAmount,
-      }, token);
+      const booking = await bookingApi.create(
+        {
+          pg: pgId,
+          roomType: selectedRoom._id,
+          checkInDate: checkIn,
+          checkOutDate: checkOut,
+          amount: totalAmount,
+        },
+        token,
+      );
 
       if (!booking._id) {
         setError(booking.message || "Booking failed. Please try again.");
@@ -111,14 +114,17 @@ export default function BookingPage() {
       bookingId = booking._id;
 
       // Step 2: Create Razorpay order
-      const orderRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/payment/create-order`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
+      const orderRes = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/payment/create-order`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ bookingId }),
         },
-        body: JSON.stringify({ bookingId }),
-      });
+      );
       const order = await orderRes.json();
 
       if (!orderRes.ok) {
@@ -140,19 +146,22 @@ export default function BookingPage() {
         handler: async function (response) {
           setSubmitting(true);
           try {
-            const verifyRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/payment/verify-payment`, {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${token}`,
+            const verifyRes = await fetch(
+              `${process.env.NEXT_PUBLIC_API_URL}/api/payment/verify-payment`,
+              {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                  Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify({
+                  bookingId,
+                  razorpay_order_id: response.razorpay_order_id,
+                  razorpay_payment_id: response.razorpay_payment_id,
+                  razorpay_signature: response.razorpay_signature,
+                }),
               },
-              body: JSON.stringify({
-                bookingId,
-                razorpay_order_id: response.razorpay_order_id,
-                razorpay_payment_id: response.razorpay_payment_id,
-                razorpay_signature: response.razorpay_signature,
-              }),
-            });
+            );
             const verifyData = await verifyRes.json();
             if (verifyData.success) {
               setSuccess(true);
@@ -185,7 +194,6 @@ export default function BookingPage() {
       const rzp = new window.Razorpay(options);
       rzp.open();
       setSubmitting(false);
-
     } catch (err) {
       // If booking was created but payment failed, cancel it
       if (bookingId) {
@@ -267,7 +275,8 @@ export default function BookingPage() {
         {/* back */}
         <BackButton className="mb-4 sm:mb-6" />
 
-        {/* stepper */}<div className="fixed bottom-0 left-0 right-0 sm:hidden bg-white/95 backdrop-blur-md border-t border-slate-200 px-4 py-3 z-40 flex gap-3"></div>
+        {/* stepper */}
+        <div className="fixed bottom-0 left-0 right-0 sm:hidden bg-white/95 backdrop-blur-md border-t border-slate-200 px-4 py-3 z-40 flex gap-3"></div>
         <StepperBar steps={STEPS} currentStep={step} />
 
         {/* card */}
@@ -328,15 +337,23 @@ export default function BookingPage() {
                 >
                   <div className="grid grid-cols-2 divide-x divide-[#DDDDDD]">
                     <div className="p-3 hover:bg-gray-50 transition-colors">
-                      <label className="block text-[10px] font-bold uppercase text-[#222222]">Check-In</label>
+                      <label className="block text-[10px] font-bold uppercase text-[#222222]">
+                        Check-In
+                      </label>
                       <div className="text-sm text-[#484848] mt-0.5 min-h-[20px]">
-                        {checkIn || <span className="text-[#717171]">Add date</span>}
+                        {checkIn || (
+                          <span className="text-[#717171]">Add date</span>
+                        )}
                       </div>
                     </div>
                     <div className="p-3 hover:bg-gray-50 transition-colors">
-                      <label className="block text-[10px] font-bold uppercase text-[#222222]">Checkout</label>
+                      <label className="block text-[10px] font-bold uppercase text-[#222222]">
+                        Checkout
+                      </label>
                       <div className="text-sm text-[#484848] mt-0.5 min-h-[20px]">
-                        {checkOut || <span className="text-[#717171]">Add date</span>}
+                        {checkOut || (
+                          <span className="text-[#717171]">Add date</span>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -468,17 +485,18 @@ export default function BookingPage() {
         </div>
 
         {/* mobile sticky bottom nav */}
-        <div className="fixed bottom-0 left-0 right-0 sm:hidden bg-white/95 backdrop-blur-md border-t border-slate-200 px-3 py-3 z-40 flex gap-3">          {step > 0 && (
-          <button
-            onClick={() => {
-              setStep((s) => s - 1);
-              setError("");
-            }}
-            className="flex-1 py-2.5 rounded-xl border border-slate-200 text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors"
-          >
-            Back
-          </button>
-        )}
+        <div className="fixed bottom-0 left-0 right-0 sm:hidden bg-white/95 backdrop-blur-md border-t border-slate-200 px-3 py-3 z-40 flex gap-3">
+          {step > 0 && (
+            <button
+              onClick={() => {
+                setStep((s) => s - 1);
+                setError("");
+              }}
+              className="flex-1 py-2.5 rounded-xl border border-slate-200 text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors"
+            >
+              Back
+            </button>
+          )}
           {step < 2 ? (
             <button
               disabled={step === 0 ? !step1Valid : !step2Valid}
@@ -491,7 +509,7 @@ export default function BookingPage() {
             <button
               disabled={submitting}
               onClick={handleSubmit}
-              className="w-full flex items-center justify-center py-2.5 rounded-xl bg-[#FF385C] text-white text-sm font-semibold hover:bg-[#E31C5F] transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-sm shadow-rose-500/20"
+              className="flex-1 flex items-center justify-center py-2.5 rounded-xl bg-[#FF385C] text-white text-sm font-semibold hover:bg-[#E31C5F] transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-sm shadow-rose-500/20"
             >
               {submitting ? "Booking…" : "Confirm Booking"}
             </button>
