@@ -118,7 +118,7 @@ export default function BookingStickyCard({ pg, avgRating, reviewCount }) {
       {/* Reserve Button */}
       <button
         onClick={handleBooking}
-        className="w-full py-3 rounded-xl text-[16px] sm:text-[18px] font-semibold text-white bg-[#FF385C] hover:bg-[#E31C5F] transition-colors shadow-sm mb-3 sm:mb-4 active:scale-[0.98]"
+        className="w-full py-3 rounded-xl text-[16px] sm:text-[18px] font-semibold text-white bg-[#FF385C] hover:bg-[#E31C5F] transition-colors shadow-sm mb-3 sm:mb-4"
       >
         Reserve
       </button>

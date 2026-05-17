@@ -161,7 +161,7 @@ export default function ReceivedBookingsPage() {
     }
   };
 
-  if (!ready || loading) {
+  if (!ready) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="w-6 h-6 border-2 border-rose-500 border-t-transparent rounded-full animate-spin" />
@@ -213,30 +213,11 @@ export default function ReceivedBookingsPage() {
                 My Listings <ChevronRight size={16} strokeWidth={2.5} />
               </button>
             </div>
-            {/* Status tabs + Date range */}
+            {/* Status tabs + Date range + Search */}
             <div className="flex flex-col lg:flex-row flex-wrap items-start lg:items-center justify-between gap-3 bg-slate-50/50 p-2 rounded-2xl border border-gray-100">
-              <div className="flex items-center gap-1 bg-white shadow-sm border border-[#DDDDDD] rounded-xl p-1 overflow-x-auto scrollbar-hide w-full lg:w-auto">
-                {STATUS_TABS.map((t) => (
-                  <button
-                    key={t.key}
-                    onClick={() => {
-                      setStatusTab(t.key);
-                      setPage(1);
-                    }}
-                    className={`px-2.5 sm:px-4 py-2 rounded-lg text-sm font-semibold transition-all flex-shrink-0 ${statusTab === t.key ? "bg-[#FF385C] text-white shadow-md shadow-rose-200" : "text-[#717171] hover:text-[#222222] hover:bg-slate-50"}`}
-                  >
-                    {t.label}
-                    {statusTab === t.key && totalCount > 0 && !loading && (
-                      <span className="ml-2 text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-white/20 text-white">
-                        {totalCount}
-                      </span>
-                    )}
-                  </button>
-                ))}
-              </div>
-
-              <div className="flex flex-row items-center gap-2 w-full lg:flex-initial">
-                <div className="relative flex-1 sm:flex-none sm:w-64 min-w-0">
+              {/* Search - Top on mobile, Middle on desktop */}
+              <div className="order-1 lg:order-2 flex items-center gap-2 w-full lg:w-auto">
+                <div className="relative w-full lg:w-64">
                   <Search
                     size={14}
                     className="absolute left-3 top-1/2 -translate-y-1/2 text-[#717171]"
@@ -252,8 +233,55 @@ export default function ReceivedBookingsPage() {
                     className="w-full pl-9 pr-4 py-2.5 bg-white border border-[#DDDDDD] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-rose-50 focus:border-rose-400 transition-all shadow-sm"
                   />
                 </div>
+              </div>
 
-                <div className="flex-1 sm:flex-none min-w-0">
+              {/* Filter Section - Status and Date Dropdowns */}
+              <div className="order-2 lg:order-1 flex flex-row items-center gap-2 w-full lg:w-auto">
+                {/* Status Selector */}
+                <div className="flex-[3] sm:flex-none min-w-0">
+                  {/* Mobile View Dropdown */}
+                  <div className="flex sm:hidden w-full">
+                    <CustomSelect
+                      value={statusTab}
+                      onChange={(val) => {
+                        setStatusTab(val);
+                        setPage(1);
+                      }}
+                      options={STATUS_TABS.map((t) => ({
+                        value: t.key,
+                        label:
+                          statusTab === t.key && totalCount > 0 && !loading
+                            ? `${t.label} (${totalCount})`
+                            : t.label,
+                      }))}
+                      className="w-full h-[44px]"
+                    />
+                  </div>
+
+                  {/* Desktop View Tabs */}
+                  <div className="hidden sm:flex items-center gap-1 bg-white shadow-sm border border-[#DDDDDD] rounded-xl p-1 overflow-x-auto scrollbar-hide">
+                    {STATUS_TABS.map((t) => (
+                      <button
+                        key={t.key}
+                        onClick={() => {
+                          setStatusTab(t.key);
+                          setPage(1);
+                        }}
+                        className={`px-4 py-2 rounded-lg text-base sm:text-sm font-semibold transition-all flex-shrink-0 ${statusTab === t.key ? "bg-[#FF385C] text-white shadow-md shadow-rose-200" : "text-[#717171] hover:text-[#222222] hover:bg-slate-50"}`}
+                      >
+                        {t.label}
+                        {statusTab === t.key && totalCount > 0 && !loading && (
+                          <span className="ml-2 text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-white/20 text-white">
+                            {totalCount}
+                          </span>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Date Selector */}
+                <div className="flex-[2] sm:flex-none min-w-0">
                   <CustomSelect
                     value={dateRange}
                     onChange={(val) => {
@@ -261,7 +289,7 @@ export default function ReceivedBookingsPage() {
                       setPage(1);
                     }}
                     options={DATE_OPTIONS}
-                    className="w-full sm:w-40 h-[42px]"
+                    className="w-full sm:w-40 h-[44px]"
                   />
                 </div>
               </div>
@@ -440,53 +468,69 @@ function ReceivedCard({ booking: b, onConfirm, onCancel }) {
         </div>
 
         {/* row 3: details grid */}
-        <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 mb-4 sm:mb-6">
-          <div className="bg-white border border-[#DDDDDD] rounded-xl px-3 py-2.5">
-            <p className="text-[10px] font-bold uppercase text-[#717171] mb-1 tracking-wider">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4 mb-4 sm:mb-6">
+          <div className="bg-white border border-[#DDDDDD] rounded-xl px-2.5 py-2 sm:px-3 sm:py-2.5">
+            <p className="text-[9px] sm:text-[10px] font-bold uppercase text-[#717171] mb-1 tracking-wider">
               Room
             </p>
-            <p className="text-sm font-semibold text-[#222222] capitalize flex items-center gap-2">
-              <Bed size={14} className="text-rose-500" />
-              {b.roomType?.name || "—"}
+            <p className="text-xs sm:text-sm font-semibold text-[#222222] capitalize flex items-center gap-1.5">
+              <Bed size={14} className="text-rose-500 shrink-0" />
+              <span className="truncate">{b.roomType?.name || "—"}</span>
             </p>
           </div>
-          <div className="bg-white border border-[#DDDDDD] rounded-xl px-3 py-2.5">
-            <p className="text-[10px] font-bold uppercase text-[#717171] mb-1 tracking-wider">
+          <div className="bg-white border border-[#DDDDDD] rounded-xl px-2.5 py-2 sm:px-3 sm:py-2.5">
+            <p className="text-[9px] sm:text-[10px] font-bold uppercase text-[#717171] mb-1 tracking-wider">
               Sharing
             </p>
-            <p className="text-sm font-semibold text-[#222222] flex items-center gap-2">
-              <Users size={14} className="text-rose-500" />
-              {b.roomType?.sharingCount || "—"}-sharing
+            <p className="text-xs sm:text-sm font-semibold text-[#222222] flex items-center gap-1.5">
+              <Users size={14} className="text-rose-500 shrink-0" />
+              <span className="truncate">{b.roomType?.sharingCount || "—"}-sharing</span>
             </p>
           </div>
-          <div className="bg-white border border-[#DDDDDD] rounded-xl px-3 py-2.5">
-            <p className="text-[10px] font-bold uppercase text-[#717171] mb-1 tracking-wider">
+          <div className="bg-white border border-[#DDDDDD] rounded-xl px-2.5 py-2 sm:px-3 sm:py-2.5">
+            <p className="text-[9px] sm:text-[10px] font-bold uppercase text-[#717171] mb-1 tracking-wider">
               Dates
             </p>
-            <p className="text-sm font-semibold text-[#222222] flex items-center gap-2">
-              <Calendar size={14} className="text-rose-500" />
-              {formatDate(b.checkInDate).replace(/ \d{4}$/, "")} →{" "}
-              {formatDate(b.checkOutDate).replace(/ \d{4}$/, "")}
+            <p className="text-[11px] sm:text-sm font-semibold text-[#222222] flex items-center gap-1.5 leading-tight">
+              <Calendar size={14} className="text-rose-500 shrink-0" />
+              <span className="flex flex-col sm:inline-block">
+                <span>{formatDate(b.checkInDate).replace(/ \d{4}$/, "")} →</span>
+                <span className="sm:ml-1">{formatDate(b.checkOutDate).replace(/ \d{4}$/, "")}</span>
+              </span>
             </p>
           </div>
-          <div className="bg-white border border-[#DDDDDD] rounded-xl px-3 py-2.5">
-            <p className="text-[10px] font-bold uppercase text-[#717171] mb-1 tracking-wider">
+          <div className="bg-white border border-[#DDDDDD] rounded-xl px-2.5 py-2 sm:px-3 sm:py-2.5 min-w-0">
+            <p className="text-[9px] sm:text-[10px] font-bold uppercase text-[#717171] mb-1 tracking-wider">
               Payment
             </p>
-            <StatusBadge type="payment" status={b.paymentStatus} />
+            <div className="flex flex-col items-start">
+              <StatusBadge type="payment" status={b.paymentStatus} />
+              {b.razorpayPaymentId && (
+                <span className="text-[9px] sm:text-[10px] text-slate-400 font-mono mt-1.5 truncate max-w-full w-full" title={b.razorpayPaymentId}>
+                  Ref: {b.razorpayPaymentId}
+                </span>
+              )}
+            </div>
           </div>
         </div>
 
         {/* row 4: amount + actions */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pt-4 sm:pt-5 border-t border-[#DDDDDD]">
-          <div className="flex items-baseline gap-1">
-            <span className="text-lg font-bold text-[#222222] flex items-center gap-0.5">
-              <IndianRupee size={16} strokeWidth={2.5} />
-              {b.amount?.toLocaleString("en-IN")}
-            </span>
-            <span className="text-[10px] font-bold uppercase text-[#717171]">
-              total
-            </span>
+          <div className="flex flex-col">
+            <div className="flex items-baseline gap-1">
+              <span className="text-lg font-bold text-[#222222] flex items-center gap-0.5">
+                <IndianRupee size={16} strokeWidth={2.5} />
+                {b.amount?.toLocaleString("en-IN")}
+              </span>
+              <span className="text-[10px] font-bold uppercase text-[#717171]">
+                total
+              </span>
+            </div>
+            {b.razorpayPaymentId && (
+              <span className="text-[10px] text-slate-400 font-mono mt-1">
+                Ref: {b.razorpayPaymentId}
+              </span>
+            )}
           </div>
 
           {!isCancelled && (
@@ -518,5 +562,5 @@ function ReceivedCard({ booking: b, onConfirm, onCancel }) {
         </div>
       </div>
     </div>
-  );
+  );  
 }
