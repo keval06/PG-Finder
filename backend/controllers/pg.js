@@ -72,12 +72,26 @@ const paginateAndSendPGs = async (filter, req, res) => {
     { $match: filter },
     // Stage 2
     {
-      //LEFT JOIN: for each PG, attach all its reviews as _reviews array. PG with no reviews → _reviews: [].
       $lookup: {
         from: "reviews",
         localField: "_id",
         foreignField: "pg",
         as: "_reviews",
+      },
+    },
+    {
+      $lookup: {
+        from: "bookings",
+        let: { pgId: "$_id" },
+        pipeline: [
+          {
+            $match: {
+              $expr: { $eq: ["$pg", "$$pgId"] },
+              status: { $nin: ["cancelled", "rejected"] }
+            }
+          }
+        ],
+        as: "_bookings",
       },
     },
     // Stage 3
@@ -91,6 +105,7 @@ const paginateAndSendPGs = async (filter, req, res) => {
           ]
         },
         reviewCount: { $size: "$_reviews" },
+        bookingCount: { $size: "$_bookings" },
       },
     },
   ];
@@ -111,17 +126,17 @@ const paginateAndSendPGs = async (filter, req, res) => {
       $sort: { avgRating: sortDir, _id: -1 }
     });
   }
-  else if (sortField === "reviews") {
+  else if (sortField === "bookings") {
     pipeline.push({
       $sort:
-        { reviewCount: sortDir, _id: -1 }
+        { bookingCount: sortDir, _id: -1 }
     });
   }
   else if (sortField === "price") {
     pipeline.push({
       $sort:
         { price: sortDir, _id: -1 }
-    }); 
+    });
   }
   else {
     pipeline.push({
@@ -141,7 +156,7 @@ const paginateAndSendPGs = async (filter, req, res) => {
 
   const totalCount = result.metadata[0]?.totalCount || 0;
 
-  const pgs = result.data.map(({ _reviews: _r, ...pg }) => pg);
+  const pgs = result.data.map(({ _reviews: _r, _bookings: _b, ...pg }) => pg);
 
   return res.json({
     data: pgs,
@@ -323,9 +338,25 @@ exports.getNearbyPGs = async (req, res) => {
         },
       },
       {
+        $lookup: {
+          from: "bookings",
+          let: { pgId: "$_id" },
+          pipeline: [
+            {
+              $match: {
+                $expr: { $eq: ["$pg", "$$pgId"] },
+                status: { $nin: ["cancelled", "rejected"] }
+              }
+            }
+          ],
+          as: "_bookings",
+        },
+      },
+      {
         $addFields: {
           avgRating: { $ifNull: [{ $avg: "$_reviews.star" }, 0] },
           reviewCount: { $size: "$_reviews" },
+          bookingCount: { $size: "$_bookings" },
         },
       },
     ];
@@ -348,10 +379,10 @@ exports.getNearbyPGs = async (req, res) => {
           { avgRating: sortDir, _id: -1 }
       });
     }
-    else if (sortField === "reviews") {
+    else if (sortField === "bookings") {
       pipeline.push({
         $sort:
-          { reviewCount: sortDir, _id: -1 }
+          { bookingCount: sortDir, _id: -1 }
       });
     }
     else if (sortField === "price") {
@@ -371,7 +402,7 @@ exports.getNearbyPGs = async (req, res) => {
 
     const [result] = await PG.aggregate(pipeline);
     const totalCount = result.metadata[0]?.totalCount || 0;
-    const pgs = result.data.map(({ _reviews: _r, ...pg }) => pg); // strip joined array
+    const pgs = result.data.map(({ _reviews: _r, _bookings: _b, ...pg }) => pg); // strip joined array
 
     return res.json({
       data: pgs,
@@ -393,15 +424,15 @@ exports.getPg = async (req, res) => {
     // Allow owners to see their own inactive listings
     const pg = await PG.findById(req.params.id);
     if (!pg) {
-      return res.status(404).json({ 
+      return res.status(404).json({
         message: "PG not found",
       });
     }
 
     const isOwner = req.user && pg.owner.toString() === req.user._id.toString();
     if (!pg.isActive && !isOwner) {
-      return res.status(404).json({ 
-        message: "PG not found" 
+      return res.status(404).json({
+        message: "PG not found"
       });
     }
 
@@ -546,7 +577,7 @@ exports.getMapPGs = async (req, res) => {
         },
       }).select("_id name city price coordinate gender")
         .lean();  //.lean() returns plain JS objects instead of Mongoose documents, read-only features
-    } 
+    }
     else {
       pgs = await PG.find(filter)
         .select("_id name city price coordinate gender")
@@ -564,9 +595,18 @@ exports.getLandingData = async (req, res) => {
     // Step 1 — Top Cities
     // Top 5 cities by PG count
     const topCitiesAgg = await PG.aggregate([
-      { $match: { isActive: true } },
-      { $group: { _id: "$city", count: { $sum: 1 } } },
-      { $sort: { count: -1 } },
+      {
+        $match:
+          { isActive: true }
+      },
+      {
+        $group:
+          { _id: "$city", count: { $sum: 1 } }
+      },
+      {
+        $sort:
+          { count: -1 }
+      },
       { $limit: 5 },
     ]);
 
@@ -577,9 +617,13 @@ exports.getLandingData = async (req, res) => {
     const result = await Promise.all(
       cities.map(async (city) => {
         const pgs = await PG.aggregate([
-          { $match: { city, isActive: true } },
           {
-            $lookup: {
+            $match:
+              { city, isActive: true }
+          },
+          {
+            $lookup:
+            {
               from: "reviews",
               localField: "_id",
               foreignField: "pg",
@@ -587,15 +631,20 @@ exports.getLandingData = async (req, res) => {
             },
           },
           {
-            $addFields: {
+            $addFields:
+            {
               avgRating: { $ifNull: [{ $avg: "$_reviews.star" }, 0] },
               reviewCount: { $size: "$_reviews" },
             },
           },
-          { $sort: { avgRating: -1, reviewCount: -1 } },
+          {
+            $sort:
+              { avgRating: -1, reviewCount: -1 }
+          },
           { $limit: 5 },
           {
-            $project: {
+            $project:
+            {
               name: 1,
               city: 1,
               price: 1,
