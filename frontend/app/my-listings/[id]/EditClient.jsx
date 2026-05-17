@@ -49,6 +49,7 @@ export default function EditListingClient({ pgId }) {
   const router = useRouter();
 
   const [rtDeleteTarget, setRtDeleteTarget] = useState(null);
+  const [rtActivateTarget, setRtActivateTarget] = useState(null);
   const [pg, setPg] = useState(null);
   const [images, setImages] = useState([]);
   const [roomTypes, setRoomTypes] = useState([]);
@@ -260,13 +261,16 @@ export default function EditListingClient({ pgId }) {
       ? `${pg.toilet} (${pg.toilet >= pg.room ? "Attached" : `1:${Math.round(pg.room / pg.toilet)}`})`
       : "—";
   const totalBeds = roomTypes.reduce(
-    (s, rt) => rt.isActive !== false ? s + rt.availableRooms * rt.sharingCount : s,
+    (s, rt) =>
+      rt.isActive !== false ? s + rt.availableRooms * rt.sharingCount : s,
     0,
   );
   const freeBeds = roomTypes.reduce(
     (s, rt) =>
-      rt.isActive !== false 
-        ? s + (rt.remainingBeds ?? (rt.availableRooms * rt.sharingCount - (rt.occupiedBeds || 0)))
+      rt.isActive !== false
+        ? s +
+          (rt.remainingBeds ??
+            rt.availableRooms * rt.sharingCount - (rt.occupiedBeds || 0))
         : s,
     0,
   );
@@ -360,6 +364,7 @@ export default function EditListingClient({ pgId }) {
               onEdit={handleEdit}
               saving={saving}
               setRtDeleteTarget={setRtDeleteTarget}
+              setRtActivateTarget={setRtActivateTarget}
             />
 
             {/* Quick Info */}
@@ -574,17 +579,29 @@ export default function EditListingClient({ pgId }) {
                 </div>
 
                 <div className="space-y-3 mb-6">
-                  <button
-                    onClick={() => setStatusConfirmOpen(true)}
-                    className={`w-full flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-bold transition-all border ${
-                      inactive
-                        ? "bg-[#222222] text-white border-transparent hover:bg-black"
-                        : "bg-white text-rose-600 border-rose-600 hover:bg-rose-50"
-                    }`}
-                  >
-                    {inactive ? <Eye size={18} /> : <EyeOff size={18} />}
-                    {inactive ? "Publish Listing" : "Deactivate Listing"}
-                  </button>
+                  {(() => {
+                    const occupiedBedsCount = totalBeds - freeBeds;
+                    const disableDeactivate = !inactive && occupiedBedsCount > 0;
+                    return (
+                      <button
+                        onClick={() => {
+                          if (!disableDeactivate) setStatusConfirmOpen(true);
+                        }}
+                        disabled={disableDeactivate}
+                        title={disableDeactivate ? `Cannot deactivate: ${occupiedBedsCount} bed(s) currently occupied.` : ""}
+                        className={`w-full flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-bold transition-all border ${
+                          inactive
+                            ? "bg-[#222222] text-white border-transparent hover:bg-black"
+                            : disableDeactivate
+                            ? "bg-slate-50 text-slate-400 border-slate-200 cursor-not-allowed"
+                            : "bg-white text-rose-600 border-rose-600 hover:bg-rose-50"
+                        }`}
+                      >
+                        {inactive ? <Eye size={18} /> : <EyeOff size={18} />}
+                        {inactive ? "Publish Listing" : "Deactivate Listing"}
+                      </button>
+                    );
+                  })()}
 
                   <p className="text-[11px] text-center text-gray-400 px-4">
                     {inactive
@@ -714,6 +731,19 @@ export default function EditListingClient({ pgId }) {
         description="This room configuration will be removed from your inventory."
         confirmText="Remove"
         variant="danger"
+      />
+
+      <ConfirmModal
+        isOpen={!!rtActivateTarget}
+        onClose={() => setRtActivateTarget(null)}
+        onConfirm={() => {
+          rtActivateTarget.doActivate();
+          setRtActivateTarget(null);
+        }}
+        title="Activate Room Type?"
+        description="This room configuration will be active and visible to guests again."
+        confirmText="Activate"
+        variant="primary"
       />
 
       <ConfirmModal

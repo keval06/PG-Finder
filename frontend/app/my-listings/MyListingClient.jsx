@@ -3,7 +3,8 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
 import { useRouter } from "next/navigation";
-import { SlidersHorizontal, Plus, Home as HomeIcon, Bed, Eye, EyeOff, LayoutList } from "lucide-react";
+import { SlidersHorizontal, Plus, Home as HomeIcon, Bed, Eye, EyeOff, LayoutList, Search } from "lucide-react";
+import CustomSelect from "@/components/CustomSelect";
 import ListingCard from "./components/ListingCard";
 import FilterPanel from "@/components/FilterPanel";
 import SortBtn from "@/components/SortBtn";
@@ -35,7 +36,7 @@ export default function MyListingsClient() {
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [pendingData, setPendingData] = useState(null);
 
-  const { query } = useSearch();
+  const { query, setQuery } = useSearch();
 
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -192,7 +193,7 @@ export default function MyListingsClient() {
     }
   };
 
-  if (!ready || loading)
+  if (!ready)
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="w-8 h-8 border-[3px] border-rose-500 border-t-transparent rounded-full animate-spin" />
@@ -239,39 +240,85 @@ export default function MyListingsClient() {
               </Button>
             </div>
 
-            {/* Row 2: Status toggle + Sort buttons */}
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mt-2">
-              {/* Status Filters - 1st line on mobile, left on desktop */}
-              <div className="flex items-center bg-slate-100 rounded-xl p-1 gap-1 self-start shadow-sm">
-                {[
-                  { key: "all", label: "All", icon: LayoutList },
-                  { key: "active", label: "Active", icon: Eye },
-                  { key: "inactive", label: "Inactive", icon: EyeOff },
-                ].map(({ key, label, icon: Icon }) => (
-                  <button
-                    key={key}
-                    onClick={() => setStatusFilter(key)}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${
-                      statusFilter === key
-                        ? "bg-white text-[#222222] shadow-sm"
-                        : "text-slate-500 hover:text-slate-800"
-                    }`}
-                  >
-                    <Icon size={14} className={statusFilter === key ? "text-rose-500" : "text-slate-400"} />
-                    {label}
-                  </button>
-                ))}
+            {/* Row 2: Search + Status toggle + Sort buttons */}
+            <div className="flex flex-col lg:flex-row flex-wrap items-start lg:items-center justify-between gap-3 bg-slate-50/50 p-2 rounded-2xl border border-gray-100 mt-2">
+              {/* Search - Top on mobile, Middle on desktop */}
+              <div className="order-1 lg:order-2 flex items-center gap-2 w-full lg:w-auto">
+                <div className="relative w-full lg:w-64">
+                  <Search
+                    size={14}
+                    className="absolute left-3 top-1/2 -translate-y-1/2 text-[#717171]"
+                  />
+                  <input
+                    type="text"
+                    placeholder="Search your listings…"
+                    value={query}
+                    onChange={(e) => {
+                      setQuery(e.target.value);
+                      setPage(1);
+                    }}
+                    className="w-full pl-9 pr-4 py-2.5 bg-white border border-[#DDDDDD] rounded-xl text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-rose-50 focus:border-rose-400 transition-all shadow-sm"
+                  />
+                </div>
               </div>
-              
-              {/* Sort Buttons - 2nd line on mobile, right on desktop */}
-              <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1 sm:pb-0 -mx-1 px-1 sm:mx-0 sm:px-0">
+
+              {/* Filter Section - Status */}
+              <div className="order-2 lg:order-1 flex flex-row items-center gap-2 w-full lg:w-auto">
+                {/* Status Selector */}
+                <div className="flex-[1] sm:flex-none min-w-0">
+                  {/* Mobile View Dropdown */}
+                  <div className="flex sm:hidden w-full">
+                    <CustomSelect
+                      value={statusFilter}
+                      onChange={(val) => {
+                        setStatusFilter(val);
+                        setPage(1);
+                      }}
+                      options={[
+                        { value: "all", label: "All" },
+                        { value: "active", label: "Active" },
+                        { value: "inactive", label: "Inactive" },
+                      ]}
+                      className="w-full h-[44px]"
+                    />
+                  </div>
+
+                  {/* Desktop View Tabs */}
+                  <div className="hidden sm:flex items-center bg-white border border-[#DDDDDD] shadow-sm rounded-xl p-1 gap-1 overflow-x-auto scrollbar-hide">
+                    {[
+                      { key: "all", label: "All", icon: LayoutList },
+                      { key: "active", label: "Active", icon: Eye },
+                      { key: "inactive", label: "Inactive", icon: EyeOff },
+                    ].map(({ key, label, icon: Icon }) => (
+                      <button
+                        key={key}
+                        onClick={() => {
+                          setStatusFilter(key);
+                          setPage(1);
+                        }}
+                        className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-base sm:text-sm font-semibold transition-all flex-shrink-0 ${
+                          statusFilter === key
+                            ? "bg-[#FF385C] text-white shadow-md shadow-rose-200"
+                            : "text-[#717171] hover:text-[#222222] hover:bg-slate-50"
+                        }`}
+                      >
+                        <Icon size={14} className={statusFilter === key ? "text-white" : "text-[#717171]"} />
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Sort Section */}
+              <div className="order-3 flex items-center gap-2 w-full lg:w-auto overflow-x-auto no-scrollbar pb-1 sm:pb-0 px-1 sm:px-0">
                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest sm:hidden">
                   Sort
                 </span>
                 <div className="flex items-center gap-2 flex-nowrap">
                   <SortBtn label="Price" field="price" {...{ sortField, sortOrder, onToggle: toggleSort }} />
                   <SortBtn label="Rating" field="rating" {...{ sortField, sortOrder, onToggle: toggleSort }} />
-                  <SortBtn label="Reviews" field="reviews" {...{ sortField, sortOrder, onToggle: toggleSort }} />
+                  <SortBtn label="Bookings" field="bookings" {...{ sortField, sortOrder, onToggle: toggleSort }} />
                 </div>
               </div>
             </div>
@@ -291,7 +338,11 @@ export default function MyListingsClient() {
           </div>
         )}
 
-        {sorted.length === 0 ? (
+        {loading ? (
+          <div className="flex justify-center py-20">
+            <div className="w-6 h-6 border-2 border-rose-500 border-t-transparent rounded-full animate-spin" />
+          </div>
+        ) : sorted.length === 0 ? (
           <EmptyState
             icon={HomeIcon}
             title="No listings yet"

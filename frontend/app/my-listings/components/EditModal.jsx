@@ -12,7 +12,8 @@ export default function EditModal({
   roomTypes, 
   onEdit, 
   saving, 
-  setRtDeleteTarget 
+  setRtDeleteTarget,
+  setRtActivateTarget 
 }) {
   // Lock body scroll when modal is open
   useEffect(() => {
@@ -61,6 +62,7 @@ export default function EditModal({
             onCancel={onClose}
             saving={saving}
             onRemoveRT={(i, doDelete) => setRtDeleteTarget({ i, doDelete })}
+            onActivateRT={(i, doActivate) => setRtActivateTarget({ i, doActivate })}
           />
         </div>
       </div>

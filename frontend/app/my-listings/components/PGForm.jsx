@@ -4,6 +4,7 @@
 import { useState, useCallback, useEffect } from "react";
 import { XCircle, Plus, Trash2, MapPin } from "lucide-react";
 import Button from "@/atoms/Button";
+import CustomSelect from "@/components/CustomSelect";
 import {
   MapContainer,
   TileLayer,
@@ -97,6 +98,7 @@ export default function PGForm({
   onCancel,
   saving,
   onRemoveRT,
+  onActivateRT,
 }) {
   const blank = {
     name: "",
@@ -236,6 +238,17 @@ export default function PGForm({
     setRoomTypes((p) => p.filter((_, idx) => idx !== i));
   };
 
+  const activateRT = (i) => {
+    const doActivate = () => {
+      setRT(i, "isActive", true);
+    };
+    if (onActivateRT) {
+      onActivateRT(i, doActivate);
+    } else {
+      doActivate();
+    }
+  };
+
   // live allocation check
   const totalRoom = Number(form.room) || 0;
   const allocated = roomTypes.reduce(
@@ -316,7 +329,7 @@ export default function PGForm({
           <input
             className={inp}
             value={form.name}
-            onChange={(e) => set("name", e.target.value)}
+            onChange={(e) => set("name", e.target.value.trimStart())}
             placeholder="e.g. Royal Comfort PG"
             required
           />
@@ -420,31 +433,27 @@ export default function PGForm({
 
         <div>
           <label className={lab}>Gender</label>
-          <select
-            className={inp}
+          <CustomSelect
             value={form.gender}
-            onChange={(e) => set("gender", e.target.value)}
-          >
-            {Object.entries(GENDER_LABELS).map(([k, v]) => (
-              <option key={k} value={k}>
-                {v}
-              </option>
-            ))}
-          </select>
+            onChange={(val) => set("gender", val)}
+            options={Object.entries(GENDER_LABELS).map(([k, v]) => ({
+              value: k,
+              label: v,
+            }))}
+            className="w-full h-[42px] mt-0.5"
+          />
         </div>
         <div>
           <label className={lab}>Food</label>
-          <select
-            className={inp}
+          <CustomSelect
             value={form.food}
-            onChange={(e) => set("food", e.target.value)}
-          >
-            {Object.entries(FOOD_LABELS).map(([k, v]) => (
-              <option key={k} value={k}>
-                {v}
-              </option>
-            ))}
-          </select>
+            onChange={(val) => set("food", val)}
+            options={Object.entries(FOOD_LABELS).map(([k, v]) => ({
+              value: k,
+              label: v,
+            }))}
+            className="w-full h-[42px] mt-0.5"
+          />
         </div>
         <div>
           <label className={lab}>Total Rooms</label>
@@ -529,7 +538,7 @@ export default function PGForm({
 
         {roomTypes.length === 0 && (
           <p className="text-xs text-slate-400 text-center py-4 border border-dashed border-slate-200 rounded-xl">
-            No room types added yet. Click `&quot;`Add Room Type`&quot;` to
+            No room types added yet. Click &quot;Add Room Type&quot; to
             begin.
           </p>
         )}
@@ -543,37 +552,54 @@ export default function PGForm({
                 className="border border-slate-200 rounded-xl p-3 bg-slate-50 flex flex-col gap-3 transition-all animate-in fade-in duration-200"
               >
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-semibold text-slate-600">
+                  <span className="text-xs font-semibold text-slate-600 flex items-center">
                     Room Type {actualIndex + 1}
-                    {rt._id && (
+                    {rt._id && rt.isActive !== false && (
                       <span className="ml-2 text-[10px] text-rose-500 border border-rose-100 bg-rose-50 px-1.5 py-0.5 rounded-full">
                         existing
                       </span>
                     )}
+                    {rt._id && rt.isActive === false && (
+                      <span className="ml-2 text-[10px] text-gray-500 border border-gray-200 bg-gray-100 px-1.5 py-0.5 rounded-full">
+                        deactivated
+                      </span>
+                    )}
                   </span>
-                  <button
-                    type="button"
-                    onClick={() => removeRT(actualIndex)}
-                    className="text-red-400 hover:text-red-600 transition-colors"
-                  >
-                    <Trash2 size={13} />
-                  </button>
+                  <div className="flex items-center gap-2">
+                    {rt.isActive === false ? (
+                      <button
+                        type="button"
+                        onClick={() => activateRT(actualIndex)}
+                        className="text-[10px] font-bold text-emerald-600 hover:text-emerald-700 uppercase tracking-wider bg-emerald-50 px-2 py-1 rounded-md transition-colors border border-emerald-200"
+                      >
+                        Activate
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => removeRT(actualIndex)}
+                        className={`transition-colors ${rt.occupiedBeds > 0 ? "text-slate-300 cursor-not-allowed" : "text-red-400 hover:text-red-600"}`}
+                        title={rt.occupiedBeds > 0 ? "Cannot delete room type with active bookings." : "Delete Room Type"}
+                        disabled={rt.occupiedBeds > 0}
+                      >
+                        <Trash2 size={13} />
+                      </button>
+                    )}
+                  </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-2">
+                <div className={`grid grid-cols-2 gap-2 ${rt.isActive === false ? "opacity-60 pointer-events-none" : ""}`}>
                   <div className="col-span-2">
                     <label className={lab}>Type</label>
-                    <select
-                      className={inp}
+                    <CustomSelect
                       value={rt.name}
-                      onChange={(e) => setRT(actualIndex, "name", e.target.value)}
-                    >
-                      {ROOM_TYPE_NAMES.map((n) => (
-                        <option key={n} value={n} className="capitalize">
-                          {n.charAt(0).toUpperCase() + n.slice(1)}
-                        </option>
-                      ))}
-                    </select>
+                      onChange={(val) => setRT(actualIndex, "name", val)}
+                      options={ROOM_TYPE_NAMES.map((n) => ({
+                        value: n,
+                        label: n.charAt(0).toUpperCase() + n.slice(1),
+                      }))}
+                      className="w-full h-[42px]"
+                    />
                   </div>
                   <div>
                     <label className={lab}>Sharing Count</label>
