@@ -1,14 +1,12 @@
-// ?a React Server Component.
-// ?It's the data fetcher and assembler before anything reaches the browser.
-// Server does the heavy lifting (API calls, data assembly)
-// Client just displays and handles user interaction
+// a React Server Component.
+// It's the data fetcher and assembler before anything reaches the browser.
+
 import { pgApi } from "@/lib/api/pg";
 import { imageApi } from "@/lib/api/image";
 import { reviewApi } from "@/lib/api/review";
-
 import HomeClient from "../HomeClient";
 
-// ?getPGs() — Fetch All PGs with Search Params
+// getPGs() — Fetch All PGs with Search Params
 async function getPGs(searchParams) {
   try {
     const params = new URLSearchParams();
@@ -16,9 +14,8 @@ async function getPGs(searchParams) {
       Object.entries(searchParams).forEach(([k, v]) => params.append(k, v));
     }
 
-    // Ensure pagination is always enabled for scalable fetching
     if (!params.has("page")) params.append("page", "1");
-    if (!params.has("limit")) params.append("limit", "10"); // 10 PGs per page
+    if (!params.has("limit")) params.append("limit", "10"); 
 
     let result;
     if (searchParams?.lat && searchParams?.lng) {
@@ -27,28 +24,26 @@ async function getPGs(searchParams) {
       params.delete("lng");
       params.delete("radius");
       result = await pgApi.getNearby(searchParams.lat, searchParams.lng, radius, params.toString());
-    } else {
+    } 
+    else {
       result = await pgApi.getAll(params.toString());
     }
 
     return Array.isArray(result)
       ? { data: result, totalPages: 1, page: 1, totalCount: result.length }
       : result;
-  } catch (err) {
+  }
+  catch (err) {
     console.error("[SSR] getPGs failed — backend may be unreachable:", err.message || err);
     return { data: [], totalPages: 1, page: 1, totalCount: 0 }; //?If the backend is off or broken, it catches the error and safely returns an empty array [] so the website doesn't crash.
   }
 }
 
-
-// ?getAvgRating(pgId) — Calculate Average Rating
+// getAvgRating(pgId) — Calculate Average Rating
 async function getAvgRating(pgId) {
   try {
     const result = await reviewApi.getByPgIdPaginated(pgId, 1, 500);
 
-
-    // reviewApi.getByPgId now returns paginated shape: { reviews, total, ... }
-    // but also handle plain array for safety
     const reviews = result?.reviews ?? [];
     const total = result?.total ?? 0;
 
@@ -57,47 +52,27 @@ async function getAvgRating(pgId) {
       return { avg: avg.toFixed(1), count: total };
     }
     return null;
-  } catch {
+  } 
+  catch {
     return null;
   }
 }
 
-// ?Server Async Function
-// ?`async` function as a React component — only possible in Server Components.
-
 export default async function Home({ searchParams }) {
   const resolvedParams = await searchParams;
 
-  // Build query string from ALL search params (q, city, gender, etc.)
   const mapParams = new URLSearchParams();
+  
   if (resolvedParams) {
     Object.entries(resolvedParams).forEach(([k, v]) => {
       if (k !== "page" && k !== "limit") mapParams.append(k, v); // skip pagination keys
     });
   }
 
-  // Step A: Get the raw list of PGs
-  // Fetch BOTH paginated list AND full map data in parallel
   const [pgResponse, mapPgs] = await Promise.all([
     getPGs(resolvedParams),
-    // If user has location filter, use nearby; else show all
     pgApi.getMapData(mapParams.toString()).catch(() => []),
-
   ]);
-
-  // Step B: Loop over every PG and enrich it
-
-  // ?2. Loop through all PGs to grab extra data (like images and ratings)
-  //?By using Promise.all, we tell the Next.js Server: "Shoot all 20 API calls into the internet at the EXACT same millisecond. I will wait here until all 20 of them come back successfully."
-
-  //! Outer Promise.all — all PGs in parallel:
-  // ?→ returns array of Promises (one per PG)
-  // ?→ [Promise<pg1enriched>, Promise<pg2enriched>, Promise<pg3enriched>]
-
-  //? Promise.all([...])
-  // → fires ALL simultaneously
-  // → waits for ALL to resolve
-  // → returns array of results
 
   const data = await Promise.all(
     (pgResponse.data || []).map(async (pg) => {
@@ -116,8 +91,6 @@ export default async function Home({ searchParams }) {
     })
   );
 
-  // Step C: Render and Pass Data Down
-  // 3. Render HomeClient and pass the fully cooked `data` DOWN as a prop
   return (
     <div className="bg-white min-h-screen">
       <HomeClient

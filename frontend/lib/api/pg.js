@@ -19,7 +19,7 @@ export const pgApi = {
   getNearby: async (lat, lng, radius = 5, queryString = "") => {
     const base = `${API_URL}/api/pg/nearby?lat=${lat}&lng=${lng}&radius=${radius}`;
     const url = queryString ? `${base}&${queryString}` : base;
-    // 🛡️ REPLACED fetch with authFetch
+    // REPLACED fetch with authFetch
     return authFetch(url, { cache: "no-store" });
   },
 

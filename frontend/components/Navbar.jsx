@@ -28,7 +28,8 @@ export default function Navbar() {
   const skipFetch = useRef(false);
 
   const isLanding = pathname === "/";
-  const isBrowse = pathname === "/home" || pathname === "/my-listings";
+  const isBrowse = pathname === "/home";
+  const isMyListings = pathname === "/my-listings";
   const isBookings = pathname === "/bookings";
   const isReceivedBookings = pathname === "/received-bookings";
 
@@ -203,7 +204,7 @@ export default function Navbar() {
             </span>
           </Link>
           {/* MIDDLE: SEARCH + FILTER (desktop) */}
-          {!isLanding && !isBookings && !isReceivedBookings && (
+          {!isLanding && !isBookings && !isReceivedBookings && !isMyListings && (
             <div className="hidden md:flex flex-1 justify-center max-w-2xl px-4">
               <div
                 className="flex items-center gap-2 w-full max-w-lg relative"
@@ -449,7 +450,7 @@ export default function Navbar() {
         </div>
 
         {/* MOBILE SEARCH */}
-        {!isLanding && !isBookings && !isReceivedBookings && (
+        {!isLanding && !isBookings && !isReceivedBookings && !isMyListings && (
           <div
             className="md:hidden border-t border-slate-200 px-4 py-2 relative"
             onClick={(e) => e.stopPropagation()}

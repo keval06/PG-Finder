@@ -10,7 +10,6 @@ import Script from "next/script";
 // ?=Server Component → runs on the SERVER, not the browser
 //  ?                  → no useState, no useEffect, no onClick
 //  ?              → just renders HTML structure
-// ?The layout doesn't know or care which page it is. It just renders it inside the frame.
 
 export const metadata = {
   title: "QuickPG — Find Your Perfect PG",

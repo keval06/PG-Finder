@@ -1,5 +1,4 @@
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap");
-@import "leaflet/dist/leaflet.css"; /* new map */
 /* → Injects "Preflight" — CSS reset
 → Removes browser default margins, paddings, heading sizes
 → Makes all browsers start from the same baseline */

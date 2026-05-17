@@ -37,7 +37,7 @@ export default function NotFound() {
             <Home size={18} />
             Back to Home
           </Link>
-          
+
           <button
             onClick={() => router.back()}
             className="flex items-center justify-center gap-2 text-slate-600 font-semibold py-3 px-6 rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 transition-all active:scale-[0.98]"

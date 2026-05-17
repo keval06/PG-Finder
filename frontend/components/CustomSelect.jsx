@@ -30,13 +30,14 @@ export default function CustomSelect({
   return (
     <div className={`relative ${className}`} ref={containerRef}>
       <button
+        type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="h-full w-full flex items-center justify-between gap-2 bg-white border border-[#DDDDDD] text-[#222222] text-base rounded-xl px-4 py-2 hover:border-[#222222] transition-all shadow-sm"
+        className="h-full w-full flex items-center justify-between gap-2 bg-white border border-[#DDDDDD] text-[#222222] text-sm rounded-xl px-3 py-2 hover:border-[#222222] transition-all shadow-sm overflow-hidden"
       >
-        <span className="font-medium">{selectedOption?.label || value}</span>
+        <span className="truncate">{selectedOption?.label || value}</span>
         <ChevronDown
           size={16}
-          className={`transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
+          className={`transition-transform duration-200 flex-shrink-0 ${isOpen ? "rotate-180" : ""}`}
         />
       </button>
 
@@ -49,8 +50,8 @@ export default function CustomSelect({
                 onChange(opt.value);
                 setIsOpen(false);
               }}
-              className={`px-4 py-2 text-base cursor-pointer transition-colors font-medium
-                ${value === opt.value ? "bg-gray-50 text-[#FF385C]" : "text-[#222222] hover:bg-gray-50"}
+              className={`px-4 py-2 text-sm cursor-pointer transition-colors
+                ${value === opt.value ? "bg-gray-50 text-[#FF385C] font-medium" : "text-[#222222] hover:bg-gray-50"}
               `}
             >
               {opt.label}
