@@ -81,6 +81,14 @@ const paginateAndSendPGs = async (filter, req, res) => {
     },
     {
       $lookup: {
+        from: "images",
+        localField: "_id",
+        foreignField: "pg",
+        as: "images",
+      },
+    },
+    {
+      $lookup: {
         from: "bookings",
         let: { pgId: "$_id" },
         pipeline: [
@@ -130,6 +138,12 @@ const paginateAndSendPGs = async (filter, req, res) => {
     pipeline.push({
       $sort:
         { bookingCount: sortDir, _id: -1 }
+    });
+  }
+  else if (sortField === "reviews") {
+    pipeline.push({
+      $sort:
+        { reviewCount: sortDir, _id: -1 }
     });
   }
   else if (sortField === "price") {
@@ -339,6 +353,14 @@ exports.getNearbyPGs = async (req, res) => {
       },
       {
         $lookup: {
+          from: "images",
+          localField: "_id",
+          foreignField: "pg",
+          as: "images",
+        },
+      },
+      {
+        $lookup: {
           from: "bookings",
           let: { pgId: "$_id" },
           pipeline: [
@@ -383,6 +405,12 @@ exports.getNearbyPGs = async (req, res) => {
       pipeline.push({
         $sort:
           { bookingCount: sortDir, _id: -1 }
+      });
+    }
+    else if (sortField === "reviews") {
+      pipeline.push({
+        $sort:
+          { reviewCount: sortDir, _id: -1 }
       });
     }
     else if (sortField === "price") {

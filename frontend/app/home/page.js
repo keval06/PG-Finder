@@ -1,9 +1,6 @@
-// a React Server Component.
 // It's the data fetcher and assembler before anything reaches the browser.
 
 import { pgApi } from "@/lib/api/pg";
-import { imageApi } from "@/lib/api/image";
-import { reviewApi } from "@/lib/api/review";
 import HomeClient from "../HomeClient";
 
 // getPGs() — Fetch All PGs with Search Params
@@ -39,25 +36,6 @@ async function getPGs(searchParams) {
   }
 }
 
-// getAvgRating(pgId) — Calculate Average Rating
-async function getAvgRating(pgId) {
-  try {
-    const result = await reviewApi.getByPgIdPaginated(pgId, 1, 500);
-
-    const reviews = result?.reviews ?? [];
-    const total = result?.total ?? 0;
-
-    if (reviews.length > 0) {
-      const avg = reviews.reduce((sum, r) => sum + r.star, 0) / reviews.length;
-      return { avg: avg.toFixed(1), count: total };
-    }
-    return null;
-  } 
-  catch {
-    return null;
-  }
-}
-
 export default async function Home({ searchParams }) {
   const resolvedParams = await searchParams;
 
@@ -74,22 +52,18 @@ export default async function Home({ searchParams }) {
     pgApi.getMapData(mapParams.toString()).catch(() => []),
   ]);
 
-  const data = await Promise.all(
-    (pgResponse.data || []).map(async (pg) => {
-      const [allImages, ratingData] = await Promise.all([
-        imageApi.getByPgId(pg._id).catch(() => []),
-        getAvgRating(pg._id),
-      ]);
-
-      const images = Array.isArray(allImages) ? allImages : [];
-      return {
-        ...pg,
-        images,
-        image: images[0]?.url ?? null,
-        ratingData,
-      };
-    })
-  );
+  const data = (pgResponse.data || []).map((pg) => {
+    const images = Array.isArray(pg.images) ? pg.images : [];
+    return {
+      ...pg,
+      images,
+      image: images[0]?.url ?? null,
+      ratingData: {
+        avg: pg.avgRating ?? 0,
+        count: pg.reviewCount ?? 0,
+      },
+    };
+  });
 
   return (
     <div className="bg-white min-h-screen">
